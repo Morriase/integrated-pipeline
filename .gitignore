@@ -1,0 +1,38 @@
+# Build artifacts
+cpp_bridge/build/_deps/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Model outputs (large files, regenerated during training)
+Model_output/
+*.pkl
+*.pth
+*.onnx
+*.pt
+*.keras
+*.h5
+
+# Feature scalers (regenerated)
+feature_scaler*.csv
+feature_scaler*.pkl
+
+# Training data (large, should be in Data/ folder)
+training_data.csv
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
