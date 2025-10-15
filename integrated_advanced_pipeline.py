@@ -117,7 +117,33 @@ class IntegratedSMCSystem:
                 f"Data file not found: {data_path}\nPlease run: python Python/feature_engineering_smc_institutional.py")
 
         # Load pre-engineered data
-        df = pd.read_csv(data_path, parse_dates=['time'])
+        # Some datasets (Kaggle versions) may not include a 'time' column.
+        # Try to read with parse_dates for 'time' first, fall back if missing.
+        try:
+            df = pd.read_csv(data_path, parse_dates=['time'])
+        except ValueError as e:
+            # If 'time' missing, read without parse_dates and add a placeholder
+            if "Missing column provided to 'parse_dates': 'time'" in str(e) or "parse_dates" in str(e):
+                print("  ⚠️  'time' column not found in CSV — continuing without parse_dates.")
+                df = pd.read_csv(data_path)
+                # If there is any datetime-like column, try to coerce it to 'time'
+                datetime_cols = [c for c in df.columns if 'time' in c.lower() or 'date' in c.lower()]
+                if datetime_cols:
+                    col = datetime_cols[0]
+                    try:
+                        df['time'] = pd.to_datetime(df[col])
+                        print(f"  ℹ️  Coerced column '{col}' to 'time'.")
+                    except Exception:
+                        # If coercion fails, create a placeholder incremental time index
+                        df['time'] = pd.date_range(start='1970-01-01', periods=len(df), freq='T')
+                        print("  ℹ️  Could not parse datetime column; added placeholder 'time' index.")
+                else:
+                    # No obvious datetime column — add placeholder time index
+                    df['time'] = pd.date_range(start='1970-01-01', periods=len(df), freq='T')
+                    print("  ℹ️  No datetime-like column found; added placeholder 'time' index.")
+            else:
+                # Re-raise unexpected ValueErrors
+                raise
         print(f"✓ Loaded {len(df):,} regime-filtered samples from {data_path}")
 
         # Show data statistics
