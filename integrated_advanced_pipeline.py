@@ -64,8 +64,42 @@ class IntegratedSMCSystem:
 
         all_labels = []
 
-        for symbol in df['symbol'].unique():
-            symbol_df = df[df['symbol'] == symbol].copy()
+        if 'symbol' in df.columns:
+            # Process each symbol separately
+            for symbol in df['symbol'].unique():
+                symbol_df = df[df['symbol'] == symbol].copy()
+                symbol_labels = np.zeros(len(symbol_df), dtype=np.int64)
+
+                for i in range(len(symbol_df) - lookforward):
+                    current_close = symbol_df['close'].iloc[i]
+                    current_atr = symbol_df['ATR'].iloc[i]
+
+                    if pd.isna(current_atr) or current_atr == 0:
+                        continue
+
+                    # Look forward
+                    future_window = symbol_df['close'].iloc[i+1:i+lookforward+1]
+
+                    if len(future_window) == 0:
+                        continue
+
+                    # Calculate max gain and max loss in ATR terms
+                    max_gain = (future_window.max() - current_close) / current_atr
+                    max_loss = (current_close - future_window.min()) / current_atr
+
+                    # Label based on threshold
+                    if max_gain > threshold_pct and max_gain > max_loss:
+                        symbol_labels[i] = 1  # BUY
+                    elif max_loss > threshold_pct and max_loss > max_gain:
+                        symbol_labels[i] = -1  # SELL
+                    else:
+                        symbol_labels[i] = 0  # HOLD
+
+                all_labels.append(symbol_labels)
+        else:
+            # No symbol column - treat entire dataset as one symbol
+            print("  ⚠️  No 'symbol' column found - processing as single symbol dataset")
+            symbol_df = df.copy()
             symbol_labels = np.zeros(len(symbol_df), dtype=np.int64)
 
             for i in range(len(symbol_df) - lookforward):
@@ -122,7 +156,10 @@ class IntegratedSMCSystem:
 
         # Show data statistics
         print(f"\n📊 Dataset Statistics:")
-        print(f"  Symbols: {df['symbol'].nunique()} unique")
+        if 'symbol' in df.columns:
+            print(f"  Symbols: {df['symbol'].nunique()} unique")
+        else:
+            print(f"  Symbols: Column 'symbol' not found in dataset")
         print(f"  Time range: {df['time'].min()} to {df['time'].max()}")
 
         # Count SMC structures
@@ -169,11 +206,16 @@ class IntegratedSMCSystem:
         features = df[feature_columns].values
 
         # Extract symbol list
-        symbols = df['symbol'].values.tolist()
+        if 'symbol' in df.columns:
+            symbols = df['symbol'].values.tolist()
+        else:
+            # No symbol column - create default symbol list
+            symbols = ['UNKNOWN'] * len(df)
+            print(f"  ⚠️  No 'symbol' column found - using default symbol 'UNKNOWN'")
 
         print(f"\n✅ INSTITUTIONAL FEATURES LOADED")
         print(f"   Features: {features.shape}")
-        print(f"   Labels: {len(labels):,}")
+        print(f"   Labels: {len(labels):,} symbols")
         print(f"   Symbols: {len(set(symbols))} unique pairs")
         print("="*70)
 
