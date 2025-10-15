@@ -675,7 +675,7 @@ def main():
     # Configuration
     config = {
         # Hard-coded for Kaggle environment
-        'data_path': '/kaggle/input/training-data/Data/mt5_features_institutional_regime_filtered.csv',
+        'data_path': '/kaggle/input/training-data-revised/Data/mt5_features_institutional_regime_filtered.csv',
         'sequence_length': 20,
         'prediction_horizon': 8,
         # Output models under /kaggle/working/models
