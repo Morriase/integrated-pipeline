@@ -678,8 +678,8 @@ def main():
         'data_path': '/kaggle/input/training-data-revised/Data/mt5_features_institutional_regime_filtered.csv',
         'sequence_length': 20,
         'prediction_horizon': 8,
-        # Output models under /kaggle/working/models
-        'save_path': Path('/kaggle/working/models')
+        # Output models under /kaggle/working/Data
+        'save_path': Path('/kaggle/working/Data')
     }
 
     print(f"\n📁 Environment Detection:")
