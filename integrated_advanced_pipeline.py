@@ -794,7 +794,29 @@ def main():
     print("GENERATING LEARNING CURVES")
     print("="*60)
 
-    integrate_learning_curves(base_models, ensemble_weights)
+    # Combine base and temporal models for learning curve plotting
+    combined_model_results = {}
+    combined_model_results.update(base_models)
+
+    # Add temporal models in the expected format
+    for model_name, model_info in temporal_models.items():
+        # Create history format expected by learning curve plotter
+        results = model_info['results']
+        history = {
+            'loss': results['train_losses'],
+            'val_loss': results['val_losses'],
+            'accuracy': results['val_accuracies'],  # Use validation accuracies as accuracy
+            'val_accuracy': results['val_accuracies']
+        }
+
+        combined_model_results[model_name] = {
+            'model': model_info['model'],
+            'type': 'neural_network',  # Temporal models are neural networks
+            'accuracy': model_info['results']['best_val_accuracy'],
+            'history': history
+        }
+
+    integrate_learning_curves(combined_model_results, ensemble_weights)
 
     # Run temporal validation
     print("\n" + "="*60)
