@@ -506,6 +506,9 @@ class EnsembleManager:
             if model_info['type'] == 'neural_network':
                 torch.save(model_info['model'].state_dict(),
                            save_path / f'{model_name}_state_dict.pth')
+            elif model_info['type'] == 'temporal':
+                torch.save(model_info['model'].state_dict(),
+                           save_path / f'{model_name}_state_dict.pth')
             else:
                 with open(save_path / f'{model_name}_sklearn.pkl', 'wb') as f:
                     pickle.dump(model_info['model'], f)
