@@ -717,7 +717,7 @@ def main():
     # Configuration
     config = {
         # Hard-coded for Kaggle environment
-        'data_path': '/kaggle/input/training-data-revised/Data/mt5_features_institutional_regime_filtered.csv',
+        'data_path': '/kaggle/input/best-training-dataset/training data/mt5_features_institutional_regime_filtered.csv',
         'sequence_length': 20,
         'prediction_horizon': 8,
         # Output models under /kaggle/working/Data
@@ -802,11 +802,12 @@ def main():
     for model_name, model_info in temporal_models.items():
         # Create history format expected by learning curve plotter
         results = model_info['results']
+        # For temporal models, we don't have train_acc, so we'll use val_accuracies for both
         history = {
-            'loss': results['train_losses'],
+            'train_loss': results['train_losses'],
             'val_loss': results['val_losses'],
-            'accuracy': results['val_accuracies'],  # Use validation accuracies as accuracy
-            'val_accuracy': results['val_accuracies']
+            'train_acc': results['val_accuracies'],  # Use val accuracies as proxy for train
+            'val_acc': results['val_accuracies']
         }
 
         combined_model_results[model_name] = {
