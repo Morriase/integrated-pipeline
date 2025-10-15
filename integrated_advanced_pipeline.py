@@ -674,10 +674,12 @@ def main():
 
     # Configuration
     config = {
-        'data_path': str(project_root / 'Data' / 'mt5_features_institutional_regime_filtered.csv'),
+        # Hard-coded for Kaggle environment
+        'data_path': '/kaggle/input/training-data/Data/mt5_features_institutional_regime_filtered.csv',
         'sequence_length': 20,
         'prediction_horizon': 8,
-        'save_path': script_dir / 'Model_output'
+        # Output models under /kaggle/working/models
+        'save_path': Path('/kaggle/working/models')
     }
 
     print(f"\n📁 Environment Detection:")
