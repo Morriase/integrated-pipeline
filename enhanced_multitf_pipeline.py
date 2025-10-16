@@ -531,20 +531,37 @@ def standardize_features(features: np.ndarray) -> Tuple[np.ndarray, np.ndarray, 
 
 
 def train_enhanced_model(features: np.ndarray, labels: np.ndarray,
-                         epochs: int = 60, batch_size: int = 256,
-                         lr: float = 1e-3, seed: int = 42) -> Tuple[EnhancedSMC_MLP, float, float]:
+                         epochs: int = 60, batch_size: int = 512,
+                         lr: float = 1e-3, seed: int = 42, use_amp: bool = True) -> Tuple[EnhancedSMC_MLP, float, float]:
     """
     Train the enhanced multi-timeframe SMC model
+    
+    GPU OPTIMIZATIONS:
+    - Larger batch size (512 for GPU)
+    - Mixed precision training (AMP)
+    - Non-blocking transfers
+    - Pinned memory
     """
     torch.manual_seed(seed)
     np.random.seed(seed)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Training on device: {device}")
+    if device.type == 'cuda':
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+        print(f"Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+        torch.backends.cudnn.benchmark = True  # Optimize for fixed input sizes
 
-    # Convert to tensors
-    X = torch.tensor(features, dtype=torch.float32, device=device)
-    y = torch.tensor(labels, dtype=torch.long, device=device)
+    # Convert to tensors with pinned memory for faster GPU transfer
+    X = torch.tensor(features, dtype=torch.float32)
+    y = torch.tensor(labels, dtype=torch.long)
+    
+    if device.type == 'cuda':
+        X = X.pin_memory().to(device, non_blocking=True)
+        y = y.pin_memory().to(device, non_blocking=True)
+    else:
+        X = X.to(device)
+        y = y.to(device)
 
     # Initialize model
     model = EnhancedSMC_MLP(
@@ -582,6 +599,9 @@ def train_enhanced_model(features: np.ndarray, labels: np.ndarray,
 
     best_val_loss = float('inf')
     patience_counter = 0
+    
+    # Mixed precision scaler for GPU
+    scaler = torch.cuda.amp.GradScaler() if use_amp and device.type == 'cuda' else None
 
     for epoch in range(epochs):
         # Training phase
@@ -599,14 +619,24 @@ def train_enhanced_model(features: np.ndarray, labels: np.ndarray,
             batch_y = y_train_shuf[i:i+batch_size]
 
             optimizer.zero_grad()
-            logits = model(batch_X)
-            loss = criterion(logits, batch_y)
-            loss.backward()
-
-            # Gradient clipping for stability
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-
-            optimizer.step()
+            
+            # Mixed precision training
+            if scaler is not None:
+                with torch.cuda.amp.autocast():
+                    logits = model(batch_X)
+                    loss = criterion(logits, batch_y)
+                
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                logits = model(batch_X)
+                loss = criterion(logits, batch_y)
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
 
             train_loss += loss.item()
             train_correct += (logits.argmax(dim=1) == batch_y).sum().item()
@@ -621,8 +651,14 @@ def train_enhanced_model(features: np.ndarray, labels: np.ndarray,
                 batch_X = X_val[i:i+batch_size]
                 batch_y = y_val[i:i+batch_size]
 
-                logits = model(batch_X)
-                loss = criterion(logits, batch_y)
+                # Use AMP for validation too
+                if scaler is not None:
+                    with torch.cuda.amp.autocast():
+                        logits = model(batch_X)
+                        loss = criterion(logits, batch_y)
+                else:
+                    logits = model(batch_X)
+                    loss = criterion(logits, batch_y)
 
                 val_loss += loss.item()
                 val_correct += (logits.argmax(dim=1) == batch_y).sum().item()

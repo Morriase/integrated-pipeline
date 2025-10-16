@@ -331,6 +331,11 @@ class IntegratedSMCSystem:
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"Training on device: {device}")
+        
+        if device.type == 'cuda':
+            print(f"GPU: {torch.cuda.get_device_name(0)}")
+            print(f"Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+            torch.backends.cudnn.benchmark = True  # Optimize for fixed input sizes
 
         # Prepare data loaders
         from torch.utils.data import DataLoader, TensorDataset
@@ -347,8 +352,23 @@ class IntegratedSMCSystem:
             torch.tensor(temporal_data['val']['labels'], dtype=torch.long)
         )
 
-        train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=128, shuffle=False)
+        # GPU-optimized data loaders
+        train_loader = DataLoader(
+            train_dataset, 
+            batch_size=256,  # Larger batch for GPU
+            shuffle=True,
+            num_workers=2,
+            pin_memory=True,
+            persistent_workers=True
+        )
+        val_loader = DataLoader(
+            val_dataset, 
+            batch_size=256,
+            shuffle=False,
+            num_workers=2,
+            pin_memory=True,
+            persistent_workers=True
+        )
 
         # Model configurations
         input_dim = temporal_data['train']['sequences'].shape[2]
@@ -363,13 +383,13 @@ class IntegratedSMCSystem:
             hidden_dim=128,
             num_layers=2,
             num_classes=num_classes,
-            dropout=0.3,
+            dropout=0.4,  # Increased for better regularization
             bidirectional=True
         )
 
         lstm_results = train_temporal_model(
             lstm_model, train_loader, val_loader,
-            epochs=50, lr=1e-3, device=device
+            epochs=50, lr=5e-4, device=device, use_amp=True
         )
 
         temporal_models['lstm'] = {
@@ -387,14 +407,14 @@ class IntegratedSMCSystem:
             input_dim=input_dim,
             d_model=128,
             nhead=8,
-            num_layers=4,
+            num_layers=3,  # Reduced from 4
             num_classes=num_classes,
-            dropout=0.1
+            dropout=0.2  # Increased from 0.1
         )
 
         transformer_results = train_temporal_model(
             transformer_model, train_loader, val_loader,
-            epochs=50, lr=1e-3, device=device
+            epochs=50, lr=3e-4, device=device, use_amp=True
         )
 
         temporal_models['transformer'] = {

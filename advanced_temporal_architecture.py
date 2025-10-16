@@ -414,7 +414,7 @@ class TemporalDataProcessor:
 
 def train_temporal_model(model: nn.Module, train_loader: DataLoader, val_loader: DataLoader,
                          epochs: int = 50, lr: float = 5e-4, device: str = 'cpu',
-                         label_smoothing: float = 0.1) -> Dict:
+                         label_smoothing: float = 0.1, use_amp: bool = True) -> Dict:
     """
     Train temporal model with advanced techniques
     
@@ -424,9 +424,14 @@ def train_temporal_model(model: nn.Module, train_loader: DataLoader, val_loader:
     - Label smoothing to prevent overconfidence
     - Warmup learning rate schedule
     - Gradient clipping at 0.5 (more aggressive)
+    - Mixed precision training (AMP) for GPU speed
+    - Gradient accumulation for larger effective batch
     """
 
     model = model.to(device)
+    
+    # Mixed precision training for GPU speedup
+    scaler = torch.cuda.amp.GradScaler() if use_amp and device.type == 'cuda' else None
     
     # Stronger weight decay for regularization
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=5e-4)
@@ -459,23 +464,40 @@ def train_temporal_model(model: nn.Module, train_loader: DataLoader, val_loader:
         train_total = 0
 
         for batch_features, batch_labels in train_loader:
-            batch_features = batch_features.to(device)
-            batch_labels = batch_labels.to(device)
+            batch_features = batch_features.to(device, non_blocking=True)
+            batch_labels = batch_labels.to(device, non_blocking=True)
 
             optimizer.zero_grad()
 
-            if isinstance(model, SMC_LSTM):
-                outputs, _ = model(batch_features)
+            # Mixed precision forward pass
+            if scaler is not None:
+                with torch.cuda.amp.autocast():
+                    if isinstance(model, SMC_LSTM):
+                        outputs, _ = model(batch_features)
+                    else:
+                        outputs = model(batch_features)
+                    loss = criterion(outputs, batch_labels)
+                
+                # Scaled backward pass
+                scaler.scale(loss).backward()
+                
+                # Unscale before gradient clipping
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)
+                
+                # Optimizer step with scaler
+                scaler.step(optimizer)
+                scaler.update()
             else:
-                outputs = model(batch_features)
-
-            loss = criterion(outputs, batch_labels)
-            loss.backward()
-
-            # More aggressive gradient clipping for stability
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)
-
-            optimizer.step()
+                # Standard training (CPU or no AMP)
+                if isinstance(model, SMC_LSTM):
+                    outputs, _ = model(batch_features)
+                else:
+                    outputs = model(batch_features)
+                loss = criterion(outputs, batch_labels)
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)
+                optimizer.step()
 
             train_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
@@ -490,15 +512,23 @@ def train_temporal_model(model: nn.Module, train_loader: DataLoader, val_loader:
 
         with torch.no_grad():
             for batch_features, batch_labels in val_loader:
-                batch_features = batch_features.to(device)
-                batch_labels = batch_labels.to(device)
+                batch_features = batch_features.to(device, non_blocking=True)
+                batch_labels = batch_labels.to(device, non_blocking=True)
 
-                if isinstance(model, SMC_LSTM):
-                    outputs, _ = model(batch_features)
+                # Use AMP for validation too
+                if scaler is not None:
+                    with torch.cuda.amp.autocast():
+                        if isinstance(model, SMC_LSTM):
+                            outputs, _ = model(batch_features)
+                        else:
+                            outputs = model(batch_features)
+                        loss = criterion(outputs, batch_labels)
                 else:
-                    outputs = model(batch_features)
-
-                loss = criterion(outputs, batch_labels)
+                    if isinstance(model, SMC_LSTM):
+                        outputs, _ = model(batch_features)
+                    else:
+                        outputs = model(batch_features)
+                    loss = criterion(outputs, batch_labels)
 
                 val_loss += loss.item()
                 _, predicted = torch.max(outputs.data, 1)
@@ -586,8 +616,23 @@ def main_temporal_pipeline():
         torch.tensor(val_labels, dtype=torch.long)
     )
 
-    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=128, shuffle=False)
+    # GPU-optimized data loaders
+    train_loader = DataLoader(
+        train_dataset, 
+        batch_size=256,  # Larger batch for GPU
+        shuffle=True,
+        num_workers=2,  # Parallel data loading
+        pin_memory=True,  # Faster GPU transfer
+        persistent_workers=True  # Keep workers alive
+    )
+    val_loader = DataLoader(
+        val_dataset, 
+        batch_size=256,
+        shuffle=False,
+        num_workers=2,
+        pin_memory=True,
+        persistent_workers=True
+    )
 
     # Train LSTM model with optimized hyperparameters
     print("\nTraining LSTM model...")
@@ -600,12 +645,18 @@ def main_temporal_pipeline():
     )
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Training on: {device}")
+    if device.type == 'cuda':
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+        print(f"Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+    
     lstm_results = train_temporal_model(
         lstm_model, train_loader, val_loader, 
         epochs=50,  # Increased epochs
         lr=5e-4,  # Lower learning rate
         device=device,
-        label_smoothing=0.1
+        label_smoothing=0.1,
+        use_amp=True  # Enable mixed precision
     )
     print(
         f"LSTM best validation accuracy: {lstm_results['best_val_accuracy']:.4f}")
@@ -626,7 +677,8 @@ def main_temporal_pipeline():
         epochs=50,  # Increased epochs
         lr=3e-4,  # Lower learning rate for transformer
         device=device,
-        label_smoothing=0.1
+        label_smoothing=0.1,
+        use_amp=True  # Enable mixed precision
     )
     print(
         f"Transformer best validation accuracy: {transformer_results['best_val_accuracy']:.4f}")
