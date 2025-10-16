@@ -304,7 +304,7 @@ class EnsembleManager:
                         # Ensure directory exists before saving
                         save_path = "Python/Model_output/gradient_boosting.txt"
                         os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                        
+
                         model.booster_.save_model(save_path)
                         print(f"→ LightGBM model saved to {save_path}")
                     except Exception as e:
@@ -359,10 +359,10 @@ class EnsembleManager:
             if model_info['type'] == 'neural_network':
                 model = model_info['model']
                 model.eval()
-                
+
                 # Get the device the model is on
                 device = next(model.parameters()).device
-                
+
                 with torch.no_grad():
                     X_tensor = torch.tensor(
                         val_features_norm, dtype=torch.float32, device=device)
@@ -371,13 +371,14 @@ class EnsembleManager:
                     probs = torch.softmax(logits, dim=1).cpu().numpy()
             else:
                 model = model_info['model']
-                
+
                 # Use numpy arrays directly (models were trained with numpy arrays)
                 # Suppress sklearn feature name warnings
                 import warnings
                 with warnings.catch_warnings():
-                    warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
-                    
+                    warnings.filterwarnings(
+                        'ignore', category=UserWarning, module='sklearn')
+
                     preds = model.predict(val_features_norm)
                     probs = model.predict_proba(val_features_norm)
 
@@ -415,23 +416,25 @@ class EnsembleManager:
             if model_info['type'] == 'neural_network':
                 model = model_info['model']
                 model.eval()
-                
+
                 # Get the device the model is on
                 device = next(model.parameters()).device
-                
+
                 with torch.no_grad():
-                    X_tensor = torch.tensor(features_norm, dtype=torch.float32, device=device)
+                    X_tensor = torch.tensor(
+                        features_norm, dtype=torch.float32, device=device)
                     logits = model(X_tensor)
                     probs = torch.softmax(logits, dim=1).cpu().numpy()
             else:
                 model = model_info['model']
-                
+
                 # Use numpy arrays directly (models were trained with numpy arrays)
                 # Suppress sklearn feature name warnings
                 import warnings
                 with warnings.catch_warnings():
-                    warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
-                    
+                    warnings.filterwarnings(
+                        'ignore', category=UserWarning, module='sklearn')
+
                     probs = model.predict_proba(features_norm)
 
             all_probs.append(probs)

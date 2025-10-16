@@ -78,14 +78,17 @@ class IntegratedSMCSystem:
                         continue
 
                     # Look forward
-                    future_window = symbol_df['close'].iloc[i+1:i+lookforward+1]
+                    future_window = symbol_df['close'].iloc[i +
+                                                            1:i+lookforward+1]
 
                     if len(future_window) == 0:
                         continue
 
                     # Calculate max gain and max loss in ATR terms
-                    max_gain = (future_window.max() - current_close) / current_atr
-                    max_loss = (current_close - future_window.min()) / current_atr
+                    max_gain = (future_window.max() -
+                                current_close) / current_atr
+                    max_loss = (current_close -
+                                future_window.min()) / current_atr
 
                     # Label based on threshold
                     if max_gain > threshold_pct and max_gain > max_loss:
@@ -806,7 +809,8 @@ def main():
         history = {
             'train_loss': results['train_losses'],
             'val_loss': results['val_losses'],
-            'train_acc': results['val_accuracies'],  # Use val accuracies as proxy for train
+            # Use val accuracies as proxy for train
+            'train_acc': results['val_accuracies'],
             'val_acc': results['val_accuracies']
         }
 

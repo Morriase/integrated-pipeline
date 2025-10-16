@@ -47,10 +47,16 @@ class SMC_LSTM(nn.Module):
     """
     LSTM-based architecture for temporal SMC pattern recognition
     Captures sequential dependencies in market structure
+    
+    OPTIMIZATIONS:
+    - Layer normalization instead of batch norm for better stability
+    - Increased dropout for regularization
+    - Weight decay in optimizer (handled externally)
+    - Gradient clipping (handled in training loop)
     """
 
     def __init__(self, input_dim: int, hidden_dim: int = 128, num_layers: int = 2,
-                 num_classes: int = 3, dropout: float = 0.3, bidirectional: bool = True):
+                 num_classes: int = 3, dropout: float = 0.4, bidirectional: bool = True):
         super().__init__()
 
         self.input_dim = input_dim
@@ -58,10 +64,10 @@ class SMC_LSTM(nn.Module):
         self.num_layers = num_layers
         self.bidirectional = bidirectional
 
-        # Input normalization
-        self.input_norm = nn.BatchNorm1d(input_dim)
+        # Layer normalization (more stable than batch norm for sequences)
+        self.input_norm = nn.LayerNorm(input_dim)
 
-        # LSTM layers
+        # LSTM layers with increased dropout
         self.lstm = nn.LSTM(
             input_size=input_dim,
             hidden_size=hidden_dim,
@@ -74,19 +80,25 @@ class SMC_LSTM(nn.Module):
         # Calculate LSTM output dimension
         lstm_output_dim = hidden_dim * 2 if bidirectional else hidden_dim
 
+        # Layer norm after LSTM
+        self.lstm_norm = nn.LayerNorm(lstm_output_dim)
+
         # Attention mechanism for sequence weighting
         self.attention = nn.Sequential(
             nn.Linear(lstm_output_dim, lstm_output_dim // 2),
             nn.Tanh(),
+            nn.Dropout(dropout * 0.5),  # Light dropout in attention
             nn.Linear(lstm_output_dim // 2, 1),
             nn.Softmax(dim=1)
         )
 
-        # Classification head
+        # Classification head with stronger regularization
         self.classifier = nn.Sequential(
+            nn.LayerNorm(lstm_output_dim),
             nn.Dropout(dropout),
             nn.Linear(lstm_output_dim, lstm_output_dim // 2),
             nn.ReLU(),
+            nn.LayerNorm(lstm_output_dim // 2),
             nn.Dropout(dropout),
             nn.Linear(lstm_output_dim // 2, num_classes)
         )
@@ -102,17 +114,24 @@ class SMC_LSTM(nn.Module):
                 nn.init.orthogonal_(param.data)
             elif 'bias' in name:
                 param.data.fill_(0)
+        
+        # Initialize classifier layers
+        for m in self.classifier.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight)
+                nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         batch_size, seq_len, features = x.shape
 
-        # Normalize input features
-        x_norm = x.view(-1, features)
-        x_norm = self.input_norm(x_norm)
-        x_norm = x_norm.view(batch_size, seq_len, features)
+        # Layer normalization (works on last dimension)
+        x_norm = self.input_norm(x)
 
         # LSTM forward pass
         lstm_out, (hidden, cell) = self.lstm(x_norm)
+        
+        # Normalize LSTM output
+        lstm_out = self.lstm_norm(lstm_out)
 
         # Apply attention mechanism
         attention_weights = self.attention(lstm_out)
@@ -128,48 +147,71 @@ class SMC_Transformer(nn.Module):
     """
     Transformer-based architecture for SMC pattern recognition
     Uses self-attention to capture complex temporal relationships
+    
+    OPTIMIZATIONS:
+    - Increased dropout for better regularization
+    - Pre-LayerNorm architecture for training stability
+    - Reduced number of layers to prevent overfitting
+    - Label smoothing in loss (handled externally)
     """
 
     def __init__(self, input_dim: int, d_model: int = 128, nhead: int = 8,
-                 num_layers: int = 4, num_classes: int = 3, dropout: float = 0.1):
+                 num_layers: int = 3, num_classes: int = 3, dropout: float = 0.2):
         super().__init__()
 
         self.input_dim = input_dim
         self.d_model = d_model
 
-        # Input projection
-        self.input_projection = nn.Linear(input_dim, d_model)
+        # Input projection with layer norm
+        self.input_projection = nn.Sequential(
+            nn.Linear(input_dim, d_model),
+            nn.LayerNorm(d_model),
+            nn.Dropout(dropout * 0.5)
+        )
 
         # Positional encoding
         self.pos_encoder = PositionalEncoding(d_model)
 
-        # Transformer encoder
+        # Transformer encoder with Pre-LN architecture
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,
             nhead=nhead,
             dim_feedforward=d_model * 4,
             dropout=dropout,
             activation='gelu',
-            batch_first=True
+            batch_first=True,
+            norm_first=True  # Pre-LN for better stability
         )
 
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer,
-            num_layers=num_layers
+            num_layers=num_layers,
+            norm=nn.LayerNorm(d_model)  # Final layer norm
         )
 
         # Global average pooling
         self.global_pool = nn.AdaptiveAvgPool1d(1)
 
-        # Classification head
+        # Classification head with stronger regularization
         self.classifier = nn.Sequential(
             nn.LayerNorm(d_model),
             nn.Dropout(dropout),
             nn.Linear(d_model, d_model // 2),
             nn.GELU(),
+            nn.LayerNorm(d_model // 2),
             nn.Dropout(dropout),
             nn.Linear(d_model // 2, num_classes)
         )
+        
+        self._initialize_weights()
+    
+    def _initialize_weights(self):
+        """Initialize weights with smaller values for stability"""
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=0.5)  # Smaller gain
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         batch_size, seq_len, features = x.shape
@@ -371,16 +413,35 @@ class TemporalDataProcessor:
 
 
 def train_temporal_model(model: nn.Module, train_loader: DataLoader, val_loader: DataLoader,
-                         epochs: int = 50, lr: float = 1e-3, device: str = 'cpu') -> Dict:
+                         epochs: int = 50, lr: float = 5e-4, device: str = 'cpu',
+                         label_smoothing: float = 0.1) -> Dict:
     """
     Train temporal model with advanced techniques
+    
+    OPTIMIZATIONS:
+    - Lower learning rate (5e-4 instead of 1e-3)
+    - Increased weight decay for regularization
+    - Label smoothing to prevent overconfidence
+    - Warmup learning rate schedule
+    - Gradient clipping at 0.5 (more aggressive)
     """
 
     model = model.to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
-    scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(
-        optimizer, T_0=10, T_mult=2)
-    criterion = nn.CrossEntropyLoss()
+    
+    # Stronger weight decay for regularization
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=5e-4)
+    
+    # Warmup + Cosine Annealing schedule
+    warmup_epochs = 5
+    def lr_lambda(epoch):
+        if epoch < warmup_epochs:
+            return (epoch + 1) / warmup_epochs
+        return 0.5 * (1 + np.cos(np.pi * (epoch - warmup_epochs) / (epochs - warmup_epochs)))
+    
+    scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+    
+    # Label smoothing for better generalization
+    criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
 
     train_losses = []
     val_losses = []
@@ -411,8 +472,8 @@ def train_temporal_model(model: nn.Module, train_loader: DataLoader, val_loader:
             loss = criterion(outputs, batch_labels)
             loss.backward()
 
-            # Gradient clipping
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            # More aggressive gradient clipping for stability
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)
 
             optimizer.step()
 
@@ -528,33 +589,45 @@ def main_temporal_pipeline():
     train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=128, shuffle=False)
 
-    # Train LSTM model
+    # Train LSTM model with optimized hyperparameters
     print("\nTraining LSTM model...")
     lstm_model = SMC_LSTM(
         input_dim=sequences.shape[2],
         hidden_dim=128,
         num_layers=2,
         num_classes=len(np.unique(labels)),
-        dropout=0.3
+        dropout=0.4  # Increased from 0.3
     )
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     lstm_results = train_temporal_model(
-        lstm_model, train_loader, val_loader, epochs=30)
+        lstm_model, train_loader, val_loader, 
+        epochs=50,  # Increased epochs
+        lr=5e-4,  # Lower learning rate
+        device=device,
+        label_smoothing=0.1
+    )
     print(
         f"LSTM best validation accuracy: {lstm_results['best_val_accuracy']:.4f}")
 
-    # Train Transformer model
+    # Train Transformer model with optimized hyperparameters
     print("\nTraining Transformer model...")
     transformer_model = SMC_Transformer(
         input_dim=sequences.shape[2],
         d_model=128,
         nhead=8,
-        num_layers=4,
-        num_classes=len(np.unique(labels))
+        num_layers=3,  # Reduced from 4
+        num_classes=len(np.unique(labels)),
+        dropout=0.2  # Increased from 0.1
     )
 
     transformer_results = train_temporal_model(
-        transformer_model, train_loader, val_loader, epochs=30)
+        transformer_model, train_loader, val_loader,
+        epochs=50,  # Increased epochs
+        lr=3e-4,  # Lower learning rate for transformer
+        device=device,
+        label_smoothing=0.1
+    )
     print(
         f"Transformer best validation accuracy: {transformer_results['best_val_accuracy']:.4f}")
 

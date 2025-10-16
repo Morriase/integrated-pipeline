@@ -9,6 +9,7 @@ import zipfile
 import shutil
 from pathlib import Path
 
+
 def create_kaggle_upload_package():
     """Create a zip package with all files needed for Kaggle training"""
 
@@ -65,6 +66,7 @@ def create_kaggle_upload_package():
     print("   and extract it to your local Model_output folder")
     return True
 
+
 def verify_package_contents():
     """Verify the contents of the created package"""
     zip_filename = 'kaggle_upload_package.zip'
@@ -77,6 +79,7 @@ def verify_package_contents():
     with zipfile.ZipFile(zip_filename, 'r') as zipf:
         for file in sorted(zipf.namelist()):
             print(f"  - {file}")
+
 
 if __name__ == "__main__":
     print("🚀 Kaggle Upload Preparation")

@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+
 class ProperModelServer:
     """
     REST API server that properly utilizes all trained models
@@ -64,82 +65,92 @@ class ProperModelServer:
     def _load_models(self):
         """Load all trained models with proper typing"""
         logger.info("Loading trained models...")
+        logger.info(f"Current working directory: {Path.cwd()}")
+        logger.info(f"Model directory: {self.model_dir}")
+        logger.info(f"Model directory exists: {self.model_dir.exists()}")
+        logger.info(f"Model directory absolute: {self.model_dir.absolute()}")
 
         # Load base models (neural networks and sklearn)
         ensemble_dir = self.model_dir / "ensemble"
         deployment_dir = self.model_dir / "deployment"
 
-        # Load PyTorch models (TorchScript from deployment)
+        logger.info(f"Deployment directory: {deployment_dir}")
+        logger.info(f"Deployment directory exists: {deployment_dir.exists()}")
+        if deployment_dir.exists():
+            logger.info(
+                f"Files in deployment dir: {list(deployment_dir.glob('*'))}")
+
+        # Load PyTorch models (TorchScript from deployment) - exclude temporal models
         pytorch_models = {}
         if TORCH_AVAILABLE:
             for model_file in deployment_dir.glob("*.pt"):
                 try:
                     model_name = model_file.stem
+                    # Skip temporal models (LSTM, transformer) as they are loaded separately
+                    if model_name in ['lstm', 'transformer']:
+                        continue
                     model = torch.jit.load(model_file, map_location='cpu')
                     model.eval()
                     pytorch_models[model_name] = model
                     logger.info(f"✅ Loaded PyTorch model: {model_name}")
                 except Exception as e:
-                    logger.warning(f"Failed to load PyTorch model {model_file}: {e}")
+                    logger.warning(
+                        f"Failed to load PyTorch model {model_file}: {e}")
         else:
-            logger.warning("⚠️ PyTorch not available - skipping PyTorch model loading")
+            logger.warning(
+                "⚠️ PyTorch not available - skipping PyTorch model loading")
 
-        # Load sklearn models
+        # Load sklearn models (exclude scalers which are loaded separately)
         sklearn_models = {}
         for model_file in deployment_dir.glob("*.pkl"):
+            model_name = model_file.stem
+            # Skip feature_scalers.pkl as it's loaded separately
+            if "feature_scalers" in model_name:
+                continue
             try:
-                model_name = model_file.stem
                 with open(model_file, 'rb') as f:
                     model = pickle.load(f)
                 sklearn_models[model_name] = model
                 logger.info(f"✅ Loaded sklearn model: {model_name}")
             except Exception as e:
-                logger.warning(f"Failed to load sklearn model {model_file}: {e}")
+                logger.warning(
+                    f"Failed to load sklearn model {model_file}: {e}")
 
-        # Load temporal models (LSTM and Transformer)
+        # Load temporal models (LSTM and Transformer) from deployment as TorchScript
         temporal_models = {}
-        if TORCH_AVAILABLE and TEMPORAL_MODELS_AVAILABLE:
-            for model_file in ensemble_dir.glob("*_state_dict.pth"):
+        if TORCH_AVAILABLE:
+            # Load LSTM
+            lstm_path = deployment_dir / "lstm.pt"
+            if lstm_path.exists():
                 try:
-                    model_name = model_file.stem.replace('_state_dict', '')
-                    state_dict = torch.load(model_file, map_location='cpu')
-
-                    if 'lstm' in model_name.lower():
-                        # Load SMC_LSTM model
-                        model = SMC_LSTM(
-                            input_dim=29,  # From training configuration
-                            hidden_dim=128,
-                            num_layers=2,
-                            num_classes=3,
-                            dropout=0.3,
-                            bidirectional=True
-                        )
-                        model.load_state_dict(state_dict)
-                        model.eval()
-                        temporal_models[model_name] = {'model': model, 'type': 'lstm'}
-                        logger.info(f"✅ Loaded LSTM model: {model_name}")
-
-                    elif 'transformer' in model_name.lower():
-                        # Load SMC_Transformer model
-                        model = SMC_Transformer(
-                            input_dim=29,  # From training configuration
-                            d_model=128,
-                            nhead=8,
-                            num_layers=4,
-                            num_classes=3,
-                            dropout=0.1
-                        )
-                        model.load_state_dict(state_dict)
-                        model.eval()
-                        temporal_models[model_name] = {'model': model, 'type': 'transformer'}
-                        logger.info(f"✅ Loaded Transformer model: {model_name}")
-
+                    model = torch.jit.load(lstm_path, map_location='cpu')
+                    model.eval()
+                    temporal_models['lstm'] = {
+                        'model': model, 'type': 'lstm'}
+                    logger.info("✅ Loaded LSTM TorchScript model")
                 except Exception as e:
-                    logger.warning(f"Failed to load temporal model {model_file}: {e}")
-        elif not TEMPORAL_MODELS_AVAILABLE:
-            logger.warning("⚠️ Temporal model architectures not available - temporal models disabled")
-        else:
-            logger.warning("⚠️ PyTorch not available - temporal models disabled")
+                    logger.warning(f"Failed to load LSTM model: {e}")
+
+            # Load Transformer
+            transformer_path = deployment_dir / "transformer.pt"
+            transformer_onnx_path = deployment_dir / "transformer.onnx"
+
+            if transformer_path.exists():
+                try:
+                    model = torch.jit.load(
+                        transformer_path, map_location='cpu')
+                    model.eval()
+                    temporal_models['transformer'] = {
+                        'model': model, 'type': 'transformer'}
+                    logger.info("✅ Loaded Transformer TorchScript model")
+                except Exception as e:
+                    logger.warning(f"Failed to load Transformer model: {e}")
+            elif transformer_onnx_path.exists():
+                logger.warning(
+                    "⚠️ Found transformer.onnx but expected transformer.pt (TorchScript). Skipping temporal transformer model.")
+            else:
+                logger.warning(
+                    "⚠️ No transformer model found (looked for transformer.pt)")
 
         self.models = {
             'pytorch': pytorch_models,
@@ -147,32 +158,43 @@ class ProperModelServer:
             'temporal': temporal_models
         }
 
-        logger.info(f"Loaded {len(pytorch_models)} PyTorch, {len(sklearn_models)} sklearn, {len(temporal_models)} temporal models")
+        logger.info(
+            f"Loaded {len(pytorch_models)} PyTorch, {len(sklearn_models)} sklearn, {len(temporal_models)} temporal models")
 
     def _load_scalers(self):
         """Load feature scalers used during training"""
         try:
-            # Try ensemble metadata first
-            metadata_path = self.model_dir / "ensemble" / "ensemble_metadata.json"
+            # Try deployment metadata first
+            metadata_path = self.model_dir / "deployment" / "feature_scalers.json"
             if metadata_path.exists():
                 with open(metadata_path, 'r') as f:
-                    metadata = json.load(f)
-                if 'feature_scalers' in metadata:
-                    from sklearn.preprocessing import StandardScaler
-                    scaler = StandardScaler()
-                    scaler.mean_ = np.array(metadata['feature_scalers']['mean'])
-                    scaler.scale_ = np.array(metadata['feature_scalers']['std'])
-                    scaler.n_features_in_ = len(scaler.mean_)
-                    self.scalers = scaler
-                    logger.info(f"✅ Loaded scalers from metadata: {len(scaler.mean_)} features")
-                    return
+                    scaler_data = json.load(f)
+                from sklearn.preprocessing import StandardScaler
+                scaler = StandardScaler()
+                scaler.mean_ = np.array(scaler_data['mean'])
+                scaler.scale_ = np.array(scaler_data['std'])
+                scaler.n_features_in_ = len(scaler.mean_)
+                self.scalers = scaler
+                logger.info(
+                    f"✅ Loaded scalers from deployment metadata: {len(scaler.mean_)} features")
+                return
 
-            # Fallback to pickle file
+            # Fallback to pickle file in deployment
+            scaler_path = self.model_dir / "deployment" / "feature_scalers.pkl"
+            if scaler_path.exists():
+                with open(scaler_path, 'rb') as f:
+                    self.scalers = pickle.load(f)
+                logger.info(
+                    f"✅ Loaded scalers from deployment pickle: {self.scalers.n_features_in_} features")
+                return
+
+            # Old fallback
             scaler_path = Path("Python/feature_scaler_29.pkl")
             if scaler_path.exists():
                 with open(scaler_path, 'rb') as f:
                     self.scalers = pickle.load(f)
-                logger.info(f"✅ Loaded scalers from pickle: {self.scalers.n_features_in_} features")
+                logger.info(
+                    f"✅ Loaded scalers from old pickle: {self.scalers.n_features_in_} features")
             else:
                 logger.warning("❌ No feature scalers found!")
 
@@ -182,13 +204,26 @@ class ProperModelServer:
     def _load_ensemble_weights(self):
         """Load ensemble weights"""
         try:
+            # Try deployment config first
+            config_path = self.model_dir / "deployment" / "ensemble_config.json"
+            if config_path.exists():
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                if 'ensemble_weights' in config:
+                    self.ensemble_weights = config['ensemble_weights']
+                    logger.info(
+                        f"✅ Loaded ensemble weights from deployment config: {len(self.ensemble_weights)} models")
+                    return
+
+            # Fallback to ensemble metadata
             metadata_path = self.model_dir / "ensemble" / "ensemble_metadata.json"
             if metadata_path.exists():
                 with open(metadata_path, 'r') as f:
                     metadata = json.load(f)
                 if 'ensemble_weights' in metadata:
                     self.ensemble_weights = metadata['ensemble_weights']
-                    logger.info(f"✅ Loaded ensemble weights: {len(self.ensemble_weights)} models")
+                    logger.info(
+                        f"✅ Loaded ensemble weights from ensemble metadata: {len(self.ensemble_weights)} models")
         except Exception as e:
             logger.error(f"Failed to load ensemble weights: {e}")
 
@@ -206,8 +241,10 @@ class ProperModelServer:
             df = df.sort_values('time').reset_index(drop=True)
 
             # Ensure we have enough data
-            if len(df) < 50:
-                raise ValueError(f"Need at least 50 bars, got {len(df)}")
+            min_bars = 100  # Need enough bars for EMA_200 calculation
+            if len(df) < min_bars:
+                raise ValueError(
+                    f"Need at least {min_bars} bars for reliable EMA_200 calculation, got {len(df)}")
 
             # Calculate ATR
             df['ATR'] = self._calculate_atr(df)
@@ -298,32 +335,38 @@ class ProperModelServer:
 
             # Bullish OB
             if (df['close'].iloc[i-1] < df['open'].iloc[i-1] and
-                df['close'].iloc[i] > df['open'].iloc[i]):
+                    df['close'].iloc[i] > df['open'].iloc[i]):
 
                 # Check for displacement
                 ob_low = df['low'].iloc[i-1]
-                future_high = df['high'].iloc[i+1:i+6].max() if i+6 < len(df) else df['high'].iloc[i]
+                future_high = df['high'].iloc[i+1:i +
+                                              6].max() if i+6 < len(df) else df['high'].iloc[i]
 
                 displacement = (future_high - ob_low) / current_atr
                 if displacement > 1.5:  # Minimum displacement
                     df.loc[df.index[i], 'OB_Bullish'] = 1
-                    df.loc[df.index[i], 'OB_Size_ATR'] = (df['high'].iloc[i-1] - ob_low) / current_atr
+                    df.loc[df.index[i], 'OB_Size_ATR'] = (
+                        df['high'].iloc[i-1] - ob_low) / current_atr
                     df.loc[df.index[i], 'OB_Displacement_ATR'] = displacement
-                    df.loc[df.index[i], 'OB_Quality_Score'] = min(displacement / 3.0, 1.0)
+                    df.loc[df.index[i], 'OB_Quality_Score'] = min(
+                        displacement / 3.0, 1.0)
 
             # Bearish OB
             elif (df['close'].iloc[i-1] > df['open'].iloc[i-1] and
                   df['close'].iloc[i] < df['open'].iloc[i]):
 
                 ob_high = df['high'].iloc[i-1]
-                future_low = df['low'].iloc[i+1:i+6].min() if i+6 < len(df) else df['low'].iloc[i]
+                future_low = df['low'].iloc[i+1:i+6].min() if i + \
+                    6 < len(df) else df['low'].iloc[i]
 
                 displacement = (ob_high - future_low) / current_atr
                 if displacement > 1.5:
                     df.loc[df.index[i], 'OB_Bearish'] = 1
-                    df.loc[df.index[i], 'OB_Size_ATR'] = (ob_high - df['low'].iloc[i-1]) / current_atr
+                    df.loc[df.index[i], 'OB_Size_ATR'] = (
+                        ob_high - df['low'].iloc[i-1]) / current_atr
                     df.loc[df.index[i], 'OB_Displacement_ATR'] = displacement
-                    df.loc[df.index[i], 'OB_Quality_Score'] = min(displacement / 3.0, 1.0)
+                    df.loc[df.index[i], 'OB_Quality_Score'] = min(
+                        displacement / 3.0, 1.0)
 
         return df
 
@@ -346,7 +389,8 @@ class ProperModelServer:
                 if gap_atr > 0.5:  # Significant gap
                     df.loc[df.index[i], 'FVG_Bullish'] = 1
                     df.loc[df.index[i], 'FVG_Depth_ATR'] = gap_atr
-                    df.loc[df.index[i], 'FVG_Quality_Score'] = min(gap_atr / 2.0, 1.0)
+                    df.loc[df.index[i], 'FVG_Quality_Score'] = min(
+                        gap_atr / 2.0, 1.0)
 
             # Bearish FVG
             elif df['high'].iloc[i] < df['low'].iloc[i-2]:
@@ -356,7 +400,8 @@ class ProperModelServer:
                 if gap_atr > 0.5:
                     df.loc[df.index[i], 'FVG_Bearish'] = 1
                     df.loc[df.index[i], 'FVG_Depth_ATR'] = gap_atr
-                    df.loc[df.index[i], 'FVG_Quality_Score'] = min(gap_atr / 2.0, 1.0)
+                    df.loc[df.index[i], 'FVG_Quality_Score'] = min(
+                        gap_atr / 2.0, 1.0)
 
         return df
 
@@ -375,14 +420,17 @@ class ProperModelServer:
             recent_highs = df['high'].iloc[i-10:i].max()
             if df['high'].iloc[i] > recent_highs:
                 df.loc[df.index[i], 'BOS_Wick_Confirm'] = 1
-                df.loc[df.index[i], 'BOS_Dist_ATR'] = (df['high'].iloc[i] - recent_highs) / current_atr
+                df.loc[df.index[i], 'BOS_Dist_ATR'] = (
+                    df['high'].iloc[i] - recent_highs) / current_atr
                 df.loc[df.index[i], 'Structure_Strength'] = 0.8
 
             # Check for break below recent lows (bearish BOS)
             recent_lows = df['low'].iloc[i-10:i].min()
             if df['low'].iloc[i] < recent_lows:
-                df.loc[df.index[i], 'BOS_Wick_Confirm'] = -1  # Negative for bearish
-                df.loc[df.index[i], 'BOS_Dist_ATR'] = (recent_lows - df['low'].iloc[i]) / current_atr
+                df.loc[df.index[i], 'BOS_Wick_Confirm'] = - \
+                    1  # Negative for bearish
+                df.loc[df.index[i], 'BOS_Dist_ATR'] = (
+                    recent_lows - df['low'].iloc[i]) / current_atr
                 df.loc[df.index[i], 'Structure_Strength'] = 0.8
 
         return df
@@ -394,7 +442,8 @@ class ProperModelServer:
         df['HTF_Trend_Bias'] = (df['EMA_50'] - df['EMA_200']) / df['ATR']
 
         # ATR Z-score
-        df['ATR_ZScore'] = (df['ATR'] - df['ATR'].rolling(50).mean()) / df['ATR'].rolling(50).std()
+        df['ATR_ZScore'] = (
+            df['ATR'] - df['ATR'].rolling(50).mean()) / df['ATR'].rolling(50).std()
 
         # MA slope
         df['MA_Slope_Normalized'] = df['EMA_50'].diff(5) / df['ATR']
@@ -405,6 +454,17 @@ class ProperModelServer:
         # Fill NaN
         df = df.fillna(0)
 
+        # Log trend bias components for the last bar
+        last_close = df['close'].iloc[-1]
+        last_ema200 = df['EMA_200'].iloc[-1]
+        last_atr = df['ATR'].iloc[-1]
+        trend_bias = df['Trend_Bias_Indicator'].iloc[-1]
+
+        logger.info(
+            f"📈 TREND COMPONENTS: Close={last_close:.5f}, EMA200={last_ema200:.5f}, ATR={last_atr:.5f}")
+        logger.info(
+            f"📈 TREND CALCULATION: ({last_close:.5f} - {last_ema200:.5f}) / {last_atr:.5f} = {trend_bias:.3f}")
+
         return df
 
     def create_temporal_sequence(self, features_history: List[np.ndarray]) -> np.ndarray:
@@ -413,26 +473,29 @@ class ProperModelServer:
         """
         if len(features_history) < self.sequence_length:
             # Pad with zeros if not enough history
-            padding = [np.zeros(29) for _ in range(self.sequence_length - len(features_history))]
+            padding = [np.zeros(29) for _ in range(
+                self.sequence_length - len(features_history))]
             sequence = padding + features_history[-self.sequence_length:]
         else:
             sequence = features_history[-self.sequence_length:]
 
         return np.array(sequence)
 
-    def predict(self, ohlcv_data: List[Dict], features_history: Optional[List[np.ndarray]] = None) -> Dict[str, Any]:
+    def predict(self, ohlcv_data: List[Dict], features_history: Optional[List[np.ndarray]] = None, debug: bool = False) -> Dict[str, Any]:
         """
         Make prediction using all available models
         """
         try:
             # Calculate current features
-            current_features = self.calculate_institutional_features(ohlcv_data)
+            current_features = self.calculate_institutional_features(
+                ohlcv_data)
 
             # Normalize features
             if self.scalers is None:
                 raise ValueError("Feature scalers not loaded")
 
-            current_features_norm = self.scalers.transform(current_features.reshape(1, -1))[0]
+            current_features_norm = self.scalers.transform(
+                current_features.reshape(1, -1))[0]
 
             predictions = {}
             model_votes = {"SELL": 0, "HOLD": 0, "BUY": 0}
@@ -445,7 +508,8 @@ class ProperModelServer:
                 for model_name, model in self.models['pytorch'].items():
                     try:
                         with torch.no_grad():
-                            input_tensor = torch.FloatTensor(current_features_norm).unsqueeze(0)
+                            input_tensor = torch.FloatTensor(
+                                current_features_norm).unsqueeze(0)
                             output = model(input_tensor)
                             probs = torch.softmax(output, dim=1).numpy()[0]
                             pred = np.argmax(probs)
@@ -460,20 +524,25 @@ class ProperModelServer:
                             action = ["SELL", "HOLD", "BUY"][pred]
                             model_votes[action] += 1
 
-                            logger.info(f"  {model_name}: {action} ({conf:.1%})")
+                            logger.info(
+                                f"  {model_name}: {action} ({conf:.1%})")
 
                     except Exception as e:
-                        logger.warning(f"PyTorch model {model_name} failed: {e}")
+                        logger.warning(
+                            f"PyTorch model {model_name} failed: {e}")
             else:
-                logger.warning("⚠️ PyTorch not available - skipping PyTorch model predictions")
+                logger.warning(
+                    "⚠️ PyTorch not available - skipping PyTorch model predictions")
 
             # Sklearn models
             for model_name, model in self.models['sklearn'].items():
                 try:
-                    pred = model.predict(current_features_norm.reshape(1, -1))[0]
+                    pred = model.predict(
+                        current_features_norm.reshape(1, -1))[0]
 
                     if hasattr(model, 'predict_proba'):
-                        probs = model.predict_proba(current_features_norm.reshape(1, -1))[0]
+                        probs = model.predict_proba(
+                            current_features_norm.reshape(1, -1))[0]
                         conf = float(np.max(probs))
                     else:
                         probs = np.array([0.33, 0.34, 0.33])
@@ -496,7 +565,8 @@ class ProperModelServer:
             # Predict with temporal models (sequences)
             if features_history and TORCH_AVAILABLE:
                 logger.info("Running temporal model predictions...")
-                sequence = self.create_temporal_sequence(features_history + [current_features_norm])
+                sequence = self.create_temporal_sequence(
+                    features_history + [current_features_norm])
 
                 for model_name, model_info in self.models['temporal'].items():
                     try:
@@ -504,7 +574,8 @@ class ProperModelServer:
                         model_type = model_info['type']
 
                         with torch.no_grad():
-                            seq_tensor = torch.FloatTensor(sequence).unsqueeze(0)
+                            seq_tensor = torch.FloatTensor(
+                                sequence).unsqueeze(0)
 
                             if model_type == 'lstm':
                                 output, _ = model(seq_tensor)
@@ -524,12 +595,15 @@ class ProperModelServer:
                             action = ["SELL", "HOLD", "BUY"][pred]
                             model_votes[action] += 1
 
-                            logger.info(f"  {model_name}: {action} ({conf:.1%})")
+                            logger.info(
+                                f"  {model_name}: {action} ({conf:.1%})")
 
                     except Exception as e:
-                        logger.warning(f"Temporal model {model_name} failed: {e}")
+                        logger.warning(
+                            f"Temporal model {model_name} failed: {e}")
             elif features_history and not TORCH_AVAILABLE:
-                logger.warning("⚠️ PyTorch not available - skipping temporal model predictions")
+                logger.warning(
+                    "⚠️ PyTorch not available - skipping temporal model predictions")
 
             # Ensemble decision
             if not predictions:
@@ -556,21 +630,46 @@ class ProperModelServer:
 
             # Consensus analysis
             max_votes = max(model_votes.values())
-            consensus = "Strong" if max_votes >= len(predictions) * 0.75 else "Moderate" if max_votes >= len(predictions) * 0.5 else "Weak"
+            consensus = "Strong" if max_votes >= len(
+                predictions) * 0.75 else "Moderate" if max_votes >= len(predictions) * 0.5 else "Weak"
 
             # Trading decision
             should_trade = final_confidence > 0.7
 
+            # Extract SMC context from current features
+            smc_context = self._extract_smc_context(current_features)
+
+            # Log trend analysis
+            trend_bias = smc_context.get('trend_bias', 0)
+            if trend_bias > 0.1:
+                trend_regime = "Bullish"
+            elif trend_bias < -0.1:
+                trend_regime = "Bearish"
+            else:
+                trend_regime = "Neutral"
+
+            logger.info(
+                f"📈 TREND ANALYSIS: bias={trend_bias:.3f}, regime={trend_regime}")
+            logger.info(
+                f"📊 SMC Context: OB_Bullish={smc_context.get('bullish_present')}, OB_Bearish={smc_context.get('bearish_present')}, BOS_Confirmed={smc_context.get('bos_close_confirmed')}")
+
+            # Create EA-compatible response (only fields EA expects)
             result = {
-                "action": final_action,
+                "prediction": final_prediction,  # Integer: 0=SELL, 1=HOLD, 2=BUY
                 "confidence": final_confidence,
+                "probabilities": {
+                    "SELL": float(weighted_probs[0]),  # Uppercase keys
+                    "HOLD": float(weighted_probs[1]),
+                    "BUY": float(weighted_probs[2])
+                },
+                **smc_context  # Add SMC context fields
+            }
+
+            # Log full result for debugging but return simplified version to EA
+            full_result = {
+                **result,
                 "signal_strength": final_confidence * 0.9,
                 "should_trade": should_trade,
-                "probabilities": {
-                    "sell": float(weighted_probs[0]),
-                    "hold": float(weighted_probs[1]),
-                    "buy": float(weighted_probs[2])
-                },
                 "model_predictions": predictions,
                 "model_votes": model_votes,
                 "consensus": consensus,
@@ -578,7 +677,14 @@ class ProperModelServer:
                 "timestamp": datetime.now().isoformat()
             }
 
-            logger.info(f"FINAL DECISION: {final_action} ({final_confidence:.1%}) - {consensus} consensus")
+            logger.info(
+                f"FINAL DECISION: {final_action} ({final_confidence:.1%}) - {consensus} consensus")
+            logger.debug(f"EA Response: {result}")
+            logger.debug(f"Full Response: {full_result}")
+
+            # If debug flag requested by client, return full result containing per-model info
+            if debug:
+                return full_result
 
             return result
 
@@ -586,10 +692,56 @@ class ProperModelServer:
             logger.error(f"Prediction failed: {e}")
             return {"error": str(e)}
 
+    def _extract_smc_context(self, features: np.ndarray) -> Dict[str, Any]:
+        """
+        Extract SMC context fields from institutional features
+        """
+        # Feature indices based on the feature_columns list
+        feature_indices = {
+            'OB_Bullish': 4,
+            'OB_Bearish': 5,
+            'FVG_Bullish': 10,
+            'FVG_Bearish': 11,
+            'BOS_Wick_Confirm': 15,
+            'BOS_Close_Confirm': 16,
+            'Trend_Bias_Indicator': 19
+        }
+
+        # Extract boolean flags
+        bullish_present = bool(features[feature_indices['OB_Bullish']] > 0.5)
+        bearish_present = bool(features[feature_indices['OB_Bearish']] > 0.5)
+
+        # Fair Value Gaps context
+        fvg_bullish = bool(features[feature_indices['FVG_Bullish']] > 0.5)
+        fvg_bearish = bool(features[feature_indices['FVG_Bearish']] > 0.5)
+
+        # Break of Structure
+        bos_close_confirmed = bool(
+            features[feature_indices['BOS_Close_Confirm']] > 0.5)
+        bos_wick_confirmed = bool(
+            features[feature_indices['BOS_Wick_Confirm']] > 0.5)
+
+        # Trend bias (-1 to 1 scale)
+        trend_bias = float(features[feature_indices['Trend_Bias_Indicator']])
+
+        return {
+            "bullish_present": bullish_present,
+            "bearish_present": bearish_present,
+            "fair_value_gaps": {
+                "bullish_present": fvg_bullish,
+                "bearish_present": fvg_bearish
+            },
+            "bos_close_confirmed": bos_close_confirmed,
+            "bos_wick_confirmed": bos_wick_confirmed,
+            "trend_bias": trend_bias,
+            "trend_bias_str": f"{trend_bias:.3f}"
+        }
+
     def _get_positional_encoding(self, seq_len: int, d_model: int) -> torch.Tensor:
         """Simple positional encoding for transformer"""
         position = torch.arange(seq_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
+        div_term = torch.exp(torch.arange(0, d_model, 2)
+                             * (-np.log(10000.0) / d_model))
         pe = torch.zeros(seq_len, d_model)
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
@@ -597,7 +749,7 @@ class ProperModelServer:
 
 
 # Global server instance
-server = ProperModelServer()
+server = ProperModelServer("The Models")
 
 
 @app.route('/health', methods=['GET'])
@@ -636,18 +788,17 @@ def predict():
         # Optional features history for temporal models
         features_history = data.get('features_history', [])
 
+        # Optional debug flag requests verbose output
+        debug_flag = bool(data.get('debug', False))
+
         # Make prediction
-        result = server.predict(ohlcv_data, features_history)
+        result = server.predict(ohlcv_data, features_history, debug=debug_flag)
 
         if 'error' in result:
             return jsonify(result), 500
 
-        return jsonify({
-            "success": True,
-            "prediction": result,
-            "symbol": data.get('symbol', 'UNKNOWN'),
-            "timeframe": data.get('timeframe', 'UNKNOWN')
-        })
+        # Return the prediction result directly (not wrapped)
+        return jsonify(result)
 
     except Exception as e:
         logger.error(f"Prediction endpoint error: {e}")
@@ -678,4 +829,4 @@ if __name__ == '__main__':
     print("🤖 Prediction: POST to http://localhost:5001/predict")
     print("📊 Models: GET /models")
 
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=False)

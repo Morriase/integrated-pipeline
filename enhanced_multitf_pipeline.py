@@ -554,17 +554,20 @@ def train_enhanced_model(features: np.ndarray, labels: np.ndarray,
         dropout_p=0.3
     ).to(device)
 
-    # Optimizer with learning rate scheduling
-    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', patience=10, factor=0.5)
+    # Optimizer with stronger weight decay for regularization
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=5e-4)
+    
+    # Warmup + ReduceLROnPlateau schedule for smoother training
+    warmup_epochs = 5
+    base_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='min', patience=8, factor=0.5, verbose=True)
 
-    # Loss function with class weights for imbalanced data
+    # Loss function with class weights and label smoothing
     class_counts = np.bincount(labels)
     class_weights = len(labels) / (len(class_counts) * class_counts)
     class_weights = torch.tensor(
         class_weights, dtype=torch.float32, device=device)
-    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
 
     # Training loop with validation split
     n = X.shape[0]
@@ -630,8 +633,14 @@ def train_enhanced_model(features: np.ndarray, labels: np.ndarray,
         avg_train_loss = train_loss / (train_size // batch_size + 1)
         avg_val_loss = val_loss / (val_size // batch_size + 1)
 
-        # Learning rate scheduling
-        scheduler.step(avg_val_loss)
+        # Learning rate scheduling with warmup
+        if epoch < warmup_epochs:
+            # Linear warmup
+            warmup_factor = (epoch + 1) / warmup_epochs
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr * warmup_factor
+        else:
+            base_scheduler.step(avg_val_loss)
 
         # Early stopping
         if avg_val_loss < best_val_loss:
