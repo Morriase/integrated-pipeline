@@ -72,7 +72,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               hidden_dims: List[int] = [512, 256, 128, 64],  # 4 hidden layers
               dropout: float = 0.4,  # Dropout for regularization
-              learning_rate: float = 0.001,  # REDUCED from 0.01 for stability
+              learning_rate: float = 0.003,  # Moderate LR for stable convergence
               batch_size: int = 32,  # Batch size for generalization
               epochs: int = 200,  # Maximum epochs
               patience: int = 20,  # REDUCED from 30 for earlier stopping
@@ -137,8 +137,8 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
         self.model.apply(init_weights)
 
-        # Loss and optimizer (AdamW with decoupled weight decay)
-        criterion = nn.CrossEntropyLoss()
+        # Loss with label smoothing (reduces overconfidence)
+        criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
