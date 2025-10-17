@@ -141,14 +141,37 @@ class BaseSMCModel(ABC):
         X = df[self.feature_cols].values
         y = df[self.target_col].values
         
-        # Handle missing values
-        X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+        # FIX 1: Handle NaN/inf values BEFORE any processing
+        # Replace NaN with column median, inf with large values
+        from sklearn.impute import SimpleImputer
+        if fit_scaler:
+            self.imputer = SimpleImputer(strategy='median')
+            X = self.imputer.fit_transform(X)
+        elif hasattr(self, 'imputer'):
+            X = self.imputer.transform(X)
+        else:
+            # Fallback if no imputer fitted
+            X = np.nan_to_num(X, nan=0.0, posinf=1e10, neginf=-1e10)
+        
+        # Clip extreme values to prevent overflow
+        X = np.clip(X, -1e10, 1e10)
+        
+        # FIX 2: Remap labels for binary classification (when timeout excluded)
+        # XGBoost expects [0, 1] not [-1, 1]
+        if -1 in y and 1 in y and 0 not in y:
+            # Binary case: Loss=-1, Win=1 → Loss=0, Win=1
+            y = np.where(y == -1, 0, y)
         
         # Optional scaling (for neural networks)
         if fit_scaler and self.scaler is not None:
             X = self.scaler.fit_transform(X)
         elif self.scaler is not None:
             X = self.scaler.transform(X)
+        
+        # FIX 3: Final validation - check for any remaining NaN/inf
+        if np.any(np.isnan(X)) or np.any(np.isinf(X)):
+            print("  ⚠️ Warning: NaN/inf detected after processing, replacing with 0")
+            X = np.nan_to_num(X, nan=0.0, posinf=1e10, neginf=-1e10)
         
         return X, y
     
@@ -179,9 +202,21 @@ class BaseSMCModel(ABC):
             'f1_macro': f1_score(y_true, y_pred, average='macro', zero_division=0),
         }
         
+        # Determine label mapping (binary vs 3-class)
+        unique_labels = np.unique(np.concatenate([y_true, y_pred]))
+        is_binary = len(unique_labels) == 2 and 0 in unique_labels and 1 in unique_labels
+        
+        if is_binary:
+            # Binary classification: 0=Loss, 1=Win
+            label_map = {0: 'Loss', 1: 'Win'}
+            cm_labels = [0, 1]
+        else:
+            # 3-class: -1=Loss, 0=Timeout, 1=Win
+            label_map = {-1: 'Loss', 0: 'Timeout', 1: 'Win'}
+            cm_labels = [-1, 0, 1]
+        
         # Per-class metrics
-        for label in [-1, 0, 1]:
-            label_name = {-1: 'Loss', 0: 'Timeout', 1: 'Win'}[label]
+        for label, label_name in label_map.items():
             if label in y_true:
                 metrics[f'precision_{label_name}'] = precision_score(
                     y_true, y_pred, labels=[label], average='macro', zero_division=0
@@ -193,20 +228,28 @@ class BaseSMCModel(ABC):
                     y_true, y_pred, labels=[label], average='macro', zero_division=0
                 )
         
-        # Win rate (excluding timeouts)
-        decisive_mask = y_true != 0
-        if decisive_mask.sum() > 0:
-            y_true_decisive = y_true[decisive_mask]
-            y_pred_decisive = y_pred[decisive_mask]
-            
-            win_rate = (y_pred_decisive == 1).sum() / len(y_pred_decisive)
-            actual_win_rate = (y_true_decisive == 1).sum() / len(y_true_decisive)
-            
-            metrics['win_rate_predicted'] = win_rate
-            metrics['win_rate_actual'] = actual_win_rate
+        # Win rate
+        if is_binary:
+            # Binary: Win = 1
+            win_rate = (y_pred == 1).sum() / len(y_pred)
+            actual_win_rate = (y_true == 1).sum() / len(y_true)
+        else:
+            # 3-class: exclude timeouts
+            decisive_mask = y_true != 0
+            if decisive_mask.sum() > 0:
+                y_true_decisive = y_true[decisive_mask]
+                y_pred_decisive = y_pred[decisive_mask]
+                win_rate = (y_pred_decisive == 1).sum() / len(y_pred_decisive)
+                actual_win_rate = (y_true_decisive == 1).sum() / len(y_true_decisive)
+            else:
+                win_rate = 0.0
+                actual_win_rate = 0.0
+        
+        metrics['win_rate_predicted'] = win_rate
+        metrics['win_rate_actual'] = actual_win_rate
         
         # Confusion matrix
-        cm = confusion_matrix(y_true, y_pred, labels=[-1, 0, 1])
+        cm = confusion_matrix(y_true, y_pred, labels=cm_labels)
         metrics['confusion_matrix'] = cm.tolist()
         
         # Print results
@@ -221,10 +264,15 @@ class BaseSMCModel(ABC):
             print(f"    Actual:    {metrics['win_rate_actual']:.1%}")
         
         print(f"\n  Confusion Matrix:")
-        print(f"              Pred Loss  Pred Timeout  Pred Win")
-        print(f"  True Loss      {cm[0,0]:6d}      {cm[0,1]:6d}    {cm[0,2]:6d}")
-        print(f"  True Timeout   {cm[1,0]:6d}      {cm[1,1]:6d}    {cm[1,2]:6d}")
-        print(f"  True Win       {cm[2,0]:6d}      {cm[2,1]:6d}    {cm[2,2]:6d}")
+        if is_binary:
+            print(f"              Pred Loss  Pred Win")
+            print(f"  True Loss      {cm[0,0]:6d}    {cm[0,1]:6d}")
+            print(f"  True Win       {cm[1,0]:6d}    {cm[1,1]:6d}")
+        else:
+            print(f"              Pred Loss  Pred Timeout  Pred Win")
+            print(f"  True Loss      {cm[0,0]:6d}      {cm[0,1]:6d}    {cm[0,2]:6d}")
+            print(f"  True Timeout   {cm[1,0]:6d}      {cm[1,1]:6d}    {cm[1,2]:6d}")
+            print(f"  True Win       {cm[2,0]:6d}      {cm[2,1]:6d}    {cm[2,2]:6d}")
         
         return metrics
     
