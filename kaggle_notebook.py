@@ -14,9 +14,14 @@ Usage in Kaggle:
 - Ensure the dataset 'ob-ai-model-2-dataset' is attached
 """
 
+import json
+from train_all_models import SMCModelTrainer
+from run_complete_pipeline import run_full_pipeline
+import os
 import subprocess
 import sys
 from pathlib import Path
+
 
 def run_command(cmd, description):
     """Run a shell command and print output"""
@@ -28,6 +33,7 @@ def run_command(cmd, description):
         print(f"❌ Error: {description} failed")
         sys.exit(1)
     return result
+
 
 # Step 1: Clone repository (if not already done)
 if not Path('/kaggle/working/integrated-pipeline').exists():
@@ -43,7 +49,6 @@ run_command(
 )
 
 # Step 3: Change to pipeline directory
-import os
 os.chdir('/kaggle/working/integrated-pipeline')
 sys.path.insert(0, '/kaggle/working/integrated-pipeline')
 
@@ -52,7 +57,6 @@ print("\n" + "="*80)
 print("RUNNING COMPLETE DATA PIPELINE")
 print("="*80)
 
-from run_complete_pipeline import run_full_pipeline
 
 # Run pipeline (this will create processed data in /kaggle/working/)
 processed_data = run_full_pipeline(config='full')
@@ -62,7 +66,6 @@ print("\n" + "="*80)
 print("TRAINING ALL MODELS")
 print("="*80)
 
-from train_all_models import SMCModelTrainer
 
 trainer = SMCModelTrainer()
 
@@ -89,7 +92,6 @@ trainer.print_summary()
 
 # Save results to file
 results_file = '/kaggle/working/training_results.json'
-import json
 with open(results_file, 'w') as f:
     json.dump(results, f, indent=2)
 
