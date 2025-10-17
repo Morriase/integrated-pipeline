@@ -116,14 +116,14 @@ class LSTMSMCModel(BaseSMCModel):
     
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              hidden_dim: int = 256,  # Larger hidden dimension
-              num_layers: int = 3,  # Deeper stacked LSTM
-              dropout: float = 0.4,  # Variational dropout
-              learning_rate: float = 0.01,  # Higher max LR for One-Cycle
-              batch_size: int = 16,  # Smaller batch for sequences
+              hidden_dim: int = 128,  # REDUCED from 256 to prevent overfit
+              num_layers: int = 2,  # REDUCED from 3 to prevent overfit
+              dropout: float = 0.5,  # INCREASED from 0.4 for more regularization
+              learning_rate: float = 0.005,  # REDUCED from 0.01 for stability
+              batch_size: int = 32,  # INCREASED from 16 for better generalization
               epochs: int = 200,  # More epochs for full One-Cycle
-              patience: int = 30,  # More patience
-              weight_decay: float = 0.01,  # AdamW weight decay
+              patience: int = 20,  # REDUCED from 30 for earlier stopping
+              weight_decay: float = 0.05,  # INCREASED from 0.01 for more L2 reg
               bidirectional: bool = True,  # Use BiLSTM
               **kwargs) -> Dict:
         """
