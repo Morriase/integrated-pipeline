@@ -17,7 +17,7 @@ except ImportError:
     XGBOOST_AVAILABLE = False
     print("⚠️ XGBoost not installed. Install with: pip install xgboost")
 
-from base_model import BaseSMCModel
+from models.base_model import BaseSMCModel
 
 
 class XGBoostSMCModel(BaseSMCModel):

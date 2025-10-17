@@ -12,7 +12,7 @@ import numpy as np
 from typing import Dict, Optional
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
-from base_model import BaseSMCModel
+from models.base_model import BaseSMCModel
 
 
 class RandomForestSMCModel(BaseSMCModel):

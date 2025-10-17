@@ -22,7 +22,7 @@ except ImportError:
     print("⚠️ PyTorch not installed. Install with: pip install torch")
 
 from sklearn.preprocessing import StandardScaler
-from base_model import BaseSMCModel
+from models.base_model import BaseSMCModel
 
 
 class LSTMClassifier(nn.Module):
