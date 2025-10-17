@@ -1,0 +1,492 @@
+PS C:\Users\Morris\Desktop\Python> & C:/Users/Morris/AppData/Local/Programs/Python/Python313/python.exe c:/Users/Morris/Desktop/Python/run_complete_pipeline.py
+
+================================================================================
+COMPLETE SMC DATA PIPELINE WORKFLOW
+================================================================================
+
+================================================================================
+STEP 1: CONSOLIDATING MT5 EXPORT FILES
+================================================================================
+
+📊 Configuration: FULL (All symbols, all timeframes)
+================================================================================
+MT5 DATA CONSOLIDATION
+================================================================================
+
+📂 Found 68 CSV files in Data/mt5_exports
+  ✓ AUDCAD   D1  : 6,614 rows | 2000-03-30 00:00:00 to 2025-10-09 00:00:00
+  ✓ AUDCAD   H1  : 10,000 rows | 2024-03-04 04:00:00 to 2025-10-09 20:00:00
+  ✓ AUDCAD   H4  : 10,000 rows | 2019-05-09 20:00:00 to 2025-10-09 20:00:00
+  ✓ AUDCAD   M1  : 10,000 rows | 2025-09-30 19:49:00 to 2025-10-09 20:23:00
+  ✓ AUDCAD   M15 : 10,000 rows | 2025-05-16 16:00:00 to 2025-10-09 20:15:00
+  ✓ AUDCAD   M30 : 10,000 rows | 2024-12-19 12:00:00 to 2025-10-09 20:00:00
+  ✓ AUDCAD   M5  : 10,000 rows | 2025-08-21 21:00:00 to 2025-10-09 20:20:00
+  ✓ AUDCHF   D1  : 6,545 rows | 2000-03-30 00:00:00 to 2025-10-09 00:00:00
+  ✓ AUDCHF   H1  : 10,000 rows | 2024-03-04 04:00:00 to 2025-10-09 20:00:00
+  ✓ AUDCHF   H4  : 10,000 rows | 2019-05-09 20:00:00 to 2025-10-09 20:00:00
+  ✓ AUDCHF   M1  : 10,000 rows | 2025-09-30 19:57:00 to 2025-10-09 20:28:00
+  ✓ AUDCHF   M15 : 10,000 rows | 2025-05-16 16:30:00 to 2025-10-09 20:15:00
+  ✓ AUDCHF   M30 : 10,000 rows | 2024-12-19 12:30:00 to 2025-10-09 20:00:00
+  ✓ AUDCHF   M5  : 10,000 rows | 2025-08-21 21:15:00 to 2025-10-09 20:25:00
+  ✓ AUDJPY   H1  : 10,000 rows | 2024-03-04 04:00:00 to 2025-10-09 20:00:00
+  ✓ AUDJPY   H4  : 10,000 rows | 2019-05-09 16:00:00 to 2025-10-09 20:00:00
+  ✓ AUDJPY   M1  : 10,000 rows | 2025-09-30 20:10:00 to 2025-10-09 20:33:00
+  ✓ AUDJPY   M15 : 10,000 rows | 2025-05-16 16:45:00 to 2025-10-09 20:30:00
+  ✓ AUDJPY   M30 : 10,000 rows | 2024-12-19 12:30:00 to 2025-10-09 20:30:00
+  ✓ AUDJPY   M5  : 10,000 rows | 2025-08-21 21:05:00 to 2025-10-09 20:30:00
+  ✓ AUDNZD   D1  : 6,524 rows | 2000-03-30 00:00:00 to 2025-10-09 00:00:00
+  ✓ AUDNZD   H1  : 10,000 rows | 2024-03-04 04:00:00 to 2025-10-09 20:00:00
+  ✓ AUDNZD   H4  : 10,000 rows | 2019-05-09 20:00:00 to 2025-10-09 20:00:00
+  ✓ AUDNZD   M1  : 10,000 rows | 2025-09-30 20:02:00 to 2025-10-09 20:17:00
+  ✓ AUDNZD   M15 : 10,000 rows | 2025-05-16 16:30:00 to 2025-10-09 20:15:00
+  ✓ AUDNZD   M30 : 10,000 rows | 2024-12-19 12:00:00 to 2025-10-09 20:00:00
+  ✓ AUDNZD   M5  : 10,000 rows | 2025-08-21 21:10:00 to 2025-10-09 20:15:00
+  ✓ AUDUSD   H1  : 10,000 rows | 2024-03-04 04:00:00 to 2025-10-09 20:00:00
+  ✓ AUDUSD   H4  : 10,000 rows | 2019-05-09 20:00:00 to 2025-10-09 20:00:00
+  ✓ AUDUSD   M1  : 10,000 rows | 2025-09-30 18:31:00 to 2025-10-09 20:11:00
+  ✓ AUDUSD   M15 : 10,000 rows | 2025-05-16 16:15:00 to 2025-10-09 20:00:00
+  ✓ AUDUSD   M30 : 10,000 rows | 2024-12-19 12:30:00 to 2025-10-09 20:00:00
+  ✓ AUDUSD   M5  : 10,000 rows | 2025-08-21 20:20:00 to 2025-10-09 20:10:00
+  ✓ EURUSD   D1  : 6,637 rows | 2000-03-29 00:00:00 to 2025-10-09 00:00:00
+  ✓ EURUSD   H1  : 10,000 rows | 2024-03-04 03:00:00 to 2025-10-09 19:00:00
+  ✓ EURUSD   H4  : 10,000 rows | 2019-05-09 16:00:00 to 2025-10-09 16:00:00
+  ✓ EURUSD   M1  : 10,000 rows | 2025-09-30 19:12:00 to 2025-10-09 19:52:00
+  ✓ EURUSD   M15 : 10,000 rows | 2025-05-16 16:00:00 to 2025-10-09 19:45:00
+  ✓ EURUSD   M30 : 10,000 rows | 2024-12-19 12:00:00 to 2025-10-09 19:30:00
+  ✓ EURUSD   M5  : 10,000 rows | 2025-08-21 20:35:00 to 2025-10-09 19:50:00
+  ✓ GBPUSD   H1  : 10,000 rows | 2024-03-04 03:00:00 to 2025-10-09 19:00:00
+  ✓ GBPUSD   H4  : 10,000 rows | 2019-05-09 16:00:00 to 2025-10-09 16:00:00
+  ✓ GBPUSD   M1  : 10,000 rows | 2025-09-30 18:24:00 to 2025-10-09 19:52:00
+  ✓ GBPUSD   M15 : 10,000 rows | 2025-05-16 15:45:00 to 2025-10-09 19:45:00
+  ✓ GBPUSD   M30 : 10,000 rows | 2024-12-19 12:00:00 to 2025-10-09 19:30:00
+  ✓ GBPUSD   M5  : 10,000 rows | 2025-08-21 20:10:00 to 2025-10-09 19:50:00
+  ✓ USDCAD   H1  : 10,000 rows | 2024-03-04 04:00:00 to 2025-10-09 20:00:00
+  ✓ USDCAD   H4  : 10,000 rows | 2019-05-09 20:00:00 to 2025-10-09 20:00:00
+  ✓ USDCAD   M1  : 10,000 rows | 2025-09-30 18:07:00 to 2025-10-09 20:06:00
+  ✓ USDCAD   M15 : 10,000 rows | 2025-05-16 16:00:00 to 2025-10-09 20:00:00
+  ✓ USDCAD   M30 : 10,000 rows | 2024-12-19 12:30:00 to 2025-10-09 20:00:00
+  ✓ USDCAD   M5  : 10,000 rows | 2025-08-21 20:10:00 to 2025-10-09 20:05:00
+  ✓ USDCHF   H1  : 10,000 rows | 2024-03-04 03:00:00 to 2025-10-09 19:00:00
+  ✓ USDCHF   H4  : 10,000 rows | 2019-05-09 16:00:00 to 2025-10-09 16:00:00
+  ✓ USDCHF   M1  : 10,000 rows | 2025-09-30 18:54:00 to 2025-10-09 19:57:00
+  ✓ USDCHF   M15 : 10,000 rows | 2025-05-16 15:45:00 to 2025-10-09 19:45:00
+  ✓ USDCHF   M30 : 10,000 rows | 2024-12-19 12:00:00 to 2025-10-09 19:30:00
+  ✓ USDCHF   M5  : 10,000 rows | 2025-08-21 20:10:00 to 2025-10-09 19:55:00
+  ✓ USDJPY   H1  : 10,000 rows | 2024-03-04 04:00:00 to 2025-10-09 20:00:00
+  ✓ USDJPY   H4  : 10,000 rows | 2019-05-09 20:00:00 to 2025-10-09 20:00:00
+  ✓ USDJPY   M1  : 10,000 rows | 2025-09-30 18:59:00 to 2025-10-09 20:02:00
+  ✓ USDJPY   M15 : 10,000 rows | 2025-05-16 16:15:00 to 2025-10-09 20:00:00
+  ✓ USDJPY   M30 : 10,000 rows | 2024-12-19 12:30:00 to 2025-10-09 20:00:00
+  ✓ USDJPY   M5  : 10,000 rows | 2025-08-21 20:25:00 to 2025-10-09 20:00:00
+  ✓ XAUUSD   M1  : 10,000 rows | 2025-09-30 13:13:00 to 2025-10-09 20:37:00
+  ✓ XAUUSD   M15 : 10,000 rows | 2025-05-09 16:15:00 to 2025-10-09 20:30:00
+  ✓ XAUUSD   M30 : 10,000 rows | 2024-12-04 15:30:00 to 2025-10-09 20:30:00
+  ✓ XAUUSD   M5  : 10,000 rows | 2025-08-20 04:00:00 to 2025-10-09 20:35:00
+
+🔗 Consolidating 68 files...
+
+📊 Consolidated Data Summary:
+  Total rows: 666,320
+  Symbols: 11
+  Timeframes: 7
+  Date range: 2000-03-29 00:00:00 to 2025-10-09 20:37:00
+
+  Symbol breakdown:
+    AUDCAD  : 66,614 rows
+    AUDCHF  : 66,545 rows
+    AUDJPY  : 60,000 rows
+    AUDNZD  : 66,524 rows
+    AUDUSD  : 60,000 rows
+    EURUSD  : 66,637 rows
+    GBPUSD  : 60,000 rows
+    USDCAD  : 60,000 rows
+    USDCHF  : 60,000 rows
+    USDJPY  : 60,000 rows
+    XAUUSD  : 40,000 rows
+
+  Timeframe breakdown:
+    D1  : 26,320 rows
+    H1  : 100,000 rows
+    H4  : 100,000 rows
+    M1  : 110,000 rows
+    M15 : 110,000 rows
+    M30 : 110,000 rows
+    M5  : 110,000 rows
+
+💾 Saved consolidated data:
+  File: Data/consolidated_ohlc_data.csv
+  Size: 39.73 MB
+  Processed: 68 files
+  Skipped: 0 files
+
+✅ Consolidation complete!
+
+🎯 Next step: Run data_preparation_pipeline.py with input: Data/consolidated_ohlc_data.csv
+
+⏱️ Step 1 completed in 34.40 seconds
+
+================================================================================
+STEP 2: PROCESSING SMC FEATURES WITH FUZZY LOGIC
+================================================================================
+🧠 Fuzzy Logic SMC Detection Active
+   Quality threshold: 0.3
+
+================================================================================
+INSTITUTIONAL-GRADE SMC DATA PREPARATION PIPELINE
+With Fuzzy Logic Integration
+================================================================================
+
+📂 Loading raw data from: Data/consolidated_ohlc_data.csv
+✓ Loaded 666,320 rows
+  Symbols: 11
+  Timeframes: ['D1', 'H1', 'H4', 'M1', 'M15', 'M30', 'M5']
+  Date range: 2000-03-29 00:00:00 to 2025-10-09 20:37:00
+
+🔧 Processing SMC features for all symbols and timeframes...
+
+  Phase 1: Processing individual timeframes...
+  Processing AUDCAD D1...
+    ✓ Valid entries: 187, Labeled: 187
+  Processing AUDCAD H1...
+    ✓ Valid entries: 259, Labeled: 259
+  Processing AUDCAD H4...
+    ✓ Valid entries: 266, Labeled: 266
+  Processing AUDCAD M1...
+    ✓ Valid entries: 346, Labeled: 346
+  Processing AUDCAD M15...
+    ✓ Valid entries: 308, Labeled: 308
+  Processing AUDCAD M30...
+    ✓ Valid entries: 291, Labeled: 291
+  Processing AUDCAD M5...
+    ✓ Valid entries: 293, Labeled: 293
+  Processing AUDCHF D1...
+    ✓ Valid entries: 180, Labeled: 180
+  Processing AUDCHF H1...
+    ✓ Valid entries: 297, Labeled: 297
+  Processing AUDCHF H4...
+    ✓ Valid entries: 310, Labeled: 310
+  Processing AUDCHF M1...
+    ✓ Valid entries: 325, Labeled: 325
+  Processing AUDCHF M15...
+    ✓ Valid entries: 330, Labeled: 330
+  Processing AUDCHF M30...
+    ✓ Valid entries: 313, Labeled: 313
+  Processing AUDCHF M5...
+    ✓ Valid entries: 280, Labeled: 280
+  Processing AUDJPY D1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing AUDJPY H1...
+    ✓ Valid entries: 330, Labeled: 330
+  Processing AUDJPY H4...
+    ✓ Valid entries: 305, Labeled: 305
+  Processing AUDJPY M1...
+    ✓ Valid entries: 379, Labeled: 379
+  Processing AUDJPY M15...
+    ✓ Valid entries: 309, Labeled: 309
+  Processing AUDJPY M30...
+    ✓ Valid entries: 307, Labeled: 307
+  Processing AUDJPY M5...
+    ✓ Valid entries: 277, Labeled: 277
+  Processing AUDNZD D1...
+    ✓ Valid entries: 179, Labeled: 179
+  Processing AUDNZD H1...
+    ✓ Valid entries: 229, Labeled: 229
+  Processing AUDNZD H4...
+    ✓ Valid entries: 280, Labeled: 280
+  Processing AUDNZD M1...
+    ✓ Valid entries: 234, Labeled: 234
+  Processing AUDNZD M15...
+    ✓ Valid entries: 217, Labeled: 217
+  Processing AUDNZD M30...
+    ✓ Valid entries: 237, Labeled: 237
+  Processing AUDNZD M5...
+    ✓ Valid entries: 219, Labeled: 219
+  Processing AUDUSD D1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing AUDUSD H1...
+    ✓ Valid entries: 330, Labeled: 330
+  Processing AUDUSD H4...
+    ✓ Valid entries: 336, Labeled: 336
+  Processing AUDUSD M1...
+    ✓ Valid entries: 439, Labeled: 439
+  Processing AUDUSD M15...
+    ✓ Valid entries: 335, Labeled: 335
+  Processing AUDUSD M30...
+    ✓ Valid entries: 323, Labeled: 323
+  Processing AUDUSD M5...
+    ✓ Valid entries: 290, Labeled: 290
+  Processing EURUSD D1...
+    ✓ Valid entries: 215, Labeled: 215
+  Processing EURUSD H1...
+    ✓ Valid entries: 300, Labeled: 300
+  Processing EURUSD H4...
+    ✓ Valid entries: 324, Labeled: 324
+  Processing EURUSD M1...
+    ✓ Valid entries: 435, Labeled: 435
+  Processing EURUSD M15...
+    ✓ Valid entries: 312, Labeled: 312
+  Processing EURUSD M30...
+    ✓ Valid entries: 303, Labeled: 303
+  Processing EURUSD M5...
+    ✓ Valid entries: 310, Labeled: 310
+  Processing GBPUSD D1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing GBPUSD H1...
+    ✓ Valid entries: 290, Labeled: 290
+  Processing GBPUSD H4...
+    ✓ Valid entries: 334, Labeled: 334
+  Processing GBPUSD M1...
+    ✓ Valid entries: 462, Labeled: 462
+  Processing GBPUSD M15...
+    ✓ Valid entries: 280, Labeled: 280
+  Processing GBPUSD M30...
+    ✓ Valid entries: 318, Labeled: 318
+  Processing GBPUSD M5...
+    ✓ Valid entries: 348, Labeled: 348
+  Processing USDCAD D1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing USDCAD H1...
+    ✓ Valid entries: 252, Labeled: 252
+  Processing USDCAD H4...
+    ✓ Valid entries: 341, Labeled: 341
+  Processing USDCAD M1...
+    ✓ Valid entries: 501, Labeled: 501
+  Processing USDCAD M15...
+    ✓ Valid entries: 274, Labeled: 274
+  Processing USDCAD M30...
+    ✓ Valid entries: 297, Labeled: 297
+  Processing USDCAD M5...
+    ✓ Valid entries: 307, Labeled: 307
+  Processing USDCHF D1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing USDCHF H1...
+    ✓ Valid entries: 283, Labeled: 283
+  Processing USDCHF H4...
+    ✓ Valid entries: 291, Labeled: 291
+  Processing USDCHF M1...
+    ✓ Valid entries: 483, Labeled: 483
+  Processing USDCHF M15...
+    ✓ Valid entries: 274, Labeled: 274
+  Processing USDCHF M30...
+    ✓ Valid entries: 322, Labeled: 322
+  Processing USDCHF M5...
+    ✓ Valid entries: 334, Labeled: 334
+  Processing USDJPY D1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing USDJPY H1...
+    ✓ Valid entries: 302, Labeled: 302
+  Processing USDJPY H4...
+    ✓ Valid entries: 339, Labeled: 339
+  Processing USDJPY M1...
+    ✓ Valid entries: 460, Labeled: 460
+  Processing USDJPY M15...
+    ✓ Valid entries: 354, Labeled: 354
+  Processing USDJPY M30...
+    ✓ Valid entries: 358, Labeled: 358
+  Processing USDJPY M5...
+    ✓ Valid entries: 294, Labeled: 294
+  Processing XAUUSD D1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing XAUUSD H1...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing XAUUSD H4...
+    ⚠️ Insufficient data (0 rows), skipping
+  Processing XAUUSD M1...
+    ✓ Valid entries: 380, Labeled: 380
+  Processing XAUUSD M15...
+    ✓ Valid entries: 352, Labeled: 352
+  Processing XAUUSD M30...
+    ✓ Valid entries: 352, Labeled: 352
+  Processing XAUUSD M5...
+    ✓ Valid entries: 323, Labeled: 323
+
+  Phase 2: Adding multi-timeframe confluence...
+
+✓ Processing complete: 478,353 total rows
+
+🔍 Validating Pipeline Output...
+
+======================================================================
+  ✓ OB Detection
+  ✓ OB Displacement
+  ✓ FVG Detection
+  ✓ Market Structure
+  ✓ TBM Labeling
+  ✓ MTF Confluence
+  ✓ Regime Classification
+  ✓ Feature Standardization
+  ✓ Fuzzy Logic
+  ✓ Has Labeled Data
+======================================================================
+
+✅ All validation checks passed!
+
+📊 INSTITUTIONAL-GRADE SMC PIPELINE SUMMARY
+================================================================================
+
+📈 Dataset Overview:
+  Total rows: 478,353
+  Symbols: 11
+  Timeframes: ['M15', nan, 'H1', 'H4']
+  Date range: 2019-05-09 16:00:00 to 2025-10-09 20:30:00
+
+🏛️ SMC Structures Detected (Fuzzy Logic):
+  Order Blocks (Bullish): 17,362.0
+  Order Blocks (Bearish): 17,450.0
+  Fair Value Gaps (Bullish): 10,252.0
+  Fair Value Gaps (Bearish): 10,523.0
+
+📐 Market Structure (BOS & ChoCH):
+  BOS Wick Breaks: 104,139.0
+  BOS Close Breaks (High Conviction): 49,937.0
+  BOS Commitment Flags: 49,937.0
+  ChoCH Detected: 20,535.0
+
+🧠 Fuzzy Logic Quality Scores:
+  Order Block Quality:
+    Average: 0.589
+    Min: 0.300, Max: 1.000
+    Median: 0.568
+  Fair Value Gap Quality:
+    Average: 0.657
+    Min: 0.300, Max: 1.000
+    Median: 0.657
+
+🔗 Multi-Timeframe Confluence:
+  Setups with HTF OB Confluence: 0
+  Setups with HTF FVG Confluence: 0
+  Setups with HTF Trend Alignment: 168,353
+
+✅ Valid Setups (After Regime Filtering):
+  Valid Bullish OBs: 2,064
+  Valid Bearish OBs: 1,956
+  Valid Bullish FVGs: 2,705
+  Valid Bearish FVGs: 2,653
+
+🎯 Triple Barrier Method (TBM) Labels:
+  Total labeled entries: 9,343
+    Loss    :  4,342 ( 46.5%)
+    Timeout :  1,304 ( 14.0%)
+    Win     :  3,697 ( 39.6%)
+
+  Win Rate (excl. timeouts): 46.0%
+  Loss Rate (excl. timeouts): 54.0%
+  Average Bars to Hit Target: 5.2
+
+🌐 Market Regime Distribution (Fuzzy Logic):
+  Normal              :  115,950 ( 24.2%)
+  Low_Vol             :   91,964 ( 19.2%)
+  High_Vol            :   39,267 (  8.2%)
+  Low_Vol_Chop        :   37,568 (  7.9%)
+  High_Vol_Trend      :   25,251 (  5.3%)
+
+📊 Feature Engineering (ATR Normalization + Z-Score):
+  Z-Score Standardized Features: 9
+    - OB_Displacement_Mag_ZScore
+    - ATR_ZScore
+    - OB_Displacement_ATR_ZScore
+    - Displacement_Mag_ZScore
+    - OB_Size_ATR_ZScore
+    ... and 4 more
+
+================================================================================
+
+✅ PIPELINE VALIDATION:
+  ✓ Order Block Detection (with displacement validation)
+  ✓ Fair Value Gap Detection (with mitigation tracking)
+  ✓ Market Structure (BOS & ChoCH)
+  ✓ Triple Barrier Method Labeling
+  ✓ Multi-Timeframe Confluence
+  ✓ Contextual Filtering & Regime Classification
+  ✓ ATR Normalization + Z-Score Standardization
+  ✓ Fuzzy Logic Integration (adaptive thresholds)
+
+================================================================================
+
+💾 Saving processed data to: Data/processed_smc_data.csv
+✓ Saved full dataset: 478,353 rows (200.30 MB)
+
+📊 Splitting data with fuzzy quality stratification...
+  AUDCAD: Stratified by fuzzy quality (3 strata)
+  ⚠️ Skipping nan - insufficient data
+  AUDCHF: Stratified by fuzzy quality (3 strata)
+  AUDJPY: Stratified by fuzzy quality (3 strata)
+  AUDNZD: Stratified by fuzzy quality (3 strata)
+  AUDUSD: Stratified by fuzzy quality (3 strata)
+  EURUSD: Stratified by fuzzy quality (3 strata)
+  GBPUSD: Stratified by fuzzy quality (3 strata)
+  USDCAD: Stratified by fuzzy quality (3 strata)
+  USDCHF: Stratified by fuzzy quality (3 strata)
+  USDJPY: Stratified by fuzzy quality (3 strata)
+  XAUUSD: Stratified by fuzzy quality (3 strata)
+  TRAIN: 76,982 rows, Quality μ=0.067 σ=0.196
+  VAL: 16,500 rows, Quality μ=0.068 σ=0.197
+  TEST: 16,518 rows, Quality μ=0.068 σ=0.196
+  Using fuzzy quality stratification
+✓ Saved train split: 76,982 rows (46.78 MB)
+✓ Saved val split: 16,500 rows (10.05 MB)
+✓ Saved test split: 16,518 rows (10.06 MB)
+
+🔍 Validating fuzzy quality distribution across splits...
+
+  OB_Quality_Fuzzy:
+    Split    Mean     Std      Q25      Q50      Q75
+    --------------------------------------------------------
+    train    0.067    0.196    0.000    0.000    0.000
+    val      0.068    0.197    0.000    0.000    0.000
+    test     0.068    0.196    0.000    0.000    0.000
+
+  FVG_Quality_Fuzzy:
+    Split    Mean     Std      Q25      Q50      Q75
+    --------------------------------------------------------
+    train    0.047    0.177    0.000    0.000    0.000
+    val      0.048    0.180    0.000    0.000    0.000
+    test     0.049    0.181    0.000    0.000    0.000
+
+  HTF_Confluence_Quality:
+    Split    Mean     Std      Q25      Q50      Q75
+    --------------------------------------------------------
+    train    0.000    0.000    0.000    0.000    0.000
+    val      0.000    0.000    0.000    0.000    0.000
+    test     0.000    0.000    0.000    0.000    0.000
+
+  Distribution Consistency Check:
+    ✓ OB_Quality_Fuzzy: Train-Test difference = 0.8%
+    ✓ FVG_Quality_Fuzzy: Train-Test difference = 4.4%
+    ⚠️ HTF_Confluence_Quality: Train-Test difference = nan%
+✓ Saved quality statistics
+✓ Saved feature list: 58 features
+
+✅ Pipeline complete! Data ready for ML training.
+
+================================================================================
+PIPELINE COMPLETE!
+================================================================================
+
+⏱️ Execution Time:
+  Step 1 (Consolidation): 34.40s
+  Step 2 (SMC Processing): 5683.87s
+  Total: 5718.27s (95.30 minutes)
+
+📁 Output Files:
+
+  Consolidated Data:
+    Data/consolidated_ohlc_data.csv
+
+  Processed Data:
+    Data/processed_smc_data.csv
+    Data\processed_smc_data_train.csv
+    Data\processed_smc_data_val.csv
+    Data\processed_smc_data_test.csv
+    Data\processed_smc_data_feature_list.txt
+    Data\processed_smc_data_quality_stats.txt
+
+🎯 Next Steps:
+  1. Review the summary report above
+  2. Check feature_list.txt for ML features
+  3. Load train/val/test splits for model training
+  4. Train your ML model (Random Forest, XGBoost, Neural Network)
+  5. Predict TBM_Label (-1=Loss, 0=Timeout, 1=Win)
+
+✅ All done! Your data is ready for ML training.
+PS C:\Users\Morris\Desktop\Python>

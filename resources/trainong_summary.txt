@@ -1,0 +1,106 @@
+================================================================================
+TRAINING SUMMARY REPORT
+================================================================================
+
+📊 AUDCAD:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.700      0.667      41.0%
+  XGBoost              0.625      0.692      41.0%
+  NeuralNetwork        0.325      0.538      0.0%
+  LSTM                 0.200      0.256      0.0%
+
+📊 AUDCHF:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.488      0.756      47.4%
+  XGBoost              0.558      0.732      47.4%
+  NeuralNetwork        0.349      0.585      0.0%
+  LSTM                 0.256      0.366      0.0%
+
+📊 AUDJPY:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.719      0.667      42.9%
+  XGBoost              0.875      0.756      45.2%
+  NeuralNetwork        0.438      0.533      0.0%
+  LSTM                 0.219      0.356      0.0%
+
+📊 AUDNZD:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.889      0.767      51.9%
+  XGBoost              0.852      0.933      44.4%
+  NeuralNetwork        0.444      0.500      0.0%
+  LSTM                 0.333      0.233      0.0%
+
+📊 AUDUSD:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.591      0.617      38.1%
+  XGBoost              0.636      0.766      52.4%
+  NeuralNetwork        0.455      0.447      0.0%
+  LSTM                 0.273      0.277      0.0%
+
+📊 EURUSD:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.540      0.650      52.6%
+  XGBoost              0.660      0.625      47.4%
+  NeuralNetwork        0.320      0.525      0.0%
+  LSTM                 0.240      0.275      0.0%
+
+📊 GBPUSD:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.643      0.795      35.1%
+  XGBoost              0.690      0.718      43.2%
+  NeuralNetwork        0.476      0.564      0.0%
+  LSTM                 0.333      0.282      0.0%
+
+📊 USDCAD:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.707      0.676      54.8%
+  XGBoost              0.707      0.735      54.8%
+  NeuralNetwork        0.683      0.500      0.0%
+  LSTM                 0.390      0.265      0.0%
+
+📊 USDCHF:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.462      0.771      48.5%
+  XGBoost              0.641      0.800      42.4%
+  NeuralNetwork        0.231      0.571      0.0%
+  LSTM                 0.308      0.371      0.0%
+
+📊 USDJPY:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.675      0.521      42.6%
+  XGBoost              0.725      0.562      46.8%
+  NeuralNetwork        0.450      0.417      0.0%      
+  LSTM                 0.275      0.292      0.0%
+
+📊 XAUUSD:
+  Model                Val Acc    Test Acc   Win Rate
+  --------------------------------------------------
+  RandomForest         0.623      0.638      57.4%
+  XGBoost              0.679      0.702      59.6%
+  NeuralNetwork        0.566      0.404      0.0%
+  LSTM                 0.340      0.213      0.0%
+
+💾 Results saved to: models\trained\training_results.json
+
+✅ Training complete!
+
+================================================================================
+NEXT STEPS:
+================================================================================
+1. Review training results in models/trained/training_results.json
+2. Check model performance metrics
+3. Use best models for ensemble predictions
+4. Backtest on test set
+
+Models saved in: models/trained/
+PS C:\Users\Morris\Desktop\Python> 

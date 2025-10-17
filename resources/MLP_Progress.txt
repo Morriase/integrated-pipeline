@@ -1,0 +1,199 @@
+================================================================================
+Training Neural Network for AUDCAD
+================================================================================
+
+📂 Loading data for AUDCAD...
+  Train: 195 samples
+  Val:   40 samples
+  Test:  39 samples
+  Selected 57 features
+
+🧠 Training Neural Network for AUDCAD...
+  Device: cpu
+  Training samples: 195
+  Features: 57
+  Architecture: 57 -> 256 -> 128 -> 64 -> 3
+  Epoch 10/100 - Train Loss: nan, Train Acc: 0.482 | Val Loss: nan, Val Acc: 0.325
+
+  Early stopping at epoch 15
+
+  Final Train Accuracy: 0.482
+  Final Val Accuracy:   0.325
+
+📊 Evaluating on Validation set...
+
+  Accuracy: 0.325
+  Precision (macro): 0.108
+  Recall (macro): 0.333
+  F1-Score (macro): 0.164
+
+  Win Rate (excl. timeouts):
+    Predicted: 0.0%
+    Actual:    64.9%
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss          13           0         0
+  True Timeout        3           0         0
+  True Win           24           0         0
+
+📊 Evaluating on Test set...
+
+  Accuracy: 0.538
+  Precision (macro): 0.269
+  Recall (macro): 0.500
+  F1-Score (macro): 0.350
+
+  Win Rate (excl. timeouts):
+    Predicted: 0.0%
+    Actual:    46.2%
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss          21           0         0
+  True Timeout        0           0         0
+  True Win           18           0         0
+
+💾 Model saved to models\trained
+
+================================================================================
+Training LSTM for AUDCAD
+================================================================================
+
+📂 Loading data for AUDCAD...
+  Train: 195 samples
+  Val:   40 samples
+  Test:  39 samples
+  Selected 57 features
+
+🔄 Training LSTM for AUDCAD...
+  Device: cpu
+  Lookback window: 20 candles
+  Training samples: 195
+  Features: 57
+  Creating sequences...
+  Sequence shape: (175, 20, 57)
+  Epoch 10/100 - Train Loss: nan, Train Acc: 0.486 | Val Loss: nan, Val Acc: 0.300
+
+  Early stopping at epoch 15
+
+  Final Train Accuracy: 0.486
+  Final Val Accuracy:   0.300
+
+📊 Evaluating on Validation set...
+
+  Accuracy: 0.200
+  Precision (macro): 0.133
+  Recall (macro): 0.376
+  F1-Score (macro): 0.179
+
+  Win Rate (excl. timeouts):
+    Predicted: 0.0%
+    Actual:    64.9%
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss           6           7         0
+  True Timeout        1           2         0
+  True Win           13          11         0
+
+📊 Evaluating on Test set...
+
+  Accuracy: 0.256
+  Precision (macro): 0.175
+  Recall (macro): 0.159
+  F1-Score (macro): 0.167
+
+  Win Rate (excl. timeouts):
+    Predicted: 0.0%
+    Actual:    46.2%
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss          10          11         0
+  True Timeout        0           0         0
+  True Win            9           9         0
+
+💾 Model saved to models\trained
+####
+Test 2 
+================================================================================
+Training Neural Network for AUDCAD
+================================================================================
+
+📂 Loading data for AUDCAD...
+  Train: 195 samples
+  Val:   40 samples
+  Test:  39 samples
+  Selected 57 features
+
+🧠 Training Neural Network for AUDCAD...
+  Device: cpu
+  Training samples: 195
+  Features: 57
+  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
+  Epoch 10/200 - LR: 0.001046 - Train Loss: nan, Train Acc: 0.482 | Val Loss: nan, Val Acc: 0.325
+  Epoch 20/200 - LR: 0.002810 - Train Loss: nan, Train Acc: 0.482 | Val Loss: nan, Val Acc: 0.325
+  Epoch 30/200 - LR: 0.005218 - Train Loss: nan, Train Acc: 0.482 | Val Loss: nan, Val Acc: 0.325
+
+  Early stopping at epoch 30
+
+  Final Train Accuracy: 0.482
+  Final Val Accuracy:   0.325
+
+📊 Evaluating on Validation set...
+
+  Accuracy: 0.325
+  Precision (macro): 0.108
+  Recall (macro): 0.333
+  F1-Score (macro): 0.164
+
+  Win Rate (excl. timeouts):
+    Predicted: 0.0%
+    Actual:    64.9%
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss          13           0         0
+  True Timeout        3           0         0
+  True Win           24           0         0
+
+📊 Evaluating on Test set...
+
+  Accuracy: 0.538
+  Precision (macro): 0.269
+  Recall (macro): 0.500
+  F1-Score (macro): 0.350
+
+  Win Rate (excl. timeouts):
+    Predicted: 0.0%
+    Actual:    46.2%
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss          21           0         0
+  True Timeout        0           0         0
+  True Win           18           0         0
+
+💾 Model saved to models\trained
+
+================================================================================
+Training LSTM for AUDCAD
+================================================================================
+
+📂 Loading data for AUDCAD...
+  Train: 195 samples
+  Val:   40 samples
+  Test:  39 samples
+  Selected 57 features
+
+🔄 Training LSTM for AUDCAD...
+  Device: cpu
+  Lookback window: 20 candles
+  Training samples: 195
+  Features: 57
+  Creating sequences...
+  Sequence shape: (175, 20, 57)
+  Epoch 10/200 - LR: 0.001045 - Train Loss: nan, Train Acc: 0.486 | Val Loss: nan, Val Acc: 0.300
+  Epoch 20/200 - LR: 0.002807 - Train Loss: nan, Train Acc: 0.486 | Val Loss: nan, Val Acc: 0.300
+
