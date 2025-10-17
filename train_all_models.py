@@ -102,8 +102,8 @@ class SMCModelTrainer:
             exclude_timeout=exclude_timeout
         )
 
-        # Prepare features
-        X_train, y_train = model.prepare_features(train_df, fit_scaler=False)
+        # Prepare features (fit imputer on training data)
+        X_train, y_train = model.prepare_features(train_df, fit_scaler=True)
         X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
         X_test, y_test = model.prepare_features(test_df, fit_scaler=False)
 
@@ -151,8 +151,8 @@ class SMCModelTrainer:
             exclude_timeout=exclude_timeout
         )
 
-        # Prepare features
-        X_train, y_train = model.prepare_features(train_df, fit_scaler=False)
+        # Prepare features (fit imputer on training data)
+        X_train, y_train = model.prepare_features(train_df, fit_scaler=True)
         X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
         X_test, y_test = model.prepare_features(test_df, fit_scaler=False)
 
