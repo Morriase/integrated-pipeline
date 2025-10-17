@@ -72,7 +72,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               hidden_dims: List[int] = [512, 256, 128, 64],  # 4 hidden layers
               dropout: float = 0.4,  # Dropout for regularization
-              learning_rate: float = 0.003,  # Moderate LR for stable convergence
+              learning_rate: float = 0.01,  # Max LR for One-Cycle
               batch_size: int = 32,  # Batch size for generalization
               epochs: int = 200,  # Maximum epochs
               patience: int = 20,  # REDUCED from 30 for earlier stopping
@@ -142,14 +142,17 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
-        # ReduceLROnPlateau - smoother, more stable for small datasets
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        # One-Cycle Learning Rate Policy (works well for this problem)
+        steps_per_epoch = len(train_loader)
+        scheduler = optim.lr_scheduler.OneCycleLR(
             optimizer,
-            mode='min',
-            factor=0.5,  # Reduce LR by half
-            patience=10,  # Wait 10 epochs before reducing
-            verbose=False,
-            min_lr=1e-6  # Minimum learning rate
+            max_lr=learning_rate,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            pct_start=0.3,  # 30% warmup
+            anneal_strategy='cos',  # Cosine annealing
+            div_factor=25.0,  # Initial LR = max_lr/25
+            final_div_factor=10000.0  # Final LR = max_lr/10000
         )
 
         # Store reverse label map
@@ -181,6 +184,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 torch.nn.utils.clip_grad_norm_(
                     self.model.parameters(), max_norm=1.0)
                 optimizer.step()
+                scheduler.step()  # Step after each batch (One-Cycle)
 
                 train_loss += loss.item()
                 _, predicted = torch.max(outputs.data, 1)
@@ -213,10 +217,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 history['val_loss'].append(val_loss)
                 history['val_acc'].append(val_acc)
 
-                # Step scheduler based on validation loss (ReduceLROnPlateau)
-                scheduler.step(val_loss)
-
-                # Early stopping
+                # Early stopping (scheduler steps per batch with One-Cycle)
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     patience_counter = 0
