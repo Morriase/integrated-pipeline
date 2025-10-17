@@ -158,9 +158,12 @@ class BaseSMCModel(ABC):
         
         # FIX 2: Remap labels for binary classification (when timeout excluded)
         # XGBoost expects [0, 1] not [-1, 1]
-        if -1 in y and 1 in y and 0 not in y:
+        unique_labels = np.unique(y)
+        if len(unique_labels) == 2 and -1 in unique_labels and 1 in unique_labels:
             # Binary case: Loss=-1, Win=1 → Loss=0, Win=1
-            y = np.where(y == -1, 0, y)
+            y = np.where(y == -1, 0, 1).astype(int)
+            if fit_scaler:
+                print(f"  Remapped labels: {np.unique(y)}")
         
         # Optional scaling (for neural networks)
         if fit_scaler and self.scaler is not None:
