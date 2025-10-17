@@ -5,10 +5,6 @@ Trains all model types per symbol and evaluates performance
 Following specifications in WHATS_NEEDED.md
 """
 
-from models.random_forest_model import RandomForestSMCModel
-from models.xgboost_model import XGBoostSMCModel, XGBOOST_AVAILABLE
-from models.neural_network_model import NeuralNetworkSMCModel, TORCH_AVAILABLE
-from models.lstm_model import LSTMSMCModel
 import warnings
 from typing import Dict, List
 import json
@@ -17,10 +13,15 @@ import pandas as pd
 import sys
 from pathlib import Path
 
-# Add models directory to path
-sys.path.append(str(Path(__file__).parent / 'models'))
+# Add pipeline directory to path FIRST
+pipeline_dir = Path(__file__).parent
+sys.path.insert(0, str(pipeline_dir))
 
-# Import models from models directory
+# Now import models
+from models.random_forest_model import RandomForestSMCModel
+from models.xgboost_model import XGBoostSMCModel, XGBOOST_AVAILABLE
+from models.neural_network_model import NeuralNetworkSMCModel, TORCH_AVAILABLE
+from models.lstm_model import LSTMSMCModel
 
 warnings.filterwarnings('ignore')
 
