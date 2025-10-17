@@ -70,13 +70,12 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              # Even deeper (4 hidden layers)
-              hidden_dims: List[int] = [512, 256, 128, 64],
-              dropout: float = 0.4,  # Increased dropout
-              learning_rate: float = 0.01,  # Higher max LR for One-Cycle
-              batch_size: int = 32,  # Smaller batch for better generalization
-              epochs: int = 200,  # More epochs for full One-Cycle
-              patience: int = 30,  # More patience for One-Cycle
+              hidden_dims: List[int] = [512, 256, 128, 64],  # 4 hidden layers
+              dropout: float = 0.4,  # Dropout for regularization
+              learning_rate: float = 0.001,  # REDUCED from 0.01 for stability
+              batch_size: int = 32,  # Batch size for generalization
+              epochs: int = 200,  # Maximum epochs
+              patience: int = 20,  # REDUCED from 30 for earlier stopping
               weight_decay: float = 0.01,  # AdamW weight decay
               **kwargs) -> Dict:
         """
@@ -143,17 +142,14 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
-        # One-Cycle Learning Rate Policy
-        steps_per_epoch = len(train_loader)
-        scheduler = optim.lr_scheduler.OneCycleLR(
+        # ReduceLROnPlateau - smoother, more stable for small datasets
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
-            max_lr=learning_rate,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            pct_start=0.3,  # 30% warmup
-            anneal_strategy='cos',  # Cosine annealing
-            div_factor=25.0,  # Initial LR = max_lr/25
-            final_div_factor=10000.0  # Final LR = max_lr/10000 (annihilation)
+            mode='min',
+            factor=0.5,  # Reduce LR by half
+            patience=10,  # Wait 10 epochs before reducing
+            verbose=False,
+            min_lr=1e-6  # Minimum learning rate
         )
 
         # Store reverse label map
@@ -185,7 +181,6 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 torch.nn.utils.clip_grad_norm_(
                     self.model.parameters(), max_norm=1.0)
                 optimizer.step()
-                scheduler.step()  # Step after each batch (One-Cycle policy)
 
                 train_loss += loss.item()
                 _, predicted = torch.max(outputs.data, 1)
@@ -218,7 +213,10 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 history['val_loss'].append(val_loss)
                 history['val_acc'].append(val_acc)
 
-                # Early stopping (no scheduler.step here - One-Cycle handles it)
+                # Step scheduler based on validation loss (ReduceLROnPlateau)
+                scheduler.step(val_loss)
+
+                # Early stopping
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     patience_counter = 0
@@ -228,7 +226,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                     patience_counter += 1
 
                 if (epoch + 1) % 10 == 0:
-                    current_lr = scheduler.get_last_lr()[0]
+                    current_lr = optimizer.param_groups[0]['lr']
                     print(f"  Epoch {epoch+1}/{epochs} - LR: {current_lr:.6f} - "
                           f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.3f} | "
                           f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.3f}")
