@@ -33,9 +33,9 @@ class RandomForestSMCModel(BaseSMCModel):
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               n_estimators: int = 200,
-              max_depth: Optional[int] = 20,
-              min_samples_split: int = 10,
-              min_samples_leaf: int = 5,
+              max_depth: Optional[int] = 10,  # REDUCED from 20 to prevent overfitting
+              min_samples_split: int = 50,  # INCREASED from 10 for more regularization
+              min_samples_leaf: int = 25,  # INCREASED from 5 for more regularization
               max_features: str = 'sqrt',
               class_weight: str = 'balanced',
               use_grid_search: bool = False,

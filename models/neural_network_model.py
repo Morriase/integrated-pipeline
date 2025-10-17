@@ -70,13 +70,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              hidden_dims: List[int] = [512, 256, 128, 64],  # 4 hidden layers
-              dropout: float = 0.4,  # Dropout for regularization
-              learning_rate: float = 0.01,  # Max LR for One-Cycle
-              batch_size: int = 32,  # Batch size for generalization
+              hidden_dims: List[int] = [256, 128, 64],  # REDUCED from [512, 256, 128, 64] - smaller network
+              dropout: float = 0.5,  # INCREASED from 0.4 for more regularization
+              learning_rate: float = 0.005,  # REDUCED from 0.01 for smoother training
+              batch_size: int = 64,  # INCREASED from 32 for better generalization
               epochs: int = 200,  # Maximum epochs
-              patience: int = 20,  # REDUCED from 30 for earlier stopping
-              weight_decay: float = 0.01,  # AdamW weight decay
+              patience: int = 15,  # REDUCED from 20 for earlier stopping
+              weight_decay: float = 0.05,  # INCREASED from 0.01 for more L2 regularization
               **kwargs) -> Dict:
         """
         Train Neural Network model
@@ -138,21 +138,18 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         self.model.apply(init_weights)
 
         # Loss with label smoothing (reduces overconfidence)
-        criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+        criterion = nn.CrossEntropyLoss(label_smoothing=0.15)  # INCREASED from 0.1
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
-        # One-Cycle Learning Rate Policy (works well for this problem)
-        steps_per_epoch = len(train_loader)
-        scheduler = optim.lr_scheduler.OneCycleLR(
+        # ReduceLROnPlateau - reduces LR when validation loss plateaus
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
-            max_lr=learning_rate,
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            pct_start=0.3,  # 30% warmup
-            anneal_strategy='cos',  # Cosine annealing
-            div_factor=25.0,  # Initial LR = max_lr/25
-            final_div_factor=10000.0  # Final LR = max_lr/10000
+            mode='min',
+            factor=0.5,  # Reduce LR by half
+            patience=5,  # Wait 5 epochs before reducing
+            verbose=True,
+            min_lr=1e-6
         )
 
         # Store reverse label map
@@ -184,7 +181,6 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 torch.nn.utils.clip_grad_norm_(
                     self.model.parameters(), max_norm=1.0)
                 optimizer.step()
-                scheduler.step()  # Step after each batch (One-Cycle)
 
                 train_loss += loss.item()
                 _, predicted = torch.max(outputs.data, 1)
@@ -217,7 +213,10 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 history['val_loss'].append(val_loss)
                 history['val_acc'].append(val_acc)
 
-                # Early stopping (scheduler steps per batch with One-Cycle)
+                # Step scheduler based on validation loss
+                scheduler.step(val_loss)
+
+                # Early stopping
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     patience_counter = 0
