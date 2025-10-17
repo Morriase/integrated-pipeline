@@ -76,14 +76,33 @@ class XGBoostSMCModel(BaseSMCModel):
         print(f"  Training samples: {len(X_train):,}")
         print(f"  Features: {X_train.shape[1]}")
         
-        # Convert labels to 0, 1, 2 (XGBoost requires non-negative)
-        label_map = {-1: 0, 0: 1, 1: 2}
-        y_train_mapped = np.array([label_map[y] for y in y_train])
+        # Check if labels are already remapped (binary: 0,1) or original (3-class: -1,0,1)
+        unique_labels = np.unique(y_train)
+        is_binary = len(unique_labels) == 2 and 0 in unique_labels and 1 in unique_labels
         
-        # Calculate class weights if not provided
-        if scale_pos_weight is None:
-            unique, counts = np.unique(y_train_mapped, return_counts=True)
-            scale_pos_weight = counts[0] / counts[2] if len(counts) > 2 else 1.0
+        if is_binary:
+            # Binary classification: labels already [0, 1]
+            y_train_mapped = y_train.astype(int)
+            num_classes = 2
+            objective = 'binary:logistic'
+            eval_metric = 'logloss'
+            
+            # Calculate class weights
+            if scale_pos_weight is None:
+                unique, counts = np.unique(y_train_mapped, return_counts=True)
+                scale_pos_weight = counts[0] / counts[1] if len(counts) == 2 else 1.0
+        else:
+            # 3-class: Convert labels to 0, 1, 2
+            label_map = {-1: 0, 0: 1, 1: 2}
+            y_train_mapped = np.array([label_map[y] for y in y_train])
+            num_classes = 3
+            objective = 'multi:softmax'
+            eval_metric = 'mlogloss'
+            
+            # Calculate class weights
+            if scale_pos_weight is None:
+                unique, counts = np.unique(y_train_mapped, return_counts=True)
+                scale_pos_weight = counts[0] / counts[2] if len(counts) > 2 else 1.0
         
         # Set device
         tree_method = 'gpu_hist' if use_gpu else 'hist'
@@ -99,9 +118,9 @@ class XGBoostSMCModel(BaseSMCModel):
             reg_lambda=reg_lambda,
             scale_pos_weight=scale_pos_weight,
             tree_method=tree_method,
-            objective='multi:softmax',
-            num_class=3,
-            eval_metric='mlogloss',
+            objective=objective,
+            num_class=num_classes if objective == 'multi:softmax' else None,
+            eval_metric=eval_metric,
             random_state=42,
             n_jobs=-1
         )
@@ -109,8 +128,17 @@ class XGBoostSMCModel(BaseSMCModel):
         # Prepare evaluation set
         eval_set = [(X_train, y_train_mapped)]
         if X_val is not None and y_val is not None:
-            y_val_mapped = np.array([label_map[y] for y in y_val])
+            if is_binary:
+                y_val_mapped = y_val.astype(int)
+            else:
+                y_val_mapped = np.array([label_map[y] for y in y_val])
             eval_set.append((X_val, y_val_mapped))
+        
+        # Store mapping info for predictions
+        self.is_binary = is_binary
+        if not is_binary:
+            self.label_map = label_map
+            self.reverse_map = {v: k for k, v in label_map.items()}
         
         # Train (simplified - no early stopping to avoid API issues)
         self.model.fit(
@@ -119,8 +147,11 @@ class XGBoostSMCModel(BaseSMCModel):
             verbose=False
         )
         
-        # Store reverse label map for predictions
-        self.label_map_reverse = {0: -1, 1: 0, 2: 1}
+        # Store reverse label map for predictions (only for 3-class)
+        if not is_binary:
+            self.label_map_reverse = {0: -1, 1: 0, 2: 1}
+        else:
+            self.label_map_reverse = None  # Binary: no remapping needed
         
         # Extract feature importance
         self.feature_importance = self.model.feature_importances_
@@ -163,8 +194,12 @@ class XGBoostSMCModel(BaseSMCModel):
         # Predict with mapped labels
         y_pred_mapped = self.model.predict(X)
         
-        # Convert back to original labels
-        y_pred = np.array([self.label_map_reverse[y] for y in y_pred_mapped])
+        # Convert back to original labels (only for 3-class)
+        if self.label_map_reverse is not None:
+            y_pred = np.array([self.label_map_reverse[y] for y in y_pred_mapped])
+        else:
+            # Binary: already in correct format [0, 1]
+            y_pred = y_pred_mapped.astype(int)
         
         return y_pred
     
