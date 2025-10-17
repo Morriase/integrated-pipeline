@@ -46,26 +46,26 @@ def run_full_pipeline(config='full'):
         print("\n📊 Configuration: FULL (All symbols, all timeframes)")
         consolidated_df = consolidate_mt5_exports(
             input_dir='/kaggle/input/ob-ai-model-2-dataset/Data/mt5_exports',
-            output_file='/kaggle/input/ob-ai-model-2-dataset/Data/consolidated_ohlc_data.csv',
+            output_file='/kaggle/working/consolidated_ohlc_data.csv',
             symbols=None,  # All symbols
             timeframes=None  # All timeframes
         )
 
-        input_file = '/kaggle/input/ob-ai-model-2-dataset/Data/consolidated_ohlc_data.csv'
-        output_file = '/kaggle/input/ob-ai-model-2-dataset/Data/processed_smc_data.csv'
+        input_file = '/kaggle/working/consolidated_ohlc_data.csv'
+        output_file = '/kaggle/working/processed_smc_data.csv'
 
     elif config == 'test':
         # Quick test: Single symbol, 3 timeframes
         print("\n📊 Configuration: TEST (EURUSD only, M15/H1/H4)")
         consolidated_df = consolidate_mt5_exports(
             input_dir='/kaggle/input/ob-ai-model-2-dataset/Data/mt5_exports',
-            output_file='/kaggle/input/ob-ai-model-2-dataset/Data/consolidated_eurusd_test.csv',
+            output_file='/kaggle/working/consolidated_eurusd_test.csv',
             symbols=['EURUSD'],
             timeframes=['M15', 'H1', 'H4']
         )
 
-        input_file = '/kaggle/input/ob-ai-model-2-dataset/Data/consolidated_eurusd_test.csv'
-        output_file = '/kaggle/input/ob-ai-model-2-dataset/Data/processed_eurusd_test.csv'
+        input_file = '/kaggle/working/consolidated_eurusd_test.csv'
+        output_file = '/kaggle/working/processed_eurusd_test.csv'
 
     elif config == 'custom':
         # Custom: Specify your own symbols and timeframes
@@ -80,13 +80,13 @@ def run_full_pipeline(config='full'):
 
         consolidated_df = consolidate_mt5_exports(
             input_dir='/kaggle/input/ob-ai-model-2-dataset/Data/mt5_exports',
-            output_file='/kaggle/input/ob-ai-model-2-dataset/Data/consolidated_custom.csv',
+            output_file='/kaggle/working/consolidated_custom.csv',
             symbols=custom_symbols,
             timeframes=custom_timeframes
         )
 
-        input_file = '/kaggle/input/ob-ai-model-2-dataset/Data/consolidated_custom.csv'
-        output_file = '/kaggle/input/ob-ai-model-2-dataset/Data/processed_custom.csv'
+        input_file = '/kaggle/working/consolidated_custom.csv'
+        output_file = '/kaggle/working/processed_custom.csv'
 
     else:
         raise ValueError(

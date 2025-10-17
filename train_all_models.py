@@ -38,7 +38,7 @@ class SMCModelTrainer:
     4. LSTM - Temporal sequence patterns
     """
 
-    def __init__(self, data_dir: str = 'Data', output_dir: str = 'models/trained'):
+    def __init__(self, data_dir: str = '/kaggle/working', output_dir: str = 'models/trained'):
         """
         Initialize trainer
 
@@ -46,8 +46,8 @@ class SMCModelTrainer:
             data_dir: Directory containing processed data splits
             output_dir: Directory to save trained models
         """
-        # Kaggle paths
-        self.data_dir = Path('/kaggle/input/ob-ai-model-2-dataset') / data_dir
+        # Kaggle paths - data is now in /kaggle/working after pipeline runs
+        self.data_dir = Path(data_dir)
         self.output_dir = Path('/kaggle/working')
         self.output_dir.mkdir(parents=True, exist_ok=True)
 

@@ -5,7 +5,10 @@ Train Neural Network and LSTM on ALL symbols combined
 
 import sys
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent / 'models'))
+
+# Add the integrated-pipeline directory to path for module imports
+pipeline_dir = Path(__file__).parent
+sys.path.insert(0, str(pipeline_dir))
 
 from models.neural_network_model import NeuralNetworkSMCModel, TORCH_AVAILABLE
 from models.lstm_model import LSTMSMCModel
@@ -21,9 +24,9 @@ def train_combined_models():
     
     # Load FULL data from processed_smc_data CSV files (Kaggle paths)
     print("\n📂 Loading FULL dataset (ALL SYMBOLS COMBINED)...")
-    train_df = pd.read_csv('/kaggle/input/ob-ai-model-2-dataset/Data/processed_smc_data_train.csv')
-    val_df = pd.read_csv('/kaggle/input/ob-ai-model-2-dataset/Data/processed_smc_data_val.csv')
-    test_df = pd.read_csv('/kaggle/input/ob-ai-model-2-dataset/Data/processed_smc_data_test.csv')
+    train_df = pd.read_csv('/kaggle/working/processed_smc_data_train.csv')
+    val_df = pd.read_csv('/kaggle/working/processed_smc_data_val.csv')
+    test_df = pd.read_csv('/kaggle/working/processed_smc_data_test.csv')
     
     print(f"  Raw train: {len(train_df):,} samples")
     print(f"  Raw val:   {len(val_df):,} samples")
