@@ -19,11 +19,11 @@ def train_combined_models():
     print("TRAINING DEEP LEARNING MODELS ON COMBINED DATA")
     print("="*80)
     
-    # Load FULL data from processed_smc_data CSV files
+    # Load FULL data from processed_smc_data CSV files (Kaggle paths)
     print("\n📂 Loading FULL dataset (ALL SYMBOLS COMBINED)...")
-    train_df = pd.read_csv('Docs/Data/processed_smc_data_train.csv')
-    val_df = pd.read_csv('Docs/Data/processed_smc_data_val.csv')
-    test_df = pd.read_csv('Docs/Data/processed_smc_data_test.csv')
+    train_df = pd.read_csv('/kaggle/input/ob-ai-model-2-dataset/Data/processed_smc_data_train.csv')
+    val_df = pd.read_csv('/kaggle/input/ob-ai-model-2-dataset/Data/processed_smc_data_val.csv')
+    test_df = pd.read_csv('/kaggle/input/ob-ai-model-2-dataset/Data/processed_smc_data_test.csv')
     
     print(f"  Raw train: {len(train_df):,} samples")
     print(f"  Raw val:   {len(val_df):,} samples")
@@ -72,14 +72,14 @@ def train_combined_models():
         val_metrics = model.evaluate(X_val, y_val, 'Validation')
         test_metrics = model.evaluate(X_test, y_test, 'Test')
         
-        # Save
+        # Save (Kaggle working directory)
         import torch
         torch.save({
             'model_state_dict': model.model.state_dict(),
             'scaler': model.scaler,
             'label_map_reverse': model.label_map_reverse
-        }, 'models/trained/ALL_SYMBOLS_NeuralNetwork.pth')
-        print("\n💾 Model saved to models/trained/ALL_SYMBOLS_NeuralNetwork.pth")
+        }, '/kaggle/working/ALL_SYMBOLS_NeuralNetwork.pth')
+        print("\n💾 Model saved to /kaggle/working/ALL_SYMBOLS_NeuralNetwork.pth")
         
         print("\n" + "="*80)
         print("NEURAL NETWORK RESULTS (ALL SYMBOLS)")
@@ -123,13 +123,13 @@ def train_combined_models():
         val_metrics = model.evaluate(X_val, y_val, 'Validation')
         test_metrics = model.evaluate(X_test, y_test, 'Test')
         
-        # Save
+        # Save (Kaggle working directory)
         torch.save({
             'model_state_dict': model.model.state_dict(),
             'scaler': model.scaler,
             'label_map_reverse': model.label_map_reverse
-        }, 'models/trained/ALL_SYMBOLS_LSTM.pth')
-        print("\n💾 Model saved to models/trained/ALL_SYMBOLS_LSTM.pth")
+        }, '/kaggle/working/ALL_SYMBOLS_LSTM.pth')
+        print("\n💾 Model saved to /kaggle/working/ALL_SYMBOLS_LSTM.pth")
         
         print("\n" + "="*80)
         print("LSTM RESULTS (ALL SYMBOLS)")

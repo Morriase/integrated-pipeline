@@ -46,8 +46,9 @@ class SMCModelTrainer:
             data_dir: Directory containing processed data splits
             output_dir: Directory to save trained models
         """
-        self.data_dir = Path('Docs') / data_dir
-        self.output_dir = Path(output_dir)
+        # Kaggle paths
+        self.data_dir = Path('/kaggle/input/ob-ai-model-2-dataset') / data_dir
+        self.output_dir = Path('/kaggle/working')
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Data paths
