@@ -47,7 +47,7 @@ sys.path.insert(0, REPO_DIR)
 
 # Run pipeline
 print("🚀 Running complete pipeline...")
-exec(open('KAGGLE_COMPLETE_NOTEBOOK.py').read())
+exec(open('KAGGLE_RUN.py').read())
 ```
 
 ### 3. Run the Cell
@@ -99,10 +99,14 @@ pip install -q torch scikit-fuzzy xgboost scikit-learn pandas numpy joblib matpl
 ### Cell 3: Run Pipeline
 ```python
 import sys
+import os
+
+# Setup environment
+os.chdir('/kaggle/working/integrated-pipeline')
 sys.path.insert(0, '/kaggle/working/integrated-pipeline')
 
 # Run complete pipeline
-exec(open('/kaggle/working/integrated-pipeline/KAGGLE_COMPLETE_NOTEBOOK.py').read())
+exec(open('KAGGLE_RUN.py').read())
 ```
 
 ---
