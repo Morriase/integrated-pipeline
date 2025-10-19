@@ -635,6 +635,7 @@ class BaseSMCModel(ABC):
             'mean_f1': np.mean(fold_f1s),
             'std_f1': np.std(fold_f1s),
             'fold_accuracies': fold_accuracies,
+            'is_stable': not is_unstable,  # Add is_stable flag (inverse of is_unstable)
             'is_unstable': is_unstable,
             'is_rejected': is_rejected,
             'poor_folds': poor_folds,
