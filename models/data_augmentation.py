@@ -35,12 +35,12 @@ class DataAugmenter:
     and balance class distributions, helping models generalize better.
     """
     
-    def __init__(self, noise_std: float = 0.01, smote_k_neighbors: int = 5):
+    def __init__(self, noise_std: float = 0.15, smote_k_neighbors: int = 5):
         """
         Initialize DataAugmenter with configuration parameters.
         
         Args:
-            noise_std: Standard deviation for Gaussian noise (default: 0.01)
+            noise_std: Standard deviation for Gaussian noise (default: 0.15)
             smote_k_neighbors: Number of neighbors for SMOTE algorithm (default: 5)
         """
         self.noise_std = noise_std
@@ -122,6 +122,95 @@ class DataAugmenter:
             logger.warning(f"SMOTE failed with error: {str(e)}. Returning original data.")
             return X, y
     
+    def time_shift(self, X: np.ndarray, max_shift: int = 2) -> np.ndarray:
+        """
+        Apply time-shift augmentation by shifting features by ±max_shift positions.
+        
+        This creates variations by simulating temporal shifts in the data,
+        useful for time-series or sequential features.
+        
+        Args:
+            X: Input feature matrix of shape (n_samples, n_features)
+            max_shift: Maximum number of positions to shift (default: 2)
+            
+        Returns:
+            Feature matrix with time-shifted values
+        """
+        X_shifted = X.copy()
+        
+        # Apply random shift to each sample
+        for i in range(len(X)):
+            shift = np.random.randint(-max_shift, max_shift + 1)
+            if shift != 0:
+                X_shifted[i] = np.roll(X[i], shift)
+        
+        logger.info(f"Applied time-shift augmentation (±{max_shift} timesteps) to {X.shape[0]} samples")
+        return X_shifted
+    
+    def feature_dropout(self, X: np.ndarray, dropout_rate: float = 0.1) -> np.ndarray:
+        """
+        Apply feature dropout by randomly zeroing out features.
+        
+        This helps models learn robust representations that don't rely on
+        specific features always being present.
+        
+        Args:
+            X: Input feature matrix of shape (n_samples, n_features)
+            dropout_rate: Probability of dropping each feature (default: 0.1)
+            
+        Returns:
+            Feature matrix with randomly dropped features
+        """
+        X_dropout = X.copy()
+        
+        # Create dropout mask (1 = keep, 0 = drop)
+        mask = np.random.binomial(1, 1 - dropout_rate, X.shape)
+        X_dropout *= mask
+        
+        n_dropped = np.sum(mask == 0)
+        logger.info(f"Applied feature dropout ({dropout_rate:.0%} rate) - dropped {n_dropped} feature values")
+        return X_dropout
+    
+    def _validate_distribution(self, y_original: np.ndarray, y_augmented: np.ndarray, 
+                              tolerance: float = 0.05) -> bool:
+        """
+        Validate that augmented data preserves label distribution within tolerance.
+        
+        Args:
+            y_original: Original target labels
+            y_augmented: Augmented target labels
+            tolerance: Maximum allowed difference in class proportions (default: 0.05)
+            
+        Returns:
+            True if distribution is preserved within tolerance, False otherwise
+        """
+        # Calculate class distributions
+        unique_classes = np.unique(np.concatenate([y_original, y_augmented]))
+        
+        orig_dist = np.zeros(len(unique_classes))
+        aug_dist = np.zeros(len(unique_classes))
+        
+        for idx, cls in enumerate(unique_classes):
+            orig_dist[idx] = np.sum(y_original == cls) / len(y_original)
+            aug_dist[idx] = np.sum(y_augmented == cls) / len(y_augmented)
+        
+        # Calculate maximum difference
+        max_diff = np.max(np.abs(orig_dist - aug_dist))
+        
+        if max_diff > tolerance:
+            logger.warning(
+                f"Label distribution shifted by {max_diff:.2%} (tolerance: {tolerance:.2%})"
+            )
+            for idx, cls in enumerate(unique_classes):
+                logger.warning(
+                    f"  Class {cls}: {orig_dist[idx]:.2%} -> {aug_dist[idx]:.2%} "
+                    f"(diff: {abs(orig_dist[idx] - aug_dist[idx]):.2%})"
+                )
+            return False
+        
+        logger.info(f"Label distribution preserved within {tolerance:.2%} tolerance (max diff: {max_diff:.2%})")
+        return True
+    
     def _validate_ranges(self, X_augmented: np.ndarray, X_original: np.ndarray) -> np.ndarray:
         """
         Validate that augmented data maintains realistic value ranges.
@@ -152,14 +241,18 @@ class DataAugmenter:
     def augment(self, X: np.ndarray, y: np.ndarray, 
                 threshold: int = 300) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Apply comprehensive data augmentation combining noise and SMOTE.
+        Apply adaptive data augmentation with multiple techniques.
         
-        This method:
-        1. Checks if augmentation is needed
-        2. Adds Gaussian noise to create variations
-        3. Applies SMOTE for class balancing
-        4. Validates augmented data ranges
-        5. Reports augmentation statistics
+        This method implements adaptive augmentation based on dataset size:
+        - <200 samples: 3x augmentation
+        - 200-300 samples: 2x augmentation
+        - >=300 samples: no augmentation
+        
+        Augmentation techniques applied:
+        1. Gaussian noise (std=0.15)
+        2. Time-shift augmentation (±2 timesteps)
+        3. Feature dropout (10% rate)
+        4. SMOTE for class balancing
         
         Args:
             X: Input feature matrix of shape (n_samples, n_features)
@@ -191,25 +284,72 @@ class DataAugmenter:
             )
             return X, y
         
-        logger.info(
-            f"Dataset has {original_size} samples (< {threshold}). "
-            "Applying augmentation..."
-        )
+        # Determine augmentation factor based on dataset size
+        if original_size < 200:
+            augmentation_factor = 3
+            logger.info(f"Dataset has {original_size} samples (<200). Target: 3x augmentation")
+        else:  # 200-300 samples
+            augmentation_factor = 2
+            logger.info(f"Dataset has {original_size} samples (200-300). Target: 2x augmentation")
+        
+        target_size = original_size * augmentation_factor
         
         # Store original data for range validation
         X_original = X.copy()
+        y_original = y.copy()
         
-        # Step 1: Add Gaussian noise
-        X_augmented = self.add_gaussian_noise(X)
-        methods_used.append('gaussian_noise')
+        # Initialize with original data
+        X_aug_list = [X.copy()]
+        y_aug_list = [y.copy()]
         
-        # Step 2: Apply SMOTE for class balancing
-        X_augmented, y_augmented = self.apply_smote(X_augmented, y)
-        if X_augmented.shape[0] > X.shape[0]:
+        # Apply multiple augmentation techniques to reach target size
+        remaining_samples = target_size - original_size
+        
+        # Technique 1: Gaussian noise (increased to 0.15)
+        if remaining_samples > 0:
+            X_noise = self.add_gaussian_noise(X)
+            X_aug_list.append(X_noise)
+            y_aug_list.append(y.copy())
+            methods_used.append('gaussian_noise')
+            remaining_samples -= original_size
+        
+        # Technique 2: Time-shift augmentation
+        if remaining_samples > 0:
+            X_shifted = self.time_shift(X, max_shift=2)
+            X_aug_list.append(X_shifted)
+            y_aug_list.append(y.copy())
+            methods_used.append('time_shift')
+            remaining_samples -= original_size
+        
+        # Technique 3: Feature dropout
+        if remaining_samples > 0:
+            X_dropout = self.feature_dropout(X, dropout_rate=0.1)
+            X_aug_list.append(X_dropout)
+            y_aug_list.append(y.copy())
+            methods_used.append('feature_dropout')
+            remaining_samples -= original_size
+        
+        # Combine all augmented data
+        X_combined = np.vstack(X_aug_list)
+        y_combined = np.hstack(y_aug_list)
+        
+        # Trim to target size if we exceeded it
+        if len(X_combined) > target_size:
+            indices = np.random.choice(len(X_combined), target_size, replace=False)
+            X_combined = X_combined[indices]
+            y_combined = y_combined[indices]
+            logger.info(f"Trimmed augmented data to target size: {target_size}")
+        
+        # Apply SMOTE for class balancing
+        X_augmented, y_augmented = self.apply_smote(X_combined, y_combined)
+        if X_augmented.shape[0] > X_combined.shape[0]:
             methods_used.append('smote')
         
-        # Step 3: Validate ranges
+        # Validate ranges
         X_augmented = self._validate_ranges(X_augmented, X_original)
+        
+        # Validate label distribution (within 5% tolerance)
+        self._validate_distribution(y_original, y_augmented, tolerance=0.05)
         
         # Get final class distribution
         unique_classes_after, class_counts_after = np.unique(y_augmented, return_counts=True)

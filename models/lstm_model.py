@@ -22,7 +22,7 @@ except ImportError:
     print("⚠️ PyTorch not installed. Install with: pip install torch")
 
 from sklearn.preprocessing import StandardScaler
-from models.base_model import BaseSMCModel
+from models.base_model import BaseSMCModel, TrainingMonitor
 
 
 class LSTMClassifier(nn.Module):
@@ -87,7 +87,7 @@ class LSTMSMCModel(BaseSMCModel):
     - Remembers context across time
     """
     
-    def __init__(self, symbol: str, target_col: str = 'TBM_Label', lookback: int = 20):
+    def __init__(self, symbol: str, target_col: str = 'TBM_Label', lookback: int = 10):
         if not TORCH_AVAILABLE:
             raise ImportError("PyTorch not installed")
         super().__init__('LSTM', symbol, target_col)
@@ -116,13 +116,13 @@ class LSTMSMCModel(BaseSMCModel):
     
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              hidden_dim: int = 128,  # REDUCED from 256 to prevent overfit
-              num_layers: int = 2,  # REDUCED from 3 to prevent overfit
-              dropout: float = 0.5,  # INCREASED from 0.4 for more regularization
-              learning_rate: float = 0.005,  # REDUCED from 0.01 for stability
-              batch_size: int = 32,  # INCREASED from 16 for better generalization
+              hidden_dim: int = 64,  # REDUCED to 64 for small datasets
+              num_layers: int = 1,  # REDUCED to 1 for simplification
+              dropout: float = 0.5,  # INCREASED for more regularization
+              learning_rate: float = 0.0005,  # REDUCED to 0.0005 for stability
+              batch_size: int = 16,  # REDUCED to 16 for small datasets
               epochs: int = 200,  # More epochs for full One-Cycle
-              patience: int = 20,  # REDUCED from 30 for earlier stopping
+              patience: int = 15,  # REDUCED to 15 for earlier stopping
               weight_decay: float = 0.05,  # INCREASED from 0.01 for more L2 reg
               bidirectional: bool = True,  # Use BiLSTM
               **kwargs) -> Dict:
@@ -218,6 +218,11 @@ class LSTMSMCModel(BaseSMCModel):
         # Store reverse label map
         self.label_map_reverse = {0: -1, 1: 0, 2: 1}
         
+        # Initialize training monitor for early warnings (Task 10.2)
+        from datetime import datetime
+        training_monitor = TrainingMonitor()
+        training_start_time = datetime.now()
+        
         # Training loop
         history = {'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
         best_val_loss = float('inf')
@@ -238,8 +243,11 @@ class LSTMSMCModel(BaseSMCModel):
                 outputs = self.model(batch_X)
                 loss = criterion(outputs, batch_y)
                 loss.backward()
-                # Gradient clipping to prevent NaN (critical for RNNs)
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+                
+                # Check for exploding gradients before clipping
+                grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+                training_monitor.check_exploding_gradients(grad_norm.item(), threshold=10.0, epoch=epoch + 1)
+                
                 optimizer.step()
                 scheduler.step()  # Step after each batch (One-Cycle policy)
                 
@@ -253,6 +261,11 @@ class LSTMSMCModel(BaseSMCModel):
             
             history['train_loss'].append(train_loss)
             history['train_acc'].append(train_acc)
+            
+            # Check for NaN loss (critical - stop immediately)
+            if training_monitor.check_nan_loss(train_loss, epoch + 1):
+                print(f"\n  ❌ Training stopped due to NaN loss at epoch {epoch+1}")
+                break
             
             # Validation phase
             if X_val is not None and y_val is not None:
@@ -273,6 +286,28 @@ class LSTMSMCModel(BaseSMCModel):
                 
                 history['val_loss'].append(val_loss)
                 history['val_acc'].append(val_acc)
+                
+                # Training monitor checks (Task 10.2 - Requirements 9.1, 9.2, 9.3, 9.4, 9.5)
+                # Check for severe overfitting
+                training_monitor.check_overfitting(train_acc, val_acc, epoch + 1)
+                
+                # Check for validation loss divergence
+                training_monitor.check_divergence(history['val_loss'], patience=10)
+                
+                # Check for NaN validation loss
+                if training_monitor.check_nan_loss(val_loss, epoch + 1):
+                    print(f"\n  ❌ Training stopped due to NaN validation loss at epoch {epoch+1}")
+                    break
+                
+                # Check for training timeout
+                if training_monitor.check_timeout(training_start_time, max_minutes=10):
+                    print(f"\n  ⏱️ Training stopped due to timeout at epoch {epoch+1}")
+                    break
+                
+                # Stop on critical warnings
+                if training_monitor.has_critical_warnings():
+                    print(f"\n  ❌ Training stopped due to critical warnings at epoch {epoch+1}")
+                    break
                 
                 # Early stopping (no scheduler.step here - One-Cycle handles it)
                 if val_loss < best_val_loss:
@@ -302,9 +337,21 @@ class LSTMSMCModel(BaseSMCModel):
         self.training_history = history
         self.is_trained = True
         
+        # Store training warnings in history
+        history['training_warnings'] = training_monitor.get_warnings()
+        
+        # Print training monitor summary
+        warnings = training_monitor.get_warnings()
+        if warnings:
+            print(f"\n  ⚠️ Training Warnings ({len(warnings)}):")
+            for warning in warnings:
+                print(f"    - {warning}")
+        
         print(f"\n  Final Train Accuracy: {history['train_acc'][-1]:.3f}")
         if history['val_acc']:
             print(f"  Final Val Accuracy:   {history['val_acc'][-1]:.3f}")
+            gap = history['train_acc'][-1] - history['val_acc'][-1]
+            print(f"  Train-Val Gap:        {gap:.3f} ({gap*100:.1f}%)")
         
         return history
     
@@ -365,7 +412,7 @@ if __name__ == "__main__":
         exit(1)
     
     # Initialize model
-    model = LSTMSMCModel(symbol='EURUSD', lookback=20)
+    model = LSTMSMCModel(symbol='EURUSD', lookback=10)
     
     # Load data
     train_df, val_df, test_df = model.load_data(
@@ -384,11 +431,11 @@ if __name__ == "__main__":
     history = model.train(
         X_train, y_train,
         X_val, y_val,
-        hidden_dim=128,
-        num_layers=2,
-        dropout=0.3,
-        learning_rate=0.001,
-        batch_size=32,
+        hidden_dim=64,
+        num_layers=1,
+        dropout=0.5,
+        learning_rate=0.0005,
+        batch_size=16,
         epochs=100,
         patience=15
     )

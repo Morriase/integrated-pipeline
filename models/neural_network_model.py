@@ -22,7 +22,7 @@ except ImportError:
     print("⚠️ PyTorch not installed. Install with: pip install torch")
 
 from sklearn.preprocessing import StandardScaler
-from models.base_model import BaseSMCModel
+from models.base_model import BaseSMCModel, TrainingMonitor
 from models.data_augmentation import DataAugmenter
 from models.overfitting_monitor import OverfittingMonitor
 
@@ -79,12 +79,12 @@ class NeuralNetworkSMCModel(BaseSMCModel):
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               hidden_dims: List[int] = [256, 128, 64],  # REDUCED from [512, 256, 128, 64] - smaller network
-              dropout: float = 0.5,  # INCREASED from 0.4 for more regularization
+              dropout: float = 0.4,  # INCREASED from 0.3 for regularization (Task 4)
               learning_rate: float = 0.005,  # REDUCED from 0.01 for smoother training
               batch_size: int = 64,  # INCREASED from 32 for better generalization
               epochs: int = 200,  # Maximum epochs
               patience: int = 20,  # INCREASED from 15 for better convergence
-              weight_decay: float = 0.1,  # INCREASED from 0.05 for stronger L2 regularization
+              weight_decay: float = 0.001,  # INCREASED from 0.0001 for L2 regularization (Task 4)
               **kwargs) -> Dict:
         """
         Train Neural Network model
@@ -153,7 +153,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         self.model.apply(init_weights)
 
         # Loss with label smoothing (reduces overconfidence)
-        criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # INCREASED from 0.15 for stronger regularization
+        criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # INCREASED from 0.15 for stronger regularization (Task 4)
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
@@ -171,6 +171,11 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
         # Initialize overfitting monitor
         monitor = OverfittingMonitor(warning_threshold=0.15)
+        
+        # Initialize training monitor for early warnings (Task 10.1)
+        from datetime import datetime
+        training_monitor = TrainingMonitor()
+        training_start_time = datetime.now()
 
         # Training loop
         history = {'train_loss': [], 'train_acc': [],
@@ -194,9 +199,12 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 outputs = self.model(batch_X)
                 loss = criterion(outputs, batch_y)
                 loss.backward()
-                # Gradient clipping to prevent NaN (critical for stability)
-                torch.nn.utils.clip_grad_norm_(
+                
+                # Check for exploding gradients before clipping
+                grad_norm = torch.nn.utils.clip_grad_norm_(
                     self.model.parameters(), max_norm=1.0)
+                training_monitor.check_exploding_gradients(grad_norm.item(), threshold=10.0, epoch=epoch + 1)
+                
                 optimizer.step()
 
                 train_loss += loss.item()
@@ -209,6 +217,11 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
             history['train_loss'].append(train_loss)
             history['train_acc'].append(train_acc)
+            
+            # Check for NaN loss (critical - stop immediately)
+            if training_monitor.check_nan_loss(train_loss, epoch + 1):
+                print(f"\n  ❌ Training stopped due to NaN loss at epoch {epoch+1}")
+                break
 
             # Validation phase and monitoring
             if X_val is not None and y_val is not None:
@@ -236,6 +249,28 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                     train_metrics={'accuracy': train_acc, 'loss': train_loss},
                     val_metrics={'accuracy': val_acc, 'loss': val_loss}
                 )
+                
+                # Training monitor checks (Task 10.1 - Requirements 9.1, 9.2, 9.3, 9.4, 9.5)
+                # Check for severe overfitting
+                training_monitor.check_overfitting(train_acc, val_acc, epoch + 1)
+                
+                # Check for validation loss divergence
+                training_monitor.check_divergence(history['val_loss'], patience=10)
+                
+                # Check for NaN validation loss
+                if training_monitor.check_nan_loss(val_loss, epoch + 1):
+                    print(f"\n  ❌ Training stopped due to NaN validation loss at epoch {epoch+1}")
+                    break
+                
+                # Check for training timeout
+                if training_monitor.check_timeout(training_start_time, max_minutes=10):
+                    print(f"\n  ⏱️ Training stopped due to timeout at epoch {epoch+1}")
+                    break
+                
+                # Stop on critical warnings
+                if training_monitor.has_critical_warnings():
+                    print(f"\n  ❌ Training stopped due to critical warnings at epoch {epoch+1}")
+                    break
 
                 # Step scheduler based on validation loss
                 scheduler.step(val_loss)
@@ -268,6 +303,9 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
         self.training_history = history
         self.is_trained = True
+        
+        # Store training warnings in history
+        history['training_warnings'] = training_monitor.get_warnings()
 
         # Generate and save learning curves
         curves_dir = 'models/trained'
@@ -281,6 +319,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
         # Print overfitting summary
         monitor.print_summary()
+        
+        # Print training monitor summary
+        warnings = training_monitor.get_warnings()
+        if warnings:
+            print(f"\n  ⚠️ Training Warnings ({len(warnings)}):")
+            for warning in warnings:
+                print(f"    - {warning}")
 
         print(f"\n  Final Train Accuracy: {history['train_acc'][-1]:.3f}")
         if history['val_acc']:

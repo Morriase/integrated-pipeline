@@ -34,17 +34,17 @@ class RandomForestSMCModel(BaseSMCModel):
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               n_estimators: int = 200,
-              max_depth: Optional[int] = 15,  # Anti-overfitting constraint
-              min_samples_split: int = 20,  # Anti-overfitting constraint
-              min_samples_leaf: int = 10,  # Anti-overfitting constraint
+              max_depth: Optional[int] = 10,  # Enhanced regularization (reduced from 15)
+              min_samples_split: int = 20,  # Enhanced regularization
+              min_samples_leaf: int = 10,  # Enhanced regularization
               max_features: str = 'sqrt',
-              max_samples: float = 0.8,  # NEW: Bootstrap sampling control
+              max_samples: float = 0.7,  # Enhanced regularization (reduced from 0.8)
               class_weight: str = 'balanced',
               use_grid_search: bool = False,
               use_cross_validation: bool = True,  # NEW: Enable CV by default
               **kwargs) -> Dict:
         """
-        Train Random Forest model with anti-overfitting constraints
+        Train Random Forest model with enhanced regularization
         
         Args:
             X_train: Training features
@@ -52,11 +52,11 @@ class RandomForestSMCModel(BaseSMCModel):
             X_val: Validation features (optional)
             y_val: Validation labels (optional)
             n_estimators: Number of trees
-            max_depth: Maximum tree depth (default: 15 for anti-overfitting)
+            max_depth: Maximum tree depth (default: 10 for enhanced regularization)
             min_samples_split: Minimum samples to split node (default: 20)
             min_samples_leaf: Minimum samples in leaf (default: 10)
             max_features: Number of features for best split
-            max_samples: Bootstrap sampling ratio (default: 0.8)
+            max_samples: Bootstrap sampling ratio (default: 0.7 for enhanced regularization)
             class_weight: Class weighting strategy
             use_grid_search: Whether to use grid search for hyperparameters
             use_cross_validation: Whether to perform cross-validation (default: True)

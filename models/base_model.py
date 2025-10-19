@@ -219,6 +219,155 @@ class FeatureSelector:
         return self.feature_scores_.sort_values('score', ascending=False).reset_index(drop=True)
 
 
+class TrainingMonitor:
+    """
+    Real-time training monitoring and early warning system
+    
+    Monitors training progress and detects issues:
+    - Severe overfitting (train >95%, val <60%)
+    - Validation loss divergence (increasing for 10+ epochs)
+    - NaN loss (immediate stop)
+    - Exploding gradients (norm >10)
+    - Training timeout (>10 minutes per symbol)
+    """
+    
+    def __init__(self):
+        """Initialize training monitor with empty warning storage"""
+        self.warnings = []
+        self.should_stop = False
+    
+    def check_overfitting(self, train_acc: float, val_acc: float, epoch: int = None) -> bool:
+        """
+        Check for severe overfitting (Requirement 9.1)
+        
+        Args:
+            train_acc: Training accuracy (0-1 range)
+            val_acc: Validation accuracy (0-1 range)
+            epoch: Current epoch number (optional)
+            
+        Returns:
+            True if severe overfitting detected, False otherwise
+        """
+        if train_acc > 0.95 and val_acc < 0.60:
+            epoch_str = f"Epoch {epoch}: " if epoch is not None else ""
+            warning = f"{epoch_str}Severe overfitting detected (train={train_acc:.2%}, val={val_acc:.2%})"
+            self.warnings.append(warning)
+            print(f"⚠️ {warning}")
+            return True
+        return False
+    
+    def check_divergence(self, val_losses: List[float], patience: int = 10) -> bool:
+        """
+        Check for validation loss divergence (Requirement 9.2)
+        
+        Args:
+            val_losses: List of validation losses (most recent last)
+            patience: Number of consecutive increasing epochs to trigger warning
+            
+        Returns:
+            True if divergence detected, False otherwise
+        """
+        if len(val_losses) < patience:
+            return False
+        
+        recent_losses = val_losses[-patience:]
+        # Check if all recent losses are increasing
+        is_diverging = all(recent_losses[i] > recent_losses[i-1] 
+                          for i in range(1, len(recent_losses)))
+        
+        if is_diverging:
+            warning = f"Validation loss divergence: increasing for {patience} consecutive epochs"
+            self.warnings.append(warning)
+            print(f"⚠️ {warning}")
+            return True
+        return False
+    
+    def check_nan_loss(self, loss: float, epoch: int = None) -> bool:
+        """
+        Check for NaN loss - critical error (Requirement 9.3)
+        
+        Args:
+            loss: Loss value to check
+            epoch: Current epoch number (optional)
+            
+        Returns:
+            True if NaN detected, False otherwise
+        """
+        if np.isnan(loss) or np.isinf(loss):
+            epoch_str = f"Epoch {epoch}: " if epoch is not None else ""
+            warning = f"{epoch_str}NaN/Inf loss detected - STOPPING TRAINING"
+            self.warnings.append(warning)
+            print(f"❌ {warning}")
+            self.should_stop = True
+            return True
+        return False
+    
+    def check_exploding_gradients(self, grad_norm: float, threshold: float = 10.0, 
+                                  epoch: int = None) -> bool:
+        """
+        Check for exploding gradients (Requirement 9.4)
+        
+        Args:
+            grad_norm: Gradient norm value
+            threshold: Threshold for gradient explosion (default: 10.0)
+            epoch: Current epoch number (optional)
+            
+        Returns:
+            True if exploding gradients detected, False otherwise
+        """
+        if grad_norm > threshold:
+            epoch_str = f"Epoch {epoch}: " if epoch is not None else ""
+            warning = f"{epoch_str}Exploding gradient detected (norm={grad_norm:.2f} > {threshold})"
+            self.warnings.append(warning)
+            print(f"⚠️ {warning}")
+            return True
+        return False
+    
+    def check_timeout(self, start_time, max_minutes: int = 10) -> bool:
+        """
+        Check for training timeout (Requirement 9.5)
+        
+        Args:
+            start_time: Training start time (datetime object)
+            max_minutes: Maximum allowed training time in minutes
+            
+        Returns:
+            True if timeout exceeded, False otherwise
+        """
+        from datetime import datetime
+        elapsed = (datetime.now() - start_time).total_seconds() / 60
+        
+        if elapsed > max_minutes:
+            warning = f"Training timeout: exceeded {max_minutes} minutes (elapsed: {elapsed:.1f} min)"
+            self.warnings.append(warning)
+            print(f"⚠️ {warning}")
+            return True
+        return False
+    
+    def get_warnings(self) -> List[str]:
+        """
+        Get all warnings collected during training
+        
+        Returns:
+            List of warning messages
+        """
+        return self.warnings
+    
+    def reset(self):
+        """Reset monitor state for new training run"""
+        self.warnings = []
+        self.should_stop = False
+    
+    def has_critical_warnings(self) -> bool:
+        """
+        Check if any critical warnings were raised
+        
+        Returns:
+            True if should_stop flag is set, False otherwise
+        """
+        return self.should_stop
+
+
 class BaseSMCModel(ABC):
     """
     Abstract base class for SMC trade prediction models
@@ -453,14 +602,32 @@ class BaseSMCModel(ABC):
             
             print(f"  Fold {fold_idx}/{n_folds}: Accuracy={fold_acc:.3f}, F1={fold_f1:.3f}")
         
-        # Calculate statistics
+        # Calculate statistics (Requirement 6.1)
         mean_accuracy = np.mean(fold_accuracies)
         std_accuracy = np.std(fold_accuracies)
-        is_stable = std_accuracy < 0.15
+        min_accuracy = np.min(fold_accuracies)
+        max_accuracy = np.max(fold_accuracies)
+        
+        # Stability flagging logic (Requirements 6.2, 6.3)
+        is_unstable = std_accuracy > 0.10
+        is_rejected = std_accuracy > 0.15
+        
+        # Identify poor-performing folds (Requirement 6.5)
+        poor_folds = []
+        threshold = mean_accuracy - std_accuracy
+        for i, acc in enumerate(fold_accuracies, 1):
+            if acc < threshold:
+                poor_folds.append({
+                    'fold': i,
+                    'accuracy': acc,
+                    'deviation': acc - mean_accuracy
+                })
         
         cv_results = {
             'mean_accuracy': mean_accuracy,
             'std_accuracy': std_accuracy,
+            'min_accuracy': min_accuracy,
+            'max_accuracy': max_accuracy,
             'mean_precision': np.mean(fold_precisions),
             'std_precision': np.std(fold_precisions),
             'mean_recall': np.mean(fold_recalls),
@@ -468,19 +635,36 @@ class BaseSMCModel(ABC):
             'mean_f1': np.mean(fold_f1s),
             'std_f1': np.std(fold_f1s),
             'fold_accuracies': fold_accuracies,
-            'is_stable': is_stable,
+            'is_unstable': is_unstable,
+            'is_rejected': is_rejected,
+            'poor_folds': poor_folds,
             'n_folds': n_folds
         }
         
+        # Detailed CV reporting (Requirements 6.4, 6.5)
         print(f"\n  Cross-Validation Results:")
         print(f"    Mean Accuracy: {mean_accuracy:.3f} ± {std_accuracy:.3f}")
+        print(f"    Min Accuracy:  {min_accuracy:.3f}")
+        print(f"    Max Accuracy:  {max_accuracy:.3f}")
+        print(f"    Range:         {max_accuracy - min_accuracy:.3f}")
         print(f"    Mean F1-Score: {cv_results['mean_f1']:.3f} ± {cv_results['std_f1']:.3f}")
         
-        if not is_stable:
-            print(f"    ⚠️ Warning: High variance detected (std={std_accuracy:.3f} > 0.15)")
-            print(f"    Model may be unstable - consider more data or simpler architecture")
+        # Stability assessment with detailed warnings
+        if is_rejected:
+            print(f"    ❌ MODEL REJECTED: Std dev {std_accuracy:.3f} > 0.15")
+            print(f"    Model is highly unstable - DO NOT DEPLOY")
+        elif is_unstable:
+            print(f"    ⚠️ UNSTABLE: Std dev {std_accuracy:.3f} > 0.10")
+            print(f"    Model shows high variance - use with caution")
         else:
-            print(f"    ✅ Model is stable across folds")
+            print(f"    ✅ STABLE: Std dev {std_accuracy:.3f} ≤ 0.10")
+        
+        # Report poor-performing folds
+        if poor_folds:
+            print(f"\n    Poor-Performing Folds (below mean - std):")
+            for fold_info in poor_folds:
+                print(f"      Fold {fold_info['fold']}: {fold_info['accuracy']:.3f} "
+                      f"(deviation: {fold_info['deviation']:.3f})")
         
         return cv_results
     
@@ -643,9 +827,40 @@ class BaseSMCModel(ABC):
         
         return metrics
     
+    def _convert_to_json_serializable(self, obj):
+        """
+        Recursively convert numpy types to native Python types for JSON serialization
+        
+        Args:
+            obj: Object to convert (can be dict, list, numpy type, etc.)
+            
+        Returns:
+            JSON-serializable version of the object
+        """
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, dict):
+            return {k: self._convert_to_json_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self._convert_to_json_serializable(item) for item in obj]
+        elif isinstance(obj, (str, int, float, bool, type(None))):
+            return obj
+        else:
+            # For unknown types, try to convert to string as fallback
+            try:
+                return str(obj)
+            except:
+                return None
+    
     def save_model(self, output_dir: str):
         """
-        Save trained model and metadata
+        Save trained model and metadata with safe JSON serialization
         
         Args:
             output_dir: Directory to save model files
@@ -653,12 +868,17 @@ class BaseSMCModel(ABC):
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
-        # Save model
+        # Save model pickle (this should always work)
         model_file = output_path / f"{self.symbol}_{self.model_name}.pkl"
-        with open(model_file, 'wb') as f:
-            pickle.dump(self.model, f)
+        try:
+            with open(model_file, 'wb') as f:
+                pickle.dump(self.model, f)
+            print(f"\n💾 Model pickle saved to {model_file}")
+        except Exception as e:
+            print(f"\n❌ Error saving model pickle: {e}")
+            raise
         
-        # Save metadata
+        # Prepare metadata
         metadata = {
             'model_name': self.model_name,
             'symbol': self.symbol,
@@ -669,17 +889,60 @@ class BaseSMCModel(ABC):
             'feature_importance': self.feature_importance.tolist() if self.feature_importance is not None else None
         }
         
+        # Convert metadata to JSON-serializable format
+        metadata_safe = self._convert_to_json_serializable(metadata)
+        
+        # Save metadata with error handling
         metadata_file = output_path / f"{self.symbol}_{self.model_name}_metadata.json"
-        with open(metadata_file, 'w') as f:
-            json.dump(metadata, f, indent=2)
+        try:
+            with open(metadata_file, 'w') as f:
+                json.dump(metadata_safe, f, indent=2)
+            print(f"💾 Metadata saved to {metadata_file}")
+        except (TypeError, ValueError) as e:
+            print(f"\n⚠️ Warning: JSON serialization failed: {e}")
+            print(f"   Attempting to save partial metadata...")
+            
+            # Try to save what we can - exclude problematic fields
+            safe_metadata = {}
+            for key, value in metadata_safe.items():
+                try:
+                    # Test if this field is serializable
+                    json.dumps({key: value})
+                    safe_metadata[key] = value
+                except (TypeError, ValueError) as field_error:
+                    print(f"   Skipping field '{key}': {field_error}")
+            
+            # Save partial metadata
+            try:
+                with open(metadata_file, 'w') as f:
+                    json.dump(safe_metadata, f, indent=2)
+                print(f"💾 Partial metadata saved to {metadata_file}")
+                print(f"   Saved fields: {list(safe_metadata.keys())}")
+            except Exception as final_error:
+                print(f"❌ Error saving even partial metadata: {final_error}")
+                # Don't raise - model pickle is more important
         
         # Save scaler if exists
         if self.scaler is not None:
             scaler_file = output_path / f"{self.symbol}_{self.model_name}_scaler.pkl"
-            with open(scaler_file, 'wb') as f:
-                pickle.dump(self.scaler, f)
+            try:
+                with open(scaler_file, 'wb') as f:
+                    pickle.dump(self.scaler, f)
+                print(f"💾 Scaler saved to {scaler_file}")
+            except Exception as e:
+                print(f"⚠️ Warning: Error saving scaler: {e}")
         
-        print(f"\n💾 Model saved to {output_path}")
+        # Save feature selector if exists
+        if self.feature_selector is not None:
+            selector_file = output_path / f"{self.symbol}_{self.model_name}_feature_selector.pkl"
+            try:
+                with open(selector_file, 'wb') as f:
+                    pickle.dump(self.feature_selector, f)
+                print(f"💾 Feature selector saved to {selector_file}")
+            except Exception as e:
+                print(f"⚠️ Warning: Error saving feature selector: {e}")
+        
+        print(f"\n✅ Model save complete: {output_path}")
     
     def load_model(self, model_dir: str):
         """

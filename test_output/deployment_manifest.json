@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-10-19T12:57:22.202504",
+  "selection_criteria": {
+    "max_train_val_gap": 0.2,
+    "min_test_accuracy": 0.55,
+    "max_val_test_diff": 0.05
+  },
+  "selections": {
+    "EURUSD": {
+      "selected_model": "XGBoost",
+      "test_accuracy": 0.72,
+      "val_accuracy": 0.7,
+      "train_val_gap": 0.13,
+      "val_test_diff": 0.020000000000000018,
+      "score": 0.655,
+      "reason": "Best score (0.655) with gap 13.0%",
+      "alternatives": []
+    },
+    "GBPUSD": {
+      "selected_model": null,
+      "reason": "No models met quality criteria",
+      "action": "MANUAL_REVIEW_REQUIRED",
+      "rejected_models": [
+        {
+          "model": "RandomForest",
+          "reason": "Test accuracy too low (52.0% < 55.0%)",
+          "test_acc": 0.52,
+          "train_val_gap": 0.18
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_symbols": 2,
+    "models_selected": 1,
+    "manual_review_needed": 1,
+    "selected_model_types": {
+      "XGBoost": 1
+    }
+  }
+}

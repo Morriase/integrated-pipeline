@@ -40,12 +40,13 @@ class XGBoostSMCModel(BaseSMCModel):
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               n_estimators: int = 200,
-              max_depth: int = 6,
+              max_depth: int = 4,
               learning_rate: float = 0.1,
-              subsample: float = 0.8,
-              colsample_bytree: float = 0.8,
-              reg_alpha: float = 0.1,
-              reg_lambda: float = 1.0,
+              subsample: float = 0.7,
+              colsample_bytree: float = 0.7,
+              min_child_weight: int = 5,
+              reg_alpha: float = 0.2,
+              reg_lambda: float = 2.0,
               scale_pos_weight: Optional[float] = None,
               early_stopping_rounds: int = 20,
               use_gpu: bool = False,
@@ -59,12 +60,13 @@ class XGBoostSMCModel(BaseSMCModel):
             X_val: Validation features (optional)
             y_val: Validation labels (optional)
             n_estimators: Number of boosting rounds
-            max_depth: Maximum tree depth
+            max_depth: Maximum tree depth (default: 4 for reduced overfitting)
             learning_rate: Learning rate (eta)
-            subsample: Subsample ratio of training instances
-            colsample_bytree: Subsample ratio of columns
-            reg_alpha: L1 regularization
-            reg_lambda: L2 regularization
+            subsample: Subsample ratio of training instances (default: 0.7)
+            colsample_bytree: Subsample ratio of columns (default: 0.7)
+            min_child_weight: Minimum sum of instance weight in a child (default: 5)
+            reg_alpha: L1 regularization (default: 0.2)
+            reg_lambda: L2 regularization (default: 2.0)
             scale_pos_weight: Balancing of positive/negative weights
             early_stopping_rounds: Early stopping patience
             use_gpu: Whether to use GPU acceleration
@@ -114,6 +116,7 @@ class XGBoostSMCModel(BaseSMCModel):
             learning_rate=learning_rate,
             subsample=subsample,
             colsample_bytree=colsample_bytree,
+            min_child_weight=min_child_weight,
             reg_alpha=reg_alpha,
             reg_lambda=reg_lambda,
             scale_pos_weight=scale_pos_weight,
@@ -236,13 +239,14 @@ if __name__ == "__main__":
     X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
     X_test, y_test = model.prepare_features(test_df, fit_scaler=False)
     
-    # Train model
+    # Train model (using enhanced regularization defaults)
     history = model.train(
         X_train, y_train,
         X_val, y_val,
         n_estimators=200,
-        max_depth=6,
-        learning_rate=0.1,
+        # Enhanced regularization parameters (defaults):
+        # max_depth=4, min_child_weight=5, subsample=0.7
+        # reg_alpha=0.2, reg_lambda=2.0
         early_stopping_rounds=20,
         use_gpu=False
     )

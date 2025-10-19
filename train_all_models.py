@@ -29,6 +29,256 @@ warnings.filterwarnings('ignore')
 # Import model classes
 
 
+class ModelSelector:
+    """
+    Automatic selection of best-performing models per symbol.
+    
+    Filters models based on quality thresholds:
+    - Train-val gap < max_gap (default 20%)
+    - Test accuracy > min_accuracy (default 55%)
+    - Val-test consistency within stability_threshold (default 5%)
+    
+    Scores models with overfitting penalty and selects best per symbol.
+    """
+    
+    def __init__(self, max_gap: float = 0.20, min_accuracy: float = 0.55, 
+                 stability_threshold: float = 0.05):
+        """
+        Initialize ModelSelector with quality thresholds.
+        
+        Args:
+            max_gap: Maximum acceptable train-val gap (default 0.20 = 20%)
+            min_accuracy: Minimum acceptable test accuracy (default 0.55 = 55%)
+            stability_threshold: Maximum acceptable val-test difference (default 0.05 = 5%)
+        """
+        self.max_gap = max_gap
+        self.min_accuracy = min_accuracy
+        self.stability_threshold = stability_threshold
+        
+        print(f"\n🎯 ModelSelector initialized with thresholds:")
+        print(f"  Max Train-Val Gap:     {self.max_gap:.1%}")
+        print(f"  Min Test Accuracy:     {self.min_accuracy:.1%}")
+        print(f"  Max Val-Test Diff:     {self.stability_threshold:.1%}")
+    
+    def select_best_models(self, results: Dict) -> Dict:
+        """
+        Select best model per symbol based on quality criteria.
+        
+        Filtering criteria:
+        1. Train-val gap must be <= max_gap
+        2. Test accuracy must be >= min_accuracy
+        3. Val-test difference must be <= stability_threshold
+        
+        Scoring: test_accuracy - (train_val_gap * 0.5)
+        This penalizes overfitting while rewarding high accuracy.
+        
+        Args:
+            results: Dictionary of training results
+                     Format: {symbol: {model_name: metrics_dict}}
+        
+        Returns:
+            Dictionary of selections per symbol
+            Format: {
+                symbol: {
+                    'selected_model': model_name or None,
+                    'test_accuracy': float,
+                    'train_val_gap': float,
+                    'reason': str,
+                    'alternatives': [model_names],
+                    'action': str (if manual review needed)
+                }
+            }
+        """
+        print(f"\n{'='*80}")
+        print("MODEL SELECTION ANALYSIS")
+        print(f"{'='*80}")
+        
+        selections = {}
+        
+        for symbol, symbol_results in results.items():
+            print(f"\n📊 Analyzing models for {symbol}...")
+            
+            candidates = []
+            rejected = []
+            
+            for model_name, metrics in symbol_results.items():
+                # Skip models with errors
+                if 'error' in metrics:
+                    rejected.append({
+                        'model': model_name,
+                        'reason': f"Training error: {metrics['error']}"
+                    })
+                    continue
+                
+                # Extract metrics
+                history = metrics.get('history', {})
+                val_metrics = metrics.get('val_metrics', {})
+                test_metrics = metrics.get('test_metrics', {})
+                
+                test_acc = test_metrics.get('accuracy', 0)
+                val_acc = val_metrics.get('accuracy', 0)
+                train_acc = history.get('train_accuracy', 0)
+                train_val_gap = history.get('train_val_gap', train_acc - val_acc)
+                
+                # Apply filters
+                rejection_reasons = []
+                
+                if train_val_gap > self.max_gap:
+                    rejection_reasons.append(f"Train-val gap too high ({train_val_gap:.1%} > {self.max_gap:.1%})")
+                
+                if test_acc < self.min_accuracy:
+                    rejection_reasons.append(f"Test accuracy too low ({test_acc:.1%} < {self.min_accuracy:.1%})")
+                
+                # Check val-test consistency
+                val_test_diff = abs(val_acc - test_acc)
+                if val_test_diff > self.stability_threshold:
+                    rejection_reasons.append(f"Val-test inconsistency ({val_test_diff:.1%} > {self.stability_threshold:.1%})")
+                
+                if rejection_reasons:
+                    rejected.append({
+                        'model': model_name,
+                        'reason': '; '.join(rejection_reasons),
+                        'test_acc': test_acc,
+                        'train_val_gap': train_val_gap
+                    })
+                    continue
+                
+                # Model passed all filters - add to candidates
+                score = test_acc - (train_val_gap * 0.5)  # Penalize overfitting
+                
+                candidates.append({
+                    'model': model_name,
+                    'test_accuracy': test_acc,
+                    'val_accuracy': val_acc,
+                    'train_val_gap': train_val_gap,
+                    'val_test_diff': val_test_diff,
+                    'score': score
+                })
+                
+                print(f"  ✓ {model_name}: test_acc={test_acc:.3f}, gap={train_val_gap:.1%}, score={score:.3f}")
+            
+            # Print rejected models
+            if rejected:
+                print(f"\n  ✗ Rejected models:")
+                for r in rejected:
+                    print(f"    - {r['model']}: {r['reason']}")
+            
+            # Select best model or flag for manual review
+            if not candidates:
+                selections[symbol] = {
+                    'selected_model': None,
+                    'reason': 'No models met quality criteria',
+                    'action': 'MANUAL_REVIEW_REQUIRED',
+                    'rejected_models': rejected
+                }
+                print(f"\n  ⚠️  No models passed quality filters - MANUAL REVIEW REQUIRED")
+                continue
+            
+            # Select best by score
+            best = max(candidates, key=lambda x: x['score'])
+            alternatives = [c['model'] for c in candidates if c['model'] != best['model']]
+            
+            selections[symbol] = {
+                'selected_model': best['model'],
+                'test_accuracy': best['test_accuracy'],
+                'val_accuracy': best['val_accuracy'],
+                'train_val_gap': best['train_val_gap'],
+                'val_test_diff': best['val_test_diff'],
+                'score': best['score'],
+                'reason': f"Best score ({best['score']:.3f}) with gap {best['train_val_gap']:.1%}",
+                'alternatives': alternatives
+            }
+            
+            print(f"\n  🏆 Selected: {best['model']}")
+            print(f"     Test Accuracy: {best['test_accuracy']:.3f}")
+            print(f"     Train-Val Gap: {best['train_val_gap']:.1%}")
+            print(f"     Score: {best['score']:.3f}")
+            if alternatives:
+                print(f"     Alternatives: {', '.join(alternatives)}")
+        
+        # Print summary
+        print(f"\n{'='*80}")
+        print("SELECTION SUMMARY")
+        print(f"{'='*80}")
+        
+        total_symbols = len(selections)
+        models_selected = sum(1 for s in selections.values() if s['selected_model'])
+        manual_review = sum(1 for s in selections.values() if not s['selected_model'])
+        
+        print(f"\n  Total Symbols:         {total_symbols}")
+        print(f"  Models Selected:       {models_selected}")
+        print(f"  Manual Review Needed:  {manual_review}")
+        
+        if manual_review > 0:
+            print(f"\n  ⚠️  Symbols requiring manual review:")
+            for symbol, selection in selections.items():
+                if not selection['selected_model']:
+                    print(f"    - {symbol}")
+        
+        return selections
+    
+    def save_deployment_manifest(self, selections: Dict, output_path: str) -> Dict:
+        """
+        Save deployment manifest JSON with selection results.
+        
+        The manifest includes:
+        - Timestamp of selection
+        - Selection criteria used
+        - Per-symbol selections with metrics
+        - Summary statistics
+        
+        Args:
+            selections: Dictionary from select_best_models()
+            output_path: Path to save manifest JSON file
+        
+        Returns:
+            Complete manifest dictionary
+        """
+        manifest = {
+            'timestamp': datetime.now().isoformat(),
+            'selection_criteria': {
+                'max_train_val_gap': self.max_gap,
+                'min_test_accuracy': self.min_accuracy,
+                'max_val_test_diff': self.stability_threshold
+            },
+            'selections': selections,
+            'summary': {
+                'total_symbols': len(selections),
+                'models_selected': sum(1 for s in selections.values() if s['selected_model']),
+                'manual_review_needed': sum(1 for s in selections.values() if not s['selected_model']),
+                'selected_model_types': {}
+            }
+        }
+        
+        # Count model types selected
+        for symbol, selection in selections.items():
+            if selection['selected_model']:
+                model_type = selection['selected_model']
+                manifest['summary']['selected_model_types'][model_type] = \
+                    manifest['summary']['selected_model_types'].get(model_type, 0) + 1
+        
+        # Save to file
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(output_path, 'w') as f:
+            json.dump(manifest, f, indent=2, default=str)
+        
+        print(f"\n💾 Deployment manifest saved to: {output_path}")
+        print(f"\n📋 Manifest Summary:")
+        print(f"  Timestamp: {manifest['timestamp']}")
+        print(f"  Total Symbols: {manifest['summary']['total_symbols']}")
+        print(f"  Models Selected: {manifest['summary']['models_selected']}")
+        print(f"  Manual Review Needed: {manifest['summary']['manual_review_needed']}")
+        
+        if manifest['summary']['selected_model_types']:
+            print(f"\n  Selected Model Types:")
+            for model_type, count in manifest['summary']['selected_model_types'].items():
+                print(f"    - {model_type}: {count}")
+        
+        return manifest
+
+
 class SMCModelTrainer:
     """
     Orchestrates training of all SMC models
@@ -50,7 +300,7 @@ class SMCModelTrainer:
         """
         # Kaggle paths - data is now in /kaggle/working after pipeline runs
         self.data_dir = Path(data_dir)
-        self.output_dir = Path('/kaggle/working')
+        self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Data paths
@@ -288,7 +538,7 @@ class SMCModelTrainer:
     def train_all_for_symbol(self, symbol: str, exclude_timeout: bool = False,
                              models: List[str] = None) -> Dict:
         """
-        Train all models for a specific symbol
+        Train all models for a specific symbol with comprehensive error handling.
 
         Args:
             symbol: Trading symbol (e.g., 'EURUSD')
@@ -306,38 +556,138 @@ class SMCModelTrainer:
             models = ['RandomForest', 'XGBoost', 'NeuralNetwork', 'LSTM']
 
         results = {}
+        training_start_time = datetime.now()
 
-        # Train each model
+        # Train each model with comprehensive error handling
         if 'RandomForest' in models:
             try:
+                print(f"\n🌲 Starting RandomForest training for {symbol}...")
+                model_start = datetime.now()
                 results['RandomForest'] = self.train_random_forest(
                     symbol, exclude_timeout)
+                model_duration = (datetime.now() - model_start).total_seconds()
+                results['RandomForest']['training_duration_seconds'] = model_duration
+                print(f"✅ RandomForest completed in {model_duration:.1f}s")
             except Exception as e:
-                print(f"\n❌ Random Forest training failed: {e}")
-                results['RandomForest'] = {'error': str(e)}
+                error_msg = f"RandomForest training failed: {str(e)}"
+                print(f"\n❌ {error_msg}")
+                print(f"   Symbol: {symbol}")
+                print(f"   Error Type: {type(e).__name__}")
+                import traceback
+                print(f"   Traceback: {traceback.format_exc()}")
+                results['RandomForest'] = {
+                    'error': str(e),
+                    'error_type': type(e).__name__,
+                    'symbol': symbol,
+                    'timestamp': datetime.now().isoformat()
+                }
+                # Continue training other models
 
-        if 'XGBoost' in models and XGBOOST_AVAILABLE:
-            try:
-                results['XGBoost'] = self.train_xgboost(
-                    symbol, exclude_timeout)
-            except Exception as e:
-                print(f"\n❌ XGBoost training failed: {e}")
-                results['XGBoost'] = {'error': str(e)}
+        if 'XGBoost' in models:
+            if not XGBOOST_AVAILABLE:
+                print(f"\n⚠️ XGBoost not available - skipping")
+                results['XGBoost'] = {
+                    'error': 'XGBoost library not available',
+                    'error_type': 'DependencyError'
+                }
+            else:
+                try:
+                    print(f"\n🚀 Starting XGBoost training for {symbol}...")
+                    model_start = datetime.now()
+                    results['XGBoost'] = self.train_xgboost(
+                        symbol, exclude_timeout)
+                    model_duration = (datetime.now() - model_start).total_seconds()
+                    results['XGBoost']['training_duration_seconds'] = model_duration
+                    print(f"✅ XGBoost completed in {model_duration:.1f}s")
+                except Exception as e:
+                    error_msg = f"XGBoost training failed: {str(e)}"
+                    print(f"\n❌ {error_msg}")
+                    print(f"   Symbol: {symbol}")
+                    print(f"   Error Type: {type(e).__name__}")
+                    import traceback
+                    print(f"   Traceback: {traceback.format_exc()}")
+                    results['XGBoost'] = {
+                        'error': str(e),
+                        'error_type': type(e).__name__,
+                        'symbol': symbol,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    # Continue training other models
 
-        if 'NeuralNetwork' in models and TORCH_AVAILABLE:
-            try:
-                results['NeuralNetwork'] = self.train_neural_network(
-                    symbol, exclude_timeout)
-            except Exception as e:
-                print(f"\n❌ Neural Network training failed: {e}")
-                results['NeuralNetwork'] = {'error': str(e)}
+        if 'NeuralNetwork' in models:
+            if not TORCH_AVAILABLE:
+                print(f"\n⚠️ PyTorch not available - skipping Neural Network")
+                results['NeuralNetwork'] = {
+                    'error': 'PyTorch library not available',
+                    'error_type': 'DependencyError'
+                }
+            else:
+                try:
+                    print(f"\n🧠 Starting Neural Network training for {symbol}...")
+                    model_start = datetime.now()
+                    results['NeuralNetwork'] = self.train_neural_network(
+                        symbol, exclude_timeout)
+                    model_duration = (datetime.now() - model_start).total_seconds()
+                    results['NeuralNetwork']['training_duration_seconds'] = model_duration
+                    print(f"✅ Neural Network completed in {model_duration:.1f}s")
+                except Exception as e:
+                    error_msg = f"Neural Network training failed: {str(e)}"
+                    print(f"\n❌ {error_msg}")
+                    print(f"   Symbol: {symbol}")
+                    print(f"   Error Type: {type(e).__name__}")
+                    import traceback
+                    print(f"   Traceback: {traceback.format_exc()}")
+                    results['NeuralNetwork'] = {
+                        'error': str(e),
+                        'error_type': type(e).__name__,
+                        'symbol': symbol,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    # Continue training other models
 
-        if 'LSTM' in models and TORCH_AVAILABLE:
-            try:
-                results['LSTM'] = self.train_lstm(symbol, exclude_timeout)
-            except Exception as e:
-                print(f"\n❌ LSTM training failed: {e}")
-                results['LSTM'] = {'error': str(e)}
+        if 'LSTM' in models:
+            if not TORCH_AVAILABLE:
+                print(f"\n⚠️ PyTorch not available - skipping LSTM")
+                results['LSTM'] = {
+                    'error': 'PyTorch library not available',
+                    'error_type': 'DependencyError'
+                }
+            else:
+                try:
+                    print(f"\n🔄 Starting LSTM training for {symbol}...")
+                    model_start = datetime.now()
+                    results['LSTM'] = self.train_lstm(symbol, exclude_timeout)
+                    model_duration = (datetime.now() - model_start).total_seconds()
+                    results['LSTM']['training_duration_seconds'] = model_duration
+                    print(f"✅ LSTM completed in {model_duration:.1f}s")
+                except Exception as e:
+                    error_msg = f"LSTM training failed: {str(e)}"
+                    print(f"\n❌ {error_msg}")
+                    print(f"   Symbol: {symbol}")
+                    print(f"   Error Type: {type(e).__name__}")
+                    import traceback
+                    print(f"   Traceback: {traceback.format_exc()}")
+                    results['LSTM'] = {
+                        'error': str(e),
+                        'error_type': type(e).__name__,
+                        'symbol': symbol,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    # Continue training other models
+
+        # Calculate total training time for symbol
+        total_duration = (datetime.now() - training_start_time).total_seconds()
+        
+        # Count successful vs failed models
+        successful_models = sum(1 for r in results.values() if 'error' not in r)
+        failed_models = sum(1 for r in results.values() if 'error' in r)
+        
+        print(f"\n{'='*80}")
+        print(f"Symbol {symbol} Training Summary:")
+        print(f"  Total Duration: {total_duration:.1f}s")
+        print(f"  Successful Models: {successful_models}/{len(results)}")
+        print(f"  Failed Models: {failed_models}/{len(results)}")
+        print(f"{'='*80}")
 
         self.results[symbol] = results
 
@@ -807,14 +1157,37 @@ class SMCModelTrainer:
         
         print(f"📄 Markdown report saved to: {md_path}")
 
-    def generate_summary_report(self):
-        """Generate comprehensive training summary with cross-validation results"""
+    def generate_summary_report(self, model_selections: Dict = None):
+        """
+        Generate comprehensive training summary with cross-validation results,
+        overfitting analysis, and model selection results.
+        
+        Creates:
+        1. Console summary output
+        2. Per-symbol markdown reports (Requirements 8.1-8.7)
+        3. Overall training results JSON
+        
+        Args:
+            model_selections: Optional dictionary from ModelSelector.select_best_models()
+        """
         print(f"\n{'='*80}")
         print("TRAINING SUMMARY REPORT")
         print(f"{'='*80}")
 
+        # Collect warnings for final summary
+        all_warnings = []
+        
+        # Generate per-symbol markdown reports (Requirement 8.1)
+        reports_dir = self.output_dir / 'reports'
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        
         for symbol, symbol_results in self.results.items():
             print(f"\n📊 {symbol}:")
+            
+            # Generate markdown report for this symbol
+            self._generate_symbol_markdown_report(
+                symbol, symbol_results, model_selections, reports_dir
+            )
             
             # Check if any model has CV results
             has_cv_results = any(
@@ -823,27 +1196,50 @@ class SMCModelTrainer:
             )
             
             if has_cv_results:
-                print(f"  {'Model':<20} {'CV Mean±Std':<20} {'Val Acc':<10} {'Test Acc':<10} {'Stability':<12}")
-                print(f"  {'-'*75}")
+                print(f"  {'Model':<20} {'CV Mean±Std':<20} {'Val Acc':<10} {'Test Acc':<10} {'Stability':<12} {'Warnings':<30}")
+                print(f"  {'-'*105}")
             else:
-                print(f"  {'Model':<20} {'Val Acc':<10} {'Test Acc':<10} {'Win Rate':<10}")
-                print(f"  {'-'*50}")
+                print(f"  {'Model':<20} {'Val Acc':<10} {'Test Acc':<10} {'Win Rate':<10} {'Warnings':<30}")
+                print(f"  {'-'*80}")
 
             for model_name, result in symbol_results.items():
+                warnings_list = []
+                
                 if 'error' in result:
                     print(f"  {model_name:<20} {'ERROR':<10}")
+                    warnings_list.append(f"Training failed: {result.get('error_type', 'Unknown')}")
+                    all_warnings.append(f"{symbol}/{model_name}: Training failed")
                     continue
 
                 val_acc = result.get('val_metrics', {}).get('accuracy', 0)
                 test_acc = result.get('test_metrics', {}).get('accuracy', 0)
                 
-                # Check for CV results
-                cv_results = result.get('cv_results')
+                # Check for overfitting
                 history = result.get('history', {})
+                train_acc = history.get('train_accuracy', 0)
+                train_val_gap = history.get('train_val_gap', train_acc - val_acc)
+                
+                if train_val_gap > 0.15:
+                    warnings_list.append(f"Overfitting (gap={train_val_gap:.1%})")
+                    all_warnings.append(f"{symbol}/{model_name}: Overfitting detected")
+                
+                # Check for CV instability
+                cv_results = result.get('cv_results')
                 cv_mean = history.get('cv_mean_accuracy') or (cv_results.get('mean_accuracy') if cv_results else None)
                 cv_std = history.get('cv_std_accuracy') or (cv_results.get('std_accuracy') if cv_results else None)
-                # Use explicit None check for boolean values to avoid False being treated as falsy
                 cv_stable = history.get('cv_is_stable') if 'cv_is_stable' in history else (cv_results.get('is_stable') if cv_results else None)
+                
+                if cv_stable is not None and not cv_stable:
+                    warnings_list.append(f"Unstable CV (std={cv_std:.3f})")
+                    all_warnings.append(f"{symbol}/{model_name}: Unstable cross-validation")
+                
+                # Check for low test accuracy
+                if test_acc < 0.55:
+                    warnings_list.append(f"Low accuracy ({test_acc:.1%})")
+                    all_warnings.append(f"{symbol}/{model_name}: Low test accuracy")
+                
+                # Format warnings
+                warnings_str = "; ".join(warnings_list) if warnings_list else "None"
                 
                 if has_cv_results:
                     if cv_mean is not None and cv_std is not None:
@@ -853,24 +1249,347 @@ class SMCModelTrainer:
                         cv_str = "N/A"
                         stability = "N/A"
                     
-                    print(f"  {model_name:<20} {cv_str:<20} {val_acc:<10.3f} {test_acc:<10.3f} {stability:<12}")
+                    print(f"  {model_name:<20} {cv_str:<20} {val_acc:<10.3f} {test_acc:<10.3f} {stability:<12} {warnings_str:<30}")
                 else:
                     win_rate = result.get('test_metrics', {}).get('win_rate_predicted', 0)
-                    print(f"  {model_name:<20} {val_acc:<10.3f} {test_acc:<10.3f} {win_rate:<10.1%}")
+                    print(f"  {model_name:<20} {val_acc:<10.3f} {test_acc:<10.3f} {win_rate:<10.1%} {warnings_str:<30}")
+        
+        # Print model selection results if available
+        if model_selections:
+            print(f"\n{'='*80}")
+            print("MODEL SELECTION RESULTS")
+            print(f"{'='*80}")
+            
+            for symbol, selection in model_selections.items():
+                print(f"\n🎯 {symbol}:")
+                if selection['selected_model']:
+                    print(f"  Selected Model: {selection['selected_model']}")
+                    print(f"  Test Accuracy:  {selection['test_accuracy']:.3f}")
+                    print(f"  Train-Val Gap:  {selection['train_val_gap']:.1%}")
+                    print(f"  Reason: {selection['reason']}")
+                    if selection.get('alternatives'):
+                        print(f"  Alternatives: {', '.join(selection['alternatives'])}")
+                else:
+                    print(f"  ⚠️ No model selected - {selection['reason']}")
+                    print(f"  Action Required: {selection.get('action', 'MANUAL_REVIEW')}")
+                    all_warnings.append(f"{symbol}: No model met quality criteria")
+        
+        # Print all warnings summary
+        if all_warnings:
+            print(f"\n{'='*80}")
+            print("⚠️ WARNINGS SUMMARY")
+            print(f"{'='*80}")
+            print(f"\nTotal Warnings: {len(all_warnings)}\n")
+            for i, warning in enumerate(all_warnings, 1):
+                print(f"  {i}. {warning}")
+        else:
+            print(f"\n{'='*80}")
+            print("✅ NO WARNINGS - All models trained successfully")
+            print(f"{'='*80}")
 
         # Save results to JSON
         results_file = self.output_dir / 'training_results.json'
+        summary_data = {
+            'training_results': self.results,
+            'model_selections': model_selections,
+            'warnings': all_warnings,
+            'timestamp': datetime.now().isoformat()
+        }
+        
         with open(results_file, 'w') as f:
-            json.dump(self.results, f, indent=2, default=str)
+            json.dump(summary_data, f, indent=2, default=str)
 
         print(f"\n💾 Results saved to: {results_file}")
+        print(f"📄 Per-symbol reports saved to: {reports_dir}")
         print(f"\n✅ Training complete!")
+    
+    def _generate_symbol_markdown_report(self, symbol: str, symbol_results: Dict, 
+                                         model_selections: Dict, reports_dir: Path):
+        """
+        Generate detailed markdown report for a single symbol.
+        
+        Implements Requirements 8.1-8.7:
+        - 8.1: Generate markdown report per symbol
+        - 8.2: Include train/val/test accuracy for all models
+        - 8.3: Include overfitting metrics (train-val gap)
+        - 8.4: Include cross-validation stability scores
+        - 8.5: Include feature importance top 10
+        - 8.6: Include confusion matrices
+        - 8.7: Recommend best model for deployment
+        
+        Args:
+            symbol: Trading symbol
+            symbol_results: Results dictionary for this symbol
+            model_selections: Model selection results (if available)
+            reports_dir: Directory to save report
+        """
+        report_path = reports_dir / f'{symbol}_training_report.md'
+        
+        with open(report_path, 'w', encoding='utf-8') as f:
+            # Header
+            f.write(f"# Training Report: {symbol}\n\n")
+            f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            f.write("---\n\n")
+            
+            # Model Selection Recommendation (Requirement 8.7)
+            if model_selections and symbol in model_selections:
+                selection = model_selections[symbol]
+                f.write("## 🎯 Deployment Recommendation\n\n")
+                
+                if selection['selected_model']:
+                    f.write(f"**Recommended Model:** {selection['selected_model']}\n\n")
+                    f.write(f"- **Test Accuracy:** {selection['test_accuracy']:.3f} ({selection['test_accuracy']*100:.1f}%)\n")
+                    f.write(f"- **Train-Val Gap:** {selection['train_val_gap']:.1%}\n")
+                    f.write(f"- **Selection Score:** {selection.get('score', 0):.3f}\n")
+                    f.write(f"- **Reason:** {selection['reason']}\n\n")
+                    
+                    if selection.get('alternatives'):
+                        f.write(f"**Alternative Models:** {', '.join(selection['alternatives'])}\n\n")
+                else:
+                    f.write(f"**⚠️ No Model Recommended**\n\n")
+                    f.write(f"- **Reason:** {selection['reason']}\n")
+                    f.write(f"- **Action Required:** {selection.get('action', 'MANUAL_REVIEW')}\n\n")
+                
+                f.write("---\n\n")
+            
+            # Model Performance Comparison (Requirements 8.2, 8.3, 8.4)
+            f.write("## 📊 Model Performance Comparison\n\n")
+            f.write("| Model | Train Acc | Val Acc | Test Acc | Train-Val Gap | CV Mean±Std | CV Stable | Status |\n")
+            f.write("|-------|-----------|---------|----------|---------------|-------------|-----------|--------|\n")
+            
+            for model_name, result in symbol_results.items():
+                if 'error' in result:
+                    f.write(f"| {model_name} | - | - | - | - | - | - | ❌ Error |\n")
+                    continue
+                
+                history = result.get('history', {})
+                val_metrics = result.get('val_metrics', {})
+                test_metrics = result.get('test_metrics', {})
+                
+                train_acc = history.get('train_accuracy', 0)
+                val_acc = val_metrics.get('accuracy', 0)
+                test_acc = test_metrics.get('accuracy', 0)
+                train_val_gap = history.get('train_val_gap', train_acc - val_acc)
+                
+                # CV results
+                cv_results = result.get('cv_results')
+                cv_mean = history.get('cv_mean_accuracy') or (cv_results.get('mean_accuracy') if cv_results else None)
+                cv_std = history.get('cv_std_accuracy') or (cv_results.get('std_accuracy') if cv_results else None)
+                cv_stable = history.get('cv_is_stable') if 'cv_is_stable' in history else (cv_results.get('is_stable') if cv_results else None)
+                
+                cv_str = f"{cv_mean:.3f}±{cv_std:.3f}" if cv_mean is not None else "N/A"
+                cv_stable_str = "✅" if cv_stable else ("⚠️" if cv_stable is not None else "N/A")
+                
+                # Status
+                status = "✅"
+                if train_val_gap > 0.20:
+                    status = "⚠️ Overfit"
+                elif test_acc < 0.55:
+                    status = "⚠️ Low Acc"
+                elif cv_stable is False:
+                    status = "⚠️ Unstable"
+                
+                f.write(f"| {model_name} | {train_acc:.3f} | {val_acc:.3f} | {test_acc:.3f} | "
+                       f"{train_val_gap:.1%} | {cv_str} | {cv_stable_str} | {status} |\n")
+            
+            f.write("\n---\n\n")
+            
+            # Overfitting Analysis (Requirement 8.3)
+            f.write("## 🔍 Overfitting Analysis\n\n")
+            
+            overfitting_detected = False
+            for model_name, result in symbol_results.items():
+                if 'error' in result:
+                    continue
+                
+                history = result.get('history', {})
+                train_acc = history.get('train_accuracy', 0)
+                val_acc = result.get('val_metrics', {}).get('accuracy', 0)
+                train_val_gap = history.get('train_val_gap', train_acc - val_acc)
+                
+                if train_val_gap > 0.15:
+                    overfitting_detected = True
+                    severity = "🔴 Severe" if train_val_gap > 0.25 else ("🟡 Moderate" if train_val_gap > 0.20 else "🟢 Mild")
+                    f.write(f"### {model_name}\n\n")
+                    f.write(f"- **Severity:** {severity}\n")
+                    f.write(f"- **Train Accuracy:** {train_acc:.3f}\n")
+                    f.write(f"- **Val Accuracy:** {val_acc:.3f}\n")
+                    f.write(f"- **Gap:** {train_val_gap:.1%}\n")
+                    f.write(f"- **Recommendation:** ")
+                    
+                    if train_val_gap > 0.25:
+                        f.write("Increase regularization significantly or reduce model complexity\n")
+                    elif train_val_gap > 0.20:
+                        f.write("Increase regularization or add more training data\n")
+                    else:
+                        f.write("Minor tuning may improve generalization\n")
+                    
+                    f.write("\n")
+            
+            if not overfitting_detected:
+                f.write("✅ No significant overfitting detected in any model.\n\n")
+            
+            f.write("---\n\n")
+            
+            # Cross-Validation Stability (Requirement 8.4)
+            f.write("## 📈 Cross-Validation Stability\n\n")
+            
+            cv_available = False
+            for model_name, result in symbol_results.items():
+                if 'error' in result:
+                    continue
+                
+                history = result.get('history', {})
+                cv_results = result.get('cv_results')
+                cv_mean = history.get('cv_mean_accuracy') or (cv_results.get('mean_accuracy') if cv_results else None)
+                
+                if cv_mean is not None:
+                    cv_available = True
+                    cv_std = history.get('cv_std_accuracy') or cv_results.get('std_accuracy')
+                    cv_stable = history.get('cv_is_stable') if 'cv_is_stable' in history else cv_results.get('is_stable')
+                    cv_fold_accs = history.get('cv_fold_accuracies') or cv_results.get('fold_accuracies', [])
+                    
+                    f.write(f"### {model_name}\n\n")
+                    f.write(f"- **Mean Accuracy:** {cv_mean:.4f}\n")
+                    f.write(f"- **Std Deviation:** {cv_std:.4f}\n")
+                    f.write(f"- **Stability:** {'✅ Stable' if cv_stable else '⚠️ Unstable'}\n")
+                    
+                    if cv_fold_accs:
+                        f.write(f"- **Fold Accuracies:** {', '.join([f'{acc:.3f}' for acc in cv_fold_accs])}\n")
+                        f.write(f"- **Min/Max:** {min(cv_fold_accs):.3f} / {max(cv_fold_accs):.3f}\n")
+                    
+                    if not cv_stable:
+                        f.write(f"- **⚠️ Warning:** High variance across folds suggests model instability\n")
+                    
+                    f.write("\n")
+            
+            if not cv_available:
+                f.write("ℹ️ Cross-validation results not available for this symbol.\n\n")
+            
+            f.write("---\n\n")
+            
+            # Feature Importance (Requirement 8.5)
+            f.write("## 🎯 Feature Importance (Top 10)\n\n")
+            
+            feature_importance_available = False
+            for model_name, result in symbol_results.items():
+                if 'error' in result:
+                    continue
+                
+                feature_importance = result.get('feature_importance', [])
+                if feature_importance:
+                    feature_importance_available = True
+                    f.write(f"### {model_name}\n\n")
+                    f.write("| Rank | Feature | Importance |\n")
+                    f.write("|------|---------|------------|\n")
+                    
+                    for i, feat in enumerate(feature_importance[:10], 1):
+                        feat_name = feat.get('feature', 'Unknown')
+                        importance = feat.get('importance', 0)
+                        f.write(f"| {i} | {feat_name} | {importance:.4f} |\n")
+                    
+                    f.write("\n")
+            
+            if not feature_importance_available:
+                f.write("ℹ️ Feature importance not available (only for tree-based models).\n\n")
+            
+            f.write("---\n\n")
+            
+            # Confusion Matrices (Requirement 8.6)
+            f.write("## 📉 Confusion Matrices\n\n")
+            
+            confusion_available = False
+            for model_name, result in symbol_results.items():
+                if 'error' in result:
+                    continue
+                
+                test_metrics = result.get('test_metrics', {})
+                confusion_matrix = test_metrics.get('confusion_matrix')
+                
+                if confusion_matrix is not None:
+                    confusion_available = True
+                    f.write(f"### {model_name}\n\n")
+                    f.write("```\n")
+                    f.write("              Predicted\n")
+                    f.write("              0    1\n")
+                    f.write("Actual  0   ")
+                    
+                    if isinstance(confusion_matrix, list):
+                        cm = confusion_matrix
+                    else:
+                        cm = confusion_matrix.tolist() if hasattr(confusion_matrix, 'tolist') else confusion_matrix
+                    
+                    f.write(f"{cm[0][0]:4d} {cm[0][1]:4d}\n")
+                    f.write(f"        1   {cm[1][0]:4d} {cm[1][1]:4d}\n")
+                    f.write("```\n\n")
+                    
+                    # Calculate metrics from confusion matrix
+                    tn, fp, fn, tp = cm[0][0], cm[0][1], cm[1][0], cm[1][1]
+                    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+                    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+                    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+                    
+                    f.write(f"- **Precision:** {precision:.3f}\n")
+                    f.write(f"- **Recall:** {recall:.3f}\n")
+                    f.write(f"- **F1-Score:** {f1:.3f}\n\n")
+            
+            if not confusion_available:
+                f.write("ℹ️ Confusion matrices not available.\n\n")
+            
+            f.write("---\n\n")
+            
+            # Warnings and Issues
+            f.write("## ⚠️ Warnings and Issues\n\n")
+            
+            warnings_found = False
+            for model_name, result in symbol_results.items():
+                model_warnings = []
+                
+                if 'error' in result:
+                    model_warnings.append(f"Training failed: {result.get('error_type', 'Unknown error')}")
+                else:
+                    history = result.get('history', {})
+                    train_acc = history.get('train_accuracy', 0)
+                    val_acc = result.get('val_metrics', {}).get('accuracy', 0)
+                    test_acc = result.get('test_metrics', {}).get('accuracy', 0)
+                    train_val_gap = history.get('train_val_gap', train_acc - val_acc)
+                    
+                    if train_val_gap > 0.20:
+                        model_warnings.append(f"High overfitting (gap={train_val_gap:.1%})")
+                    
+                    if test_acc < 0.55:
+                        model_warnings.append(f"Low test accuracy ({test_acc:.1%})")
+                    
+                    cv_stable = history.get('cv_is_stable')
+                    if cv_stable is False:
+                        cv_std = history.get('cv_std_accuracy', 0)
+                        model_warnings.append(f"Unstable cross-validation (std={cv_std:.3f})")
+                    
+                    # Check for training warnings
+                    training_warnings = result.get('warnings', [])
+                    if training_warnings:
+                        model_warnings.extend(training_warnings)
+                
+                if model_warnings:
+                    warnings_found = True
+                    f.write(f"### {model_name}\n\n")
+                    for warning in model_warnings:
+                        f.write(f"- ⚠️ {warning}\n")
+                    f.write("\n")
+            
+            if not warnings_found:
+                f.write("✅ No warnings - all models trained successfully.\n\n")
+            
+            f.write("---\n\n")
+            f.write(f"*Report generated by SMC Model Training Pipeline*\n")
+        
+        print(f"  📄 Report saved: {report_path.name}")
 
 
 # Main execution
 if __name__ == "__main__":
     """
-    Train all SMC models
+    Train all SMC models with automatic model selection
 
     Usage:
         python train_all_models.py
@@ -901,26 +1620,108 @@ if __name__ == "__main__":
         print("\n❌ No symbols found in dataset")
         exit(1)
 
-    # Train models for each symbol
-    for symbol in symbols:
-        trainer.train_all_for_symbol(
-            symbol=symbol,
-            exclude_timeout=False,  # Include all classes
-            models=['RandomForest', 'XGBoost', 'NeuralNetwork', 'LSTM']
-        )
-
-    # Generate summary report
-    trainer.generate_summary_report()
+    # Train models for each symbol with comprehensive error handling
+    print(f"\n{'='*80}")
+    print(f"Training {len(symbols)} symbols with 4 model types each")
+    print(f"{'='*80}")
     
+    training_start = datetime.now()
+    
+    for i, symbol in enumerate(symbols, 1):
+        print(f"\n[{i}/{len(symbols)}] Processing {symbol}...")
+        try:
+            trainer.train_all_for_symbol(
+                symbol=symbol,
+                exclude_timeout=False,  # Include all classes
+                models=['RandomForest', 'XGBoost', 'NeuralNetwork', 'LSTM']
+            )
+        except Exception as e:
+            print(f"\n❌ Critical error training models for {symbol}: {e}")
+            print(f"   Error Type: {type(e).__name__}")
+            import traceback
+            print(f"   Traceback: {traceback.format_exc()}")
+            # Continue with next symbol
+            continue
+    
+    training_duration = (datetime.now() - training_start).total_seconds()
+    print(f"\n{'='*80}")
+    print(f"All training completed in {training_duration:.1f}s ({training_duration/60:.1f} minutes)")
+    print(f"{'='*80}")
+
+    # Initialize ModelSelector and select best models
+    print(f"\n{'='*80}")
+    print("AUTOMATIC MODEL SELECTION")
+    print(f"{'='*80}")
+    
+    try:
+        selector = ModelSelector(
+            max_gap=0.20,           # Max 20% train-val gap
+            min_accuracy=0.55,      # Min 55% test accuracy
+            stability_threshold=0.05  # Max 5% val-test difference
+        )
+        
+        # Select best models per symbol
+        model_selections = selector.select_best_models(trainer.results)
+        
+        # Save deployment manifest
+        manifest_path = trainer.output_dir / 'deployment_manifest.json'
+        selector.save_deployment_manifest(model_selections, str(manifest_path))
+        
+    except Exception as e:
+        print(f"\n❌ Model selection failed: {e}")
+        print(f"   Error Type: {type(e).__name__}")
+        import traceback
+        print(f"   Traceback: {traceback.format_exc()}")
+        model_selections = None
+
     # Generate overfitting analysis report
-    trainer.generate_overfitting_report()
+    try:
+        trainer.generate_overfitting_report()
+    except Exception as e:
+        print(f"\n⚠️ Overfitting report generation failed: {e}")
+        print(f"   Continuing with summary report...")
+
+    # Generate comprehensive summary report with model selections
+    try:
+        trainer.generate_summary_report(model_selections=model_selections)
+    except Exception as e:
+        print(f"\n❌ Summary report generation failed: {e}")
+        print(f"   Error Type: {type(e).__name__}")
+        import traceback
+        print(f"   Traceback: {traceback.format_exc()}")
 
     print("\n" + "="*80)
     print("NEXT STEPS:")
     print("="*80)
     print("1. Review training results in models/trained/training_results.json")
-    print("2. Check overfitting analysis in models/trained/overfitting_report.md")
-    print("3. Review models flagged with overfitting and apply corrections")
-    print("4. Use best models for ensemble predictions")
-    print("5. Backtest on test set")
+    print("2. Check deployment manifest in models/trained/deployment_manifest.json")
+    print("3. Review overfitting analysis in models/trained/overfitting_report.md")
+    print("4. Address any warnings flagged in the summary report")
+    print("5. Use selected models for ensemble predictions")
+    print("6. Backtest on test set")
     print("\nModels saved in: models/trained/")
+    
+    # Print final statistics
+    total_models = sum(len(results) for results in trainer.results.values())
+    successful_models = sum(
+        1 for results in trainer.results.values() 
+        for result in results.values() 
+        if 'error' not in result
+    )
+    failed_models = total_models - successful_models
+    
+    print(f"\n{'='*80}")
+    print("FINAL STATISTICS")
+    print(f"{'='*80}")
+    print(f"  Total Symbols:        {len(symbols)}")
+    print(f"  Total Models Trained: {total_models}")
+    print(f"  Successful:           {successful_models}")
+    print(f"  Failed:               {failed_models}")
+    print(f"  Success Rate:         {successful_models/total_models*100:.1f}%")
+    
+    if model_selections:
+        selected_count = sum(1 for s in model_selections.values() if s['selected_model'])
+        print(f"  Models Selected:      {selected_count}/{len(symbols)}")
+    
+    print(f"  Total Duration:       {training_duration:.1f}s ({training_duration/60:.1f} min)")
+    print(f"{'='*80}")

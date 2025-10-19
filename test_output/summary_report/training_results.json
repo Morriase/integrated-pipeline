@@ -1,0 +1,357 @@
+{
+  "training_results": {
+    "EURUSD": {
+      "RandomForest": {
+        "model_name": "RandomForest",
+        "symbol": "EURUSD",
+        "history": {
+          "train_accuracy": 0.85,
+          "train_val_gap": 0.13,
+          "cv_mean_accuracy": 0.71,
+          "cv_std_accuracy": 0.04,
+          "cv_is_stable": true,
+          "cv_fold_accuracies": [
+            0.68,
+            0.72,
+            0.7,
+            0.73,
+            0.72
+          ]
+        },
+        "val_metrics": {
+          "accuracy": 0.72,
+          "precision": 0.7,
+          "recall": 0.69,
+          "f1_score": 0.69,
+          "confusion_matrix": [
+            [
+              15,
+              5
+            ],
+            [
+              6,
+              20
+            ]
+          ]
+        },
+        "test_metrics": {
+          "accuracy": 0.7,
+          "precision": 0.68,
+          "recall": 0.67,
+          "f1_score": 0.67,
+          "confusion_matrix": [
+            [
+              14,
+              6
+            ],
+            [
+              7,
+              19
+            ]
+          ]
+        },
+        "feature_importance": [
+          {
+            "feature": "OB_Age",
+            "importance": 0.12
+          },
+          {
+            "feature": "TBM_Risk_Per_Trade_ATR",
+            "importance": 0.08
+          },
+          {
+            "feature": "FVG_Width",
+            "importance": 0.07
+          },
+          {
+            "feature": "Liquidity_Sweep_Distance",
+            "importance": 0.06
+          },
+          {
+            "feature": "Market_Structure_Shift",
+            "importance": 0.05
+          },
+          {
+            "feature": "Volume_Profile",
+            "importance": 0.04
+          },
+          {
+            "feature": "ATR_Normalized",
+            "importance": 0.04
+          },
+          {
+            "feature": "Price_Action_Score",
+            "importance": 0.03
+          },
+          {
+            "feature": "Trend_Strength",
+            "importance": 0.03
+          },
+          {
+            "feature": "Support_Resistance",
+            "importance": 0.02
+          }
+        ],
+        "training_duration_seconds": 45.2
+      },
+      "XGBoost": {
+        "model_name": "XGBoost",
+        "symbol": "EURUSD",
+        "history": {
+          "train_accuracy": 0.88,
+          "train_val_gap": 0.16,
+          "cv_mean_accuracy": 0.73,
+          "cv_std_accuracy": 0.03,
+          "cv_is_stable": true,
+          "cv_fold_accuracies": [
+            0.71,
+            0.74,
+            0.72,
+            0.75,
+            0.73
+          ]
+        },
+        "val_metrics": {
+          "accuracy": 0.72,
+          "precision": 0.71,
+          "recall": 0.7,
+          "f1_score": 0.7,
+          "confusion_matrix": [
+            [
+              16,
+              4
+            ],
+            [
+              6,
+              20
+            ]
+          ]
+        },
+        "test_metrics": {
+          "accuracy": 0.71,
+          "precision": 0.69,
+          "recall": 0.68,
+          "f1_score": 0.68,
+          "confusion_matrix": [
+            [
+              15,
+              5
+            ],
+            [
+              7,
+              19
+            ]
+          ]
+        },
+        "feature_importance": [
+          {
+            "feature": "OB_Age",
+            "importance": 0.15
+          },
+          {
+            "feature": "TBM_Risk_Per_Trade_ATR",
+            "importance": 0.1
+          },
+          {
+            "feature": "FVG_Width",
+            "importance": 0.08
+          },
+          {
+            "feature": "Liquidity_Sweep_Distance",
+            "importance": 0.07
+          },
+          {
+            "feature": "Market_Structure_Shift",
+            "importance": 0.06
+          },
+          {
+            "feature": "Volume_Profile",
+            "importance": 0.05
+          },
+          {
+            "feature": "ATR_Normalized",
+            "importance": 0.04
+          },
+          {
+            "feature": "Price_Action_Score",
+            "importance": 0.04
+          },
+          {
+            "feature": "Trend_Strength",
+            "importance": 0.03
+          },
+          {
+            "feature": "Support_Resistance",
+            "importance": 0.03
+          }
+        ],
+        "training_duration_seconds": 52.8
+      },
+      "NeuralNetwork": {
+        "model_name": "NeuralNetwork",
+        "symbol": "EURUSD",
+        "history": {
+          "train_accuracy": 0.92,
+          "train_val_gap": 0.28,
+          "cv_mean_accuracy": 0.65,
+          "cv_std_accuracy": 0.12,
+          "cv_is_stable": false,
+          "cv_fold_accuracies": [
+            0.55,
+            0.68,
+            0.62,
+            0.72,
+            0.68
+          ]
+        },
+        "val_metrics": {
+          "accuracy": 0.64,
+          "precision": 0.62,
+          "recall": 0.6,
+          "f1_score": 0.61,
+          "confusion_matrix": [
+            [
+              12,
+              8
+            ],
+            [
+              9,
+              17
+            ]
+          ]
+        },
+        "test_metrics": {
+          "accuracy": 0.62,
+          "precision": 0.6,
+          "recall": 0.58,
+          "f1_score": 0.59,
+          "confusion_matrix": [
+            [
+              11,
+              9
+            ],
+            [
+              10,
+              16
+            ]
+          ]
+        },
+        "warnings": [
+          "Epoch 45: Severe overfitting detected (train=0.92, val=0.64)",
+          "Validation loss increasing for 10 consecutive epochs"
+        ],
+        "training_duration_seconds": 120.5
+      }
+    },
+    "GBPUSD": {
+      "RandomForest": {
+        "error": "Insufficient training samples",
+        "error_type": "ValueError",
+        "symbol": "GBPUSD",
+        "timestamp": "2025-10-19T14:24:21.753579"
+      },
+      "XGBoost": {
+        "model_name": "XGBoost",
+        "symbol": "GBPUSD",
+        "history": {
+          "train_accuracy": 0.78,
+          "train_val_gap": 0.18,
+          "cv_mean_accuracy": 0.58,
+          "cv_std_accuracy": 0.05,
+          "cv_is_stable": true,
+          "cv_fold_accuracies": [
+            0.55,
+            0.6,
+            0.57,
+            0.61,
+            0.57
+          ]
+        },
+        "val_metrics": {
+          "accuracy": 0.6,
+          "precision": 0.58,
+          "recall": 0.56,
+          "f1_score": 0.57,
+          "confusion_matrix": [
+            [
+              10,
+              8
+            ],
+            [
+              8,
+              12
+            ]
+          ]
+        },
+        "test_metrics": {
+          "accuracy": 0.52,
+          "precision": 0.5,
+          "recall": 0.48,
+          "f1_score": 0.49,
+          "confusion_matrix": [
+            [
+              9,
+              9
+            ],
+            [
+              10,
+              10
+            ]
+          ]
+        },
+        "feature_importance": [
+          {
+            "feature": "OB_Age",
+            "importance": 0.1
+          },
+          {
+            "feature": "TBM_Risk_Per_Trade_ATR",
+            "importance": 0.09
+          },
+          {
+            "feature": "FVG_Width",
+            "importance": 0.08
+          }
+        ],
+        "training_duration_seconds": 38.2
+      }
+    }
+  },
+  "model_selections": {
+    "EURUSD": {
+      "selected_model": "XGBoost",
+      "test_accuracy": 0.71,
+      "val_accuracy": 0.72,
+      "train_val_gap": 0.16,
+      "val_test_diff": 0.01,
+      "score": 0.63,
+      "reason": "Best score (0.630) with gap 16.0%",
+      "alternatives": [
+        "RandomForest"
+      ]
+    },
+    "GBPUSD": {
+      "selected_model": null,
+      "reason": "No models met quality criteria",
+      "action": "MANUAL_REVIEW_REQUIRED",
+      "rejected_models": [
+        {
+          "model": "XGBoost",
+          "reason": "Test accuracy too low (52.0% < 55.0%)",
+          "test_acc": 0.52,
+          "train_val_gap": 0.18
+        }
+      ]
+    }
+  },
+  "warnings": [
+    "EURUSD/XGBoost: Overfitting detected",
+    "EURUSD/NeuralNetwork: Overfitting detected",
+    "EURUSD/NeuralNetwork: Unstable cross-validation",
+    "GBPUSD/RandomForest: Training failed",
+    "GBPUSD/XGBoost: Overfitting detected",
+    "GBPUSD/XGBoost: Low test accuracy",
+    "GBPUSD: No model met quality criteria"
+  ],
+  "timestamp": "2025-10-19T14:24:21.769224"
+}
