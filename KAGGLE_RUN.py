@@ -96,6 +96,7 @@ packages = [
     "scikit-fuzzy", 
     "xgboost",
     "scikit-learn",
+    "imbalanced-learn",  # Required for SMOTE in data_augmentation.py
     "pandas",
     "numpy",
     "joblib",

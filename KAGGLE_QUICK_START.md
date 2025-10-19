@@ -43,7 +43,7 @@ if result.returncode != 0:
 
 # Install dependencies (skip if already installed)
 print("📦 Installing dependencies...")
-packages = ["torch", "scikit-fuzzy", "xgboost", "scikit-learn", "pandas", "numpy", "joblib", "matplotlib", "seaborn"]
+packages = ["torch", "scikit-fuzzy", "xgboost", "scikit-learn", "imbalanced-learn", "pandas", "numpy", "joblib", "matplotlib", "seaborn"]
 for pkg in packages:
     subprocess.run(f"pip install -q {pkg}", shell=True, capture_output=True)
 print("✅ Dependencies ready")
