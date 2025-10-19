@@ -34,38 +34,40 @@ DATASET_PATH = "/kaggle/input/ob-ai-model-2-dataset"
 # HELPER FUNCTIONS
 # ============================================================================
 
+
 def run_command(cmd, description, check=True):
     """Run shell command and handle errors"""
     print(f"\n{'='*80}")
     print(f"🔧 {description}")
     print(f"{'='*80}")
     print(f"Command: {cmd}\n")
-    
+
     result = subprocess.run(
-        cmd, 
-        shell=True, 
-        capture_output=True, 
+        cmd,
+        shell=True,
+        capture_output=True,
         text=True
     )
-    
+
     if result.stdout:
         print(result.stdout)
     if result.stderr:
         print(result.stderr)
-    
+
     if check and result.returncode != 0:
         print(f"\n❌ Error: {description} failed with code {result.returncode}")
         sys.exit(1)
-    
+
     print(f"✅ {description} completed")
     return result
+
 
 def check_dataset():
     """Verify dataset is attached"""
     print(f"\n{'='*80}")
     print("📂 Checking Dataset")
     print(f"{'='*80}")
-    
+
     if not Path(DATASET_PATH).exists():
         print(f"❌ Dataset not found at {DATASET_PATH}")
         print("\nPlease attach the dataset 'ob-ai-model-2-dataset' to this notebook:")
@@ -73,13 +75,13 @@ def check_dataset():
         print("  2. Search for 'ob-ai-model-2-dataset'")
         print("  3. Click 'Add'")
         sys.exit(1)
-    
+
     # Check for mt5_exports directory
     mt5_dir = Path(DATASET_PATH) / "Data" / "mt5_exports"
     if not mt5_dir.exists():
         print(f"❌ MT5 exports not found at {mt5_dir}")
         sys.exit(1)
-    
+
     csv_files = list(mt5_dir.glob("*.csv"))
     print(f"✅ Dataset found: {len(csv_files)} CSV files in mt5_exports")
     return True
@@ -87,6 +89,7 @@ def check_dataset():
 # ============================================================================
 # STEP 1: CLONE REPOSITORY
 # ============================================================================
+
 
 print("\n" + "="*80)
 print("KAGGLE SMC PIPELINE - COMPLETE EXECUTION")
@@ -153,13 +156,13 @@ print(f"{'='*80}")
 
 try:
     from run_complete_pipeline import run_full_pipeline
-    
+
     # Run full pipeline (all symbols, all timeframes)
     processed_data = run_full_pipeline(config='full')
-    
+
     print("\n✅ Data pipeline completed successfully")
     print(f"   Processed {len(processed_data):,} rows")
-    
+
 except Exception as e:
     print(f"\n❌ Data pipeline failed: {e}")
     import traceback
@@ -176,30 +179,30 @@ print(f"{'='*80}")
 
 try:
     from train_all_models import SMCModelTrainer
-    
+
     # Initialize trainer
     trainer = SMCModelTrainer(
         data_dir='/kaggle/working',
         output_dir='/kaggle/working'
     )
-    
+
     # Check data availability
     if not trainer.check_data_availability():
         print("❌ Processed data not found")
         sys.exit(1)
-    
+
     # Get available symbols
     symbols = trainer.get_available_symbols()
     print(f"\n📊 Training models for {len(symbols)} symbols")
-    
+
     # Train all models for all symbols
     all_results = {}
-    
+
     for symbol in symbols:
         print(f"\n{'#'*80}")
         print(f"# SYMBOL: {symbol}")
         print(f"{'#'*80}")
-        
+
         try:
             symbol_results = trainer.train_all_for_symbol(
                 symbol=symbol,
@@ -207,14 +210,14 @@ try:
                 models=['RandomForest', 'XGBoost', 'NeuralNetwork', 'LSTM']
             )
             all_results[symbol] = symbol_results
-            
+
         except Exception as e:
             print(f"\n⚠️  Error training {symbol}: {e}")
             all_results[symbol] = {'error': str(e)}
             continue
-    
+
     print("\n✅ Model training completed")
-    
+
 except Exception as e:
     print(f"\n❌ Model training failed: {e}")
     import traceback
@@ -237,17 +240,19 @@ for symbol, symbol_results in all_results.items():
     if 'error' in symbol_results:
         print(f"{symbol:<10} {'ALL':<20} {'ERROR':<12} {'ERROR':<12} {'❌ Failed':<15}")
         continue
-    
+
     for model_name, result in symbol_results.items():
         if 'error' in result:
-            print(f"{symbol:<10} {model_name:<20} {'ERROR':<12} {'ERROR':<12} {'❌ Failed':<15}")
+            print(
+                f"{symbol:<10} {model_name:<20} {'ERROR':<12} {'ERROR':<12} {'❌ Failed':<15}")
             continue
-        
+
         val_acc = result.get('val_metrics', {}).get('accuracy', 0)
         test_acc = result.get('test_metrics', {}).get('accuracy', 0)
         status = '✅ Success' if test_acc > 0.5 else '⚠️  Low Acc'
-        
-        print(f"{symbol:<10} {model_name:<20} {val_acc:<12.3f} {test_acc:<12.3f} {status:<15}")
+
+        print(
+            f"{symbol:<10} {model_name:<20} {val_acc:<12.3f} {test_acc:<12.3f} {status:<15}")
 
 # Save results to JSON
 results_file = '/kaggle/working/training_results.json'
