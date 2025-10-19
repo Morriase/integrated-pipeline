@@ -90,19 +90,38 @@ print(f"\n{'='*80}")
 print("📦 Installing Dependencies")
 print(f"{'='*80}")
 
-packages = "torch scikit-fuzzy xgboost scikit-learn pandas numpy joblib matplotlib seaborn"
-result = subprocess.run(
-    f"pip install -q {packages}",
-    shell=True,
-    capture_output=True,
-    text=True
-)
+# Install packages one by one to handle failures gracefully
+packages = [
+    "torch",
+    "scikit-fuzzy", 
+    "xgboost",
+    "scikit-learn",
+    "pandas",
+    "numpy",
+    "joblib",
+    "matplotlib",
+    "seaborn"
+]
 
-if result.returncode != 0:
-    print(f"⚠️  Some packages may have failed to install")
-    print(result.stderr)
+failed_packages = []
+for package in packages:
+    result = subprocess.run(
+        f"pip install -q {package}",
+        shell=True,
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        failed_packages.append(package)
+        print(f"⚠️  {package} - failed")
+    else:
+        print(f"✅ {package} - installed")
+
+if failed_packages:
+    print(f"\n⚠️  Failed packages: {', '.join(failed_packages)}")
+    print("Continuing anyway - some may already be installed...")
 else:
-    print(f"✅ Dependencies installed")
+    print(f"\n✅ All dependencies installed")
 
 # ============================================================================
 # STEP 4: SETUP ENVIRONMENT

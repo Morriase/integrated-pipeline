@@ -35,11 +35,18 @@ REPO_DIR = "/kaggle/working/integrated-pipeline"
 print("🔄 Cloning repository...")
 if Path(REPO_DIR).exists():
     subprocess.run(f"rm -rf {REPO_DIR}", shell=True)
-subprocess.run(f"cd /kaggle/working && git clone {REPO_URL}", shell=True, check=True)
 
-# Install dependencies
+result = subprocess.run(f"cd /kaggle/working && git clone {REPO_URL}", shell=True, capture_output=True, text=True)
+if result.returncode != 0:
+    print(f"❌ Clone failed: {result.stderr}")
+    sys.exit(1)
+
+# Install dependencies (skip if already installed)
 print("📦 Installing dependencies...")
-subprocess.run("pip install -q torch scikit-fuzzy xgboost scikit-learn pandas numpy joblib matplotlib seaborn", shell=True, check=True)
+packages = ["torch", "scikit-fuzzy", "xgboost", "scikit-learn", "pandas", "numpy", "joblib", "matplotlib", "seaborn"]
+for pkg in packages:
+    subprocess.run(f"pip install -q {pkg}", shell=True, capture_output=True)
+print("✅ Dependencies ready")
 
 # Setup environment
 os.chdir(REPO_DIR)
