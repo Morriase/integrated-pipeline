@@ -34,11 +34,12 @@ class RandomForestSMCModel(BaseSMCModel):
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               n_estimators: int = 200,
-              max_depth: Optional[int] = 10,  # Enhanced regularization (reduced from 15)
-              min_samples_split: int = 20,  # Enhanced regularization
-              min_samples_leaf: int = 10,  # Enhanced regularization
+              max_depth: Optional[int] = 8,  # AGGRESSIVE: Reduced from 10
+              min_samples_split: int = 30,  # AGGRESSIVE: Increased from 20
+              min_samples_leaf: int = 15,  # AGGRESSIVE: Increased from 10
               max_features: str = 'sqrt',
-              max_samples: float = 0.7,  # Enhanced regularization (reduced from 0.8)
+              max_samples: float = 0.6,  # AGGRESSIVE: Reduced from 0.7
+              ccp_alpha: float = 0.02,  # AGGRESSIVE: Cost complexity pruning
               class_weight: str = 'balanced',
               use_grid_search: bool = False,
               use_cross_validation: bool = True,  # NEW: Enable CV by default
@@ -52,11 +53,12 @@ class RandomForestSMCModel(BaseSMCModel):
             X_val: Validation features (optional)
             y_val: Validation labels (optional)
             n_estimators: Number of trees
-            max_depth: Maximum tree depth (default: 10 for enhanced regularization)
-            min_samples_split: Minimum samples to split node (default: 20)
-            min_samples_leaf: Minimum samples in leaf (default: 10)
+            max_depth: Maximum tree depth (default: 8 for aggressive regularization)
+            min_samples_split: Minimum samples to split node (default: 30)
+            min_samples_leaf: Minimum samples in leaf (default: 15)
             max_features: Number of features for best split
-            max_samples: Bootstrap sampling ratio (default: 0.7 for enhanced regularization)
+            max_samples: Bootstrap sampling ratio (default: 0.6 for aggressive regularization)
+            ccp_alpha: Cost complexity pruning parameter (default: 0.02)
             class_weight: Class weighting strategy
             use_grid_search: Whether to use grid search for hyperparameters
             use_cross_validation: Whether to perform cross-validation (default: True)
@@ -111,14 +113,15 @@ class RandomForestSMCModel(BaseSMCModel):
             print(f"  Best CV score: {grid_search.best_score_:.3f}")
             
         else:
-            # Train with specified parameters (anti-overfitting constraints)
+            # Train with AGGRESSIVE anti-overfitting constraints
             self.model = RandomForestClassifier(
                 n_estimators=n_estimators,
                 max_depth=max_depth,
                 min_samples_split=min_samples_split,
                 min_samples_leaf=min_samples_leaf,
                 max_features=max_features,
-                max_samples=max_samples,  # NEW: Bootstrap sampling control
+                max_samples=max_samples,  # Bootstrap sampling control
+                ccp_alpha=ccp_alpha,  # AGGRESSIVE: Cost complexity pruning
                 class_weight=class_weight,
                 random_state=42,
                 n_jobs=-1,
@@ -140,6 +143,7 @@ class RandomForestSMCModel(BaseSMCModel):
             'min_samples_split': min_samples_split,
             'min_samples_leaf': min_samples_leaf,
             'max_samples': max_samples,
+            'ccp_alpha': ccp_alpha,
         }
         
         # Add cross-validation results to history

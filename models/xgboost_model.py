@@ -40,13 +40,14 @@ class XGBoostSMCModel(BaseSMCModel):
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               n_estimators: int = 200,
-              max_depth: int = 4,
-              learning_rate: float = 0.1,
-              subsample: float = 0.7,
-              colsample_bytree: float = 0.7,
-              min_child_weight: int = 5,
-              reg_alpha: float = 0.2,
-              reg_lambda: float = 2.0,
+              max_depth: int = 3,  # AGGRESSIVE: Reduced from 4
+              learning_rate: float = 0.01,  # AGGRESSIVE: Reduced from 0.1 (10x slower)
+              subsample: float = 0.6,  # AGGRESSIVE: Reduced from 0.7
+              colsample_bytree: float = 0.6,  # AGGRESSIVE: Reduced from 0.7
+              min_child_weight: int = 10,  # AGGRESSIVE: Increased from 5
+              reg_alpha: float = 0.5,  # AGGRESSIVE: Increased from 0.2
+              reg_lambda: float = 3.0,  # AGGRESSIVE: Increased from 2.0
+              max_delta_step: int = 1,  # AGGRESSIVE: Limit weight updates
               scale_pos_weight: Optional[float] = None,
               early_stopping_rounds: int = 20,
               use_gpu: bool = False,
@@ -60,13 +61,14 @@ class XGBoostSMCModel(BaseSMCModel):
             X_val: Validation features (optional)
             y_val: Validation labels (optional)
             n_estimators: Number of boosting rounds
-            max_depth: Maximum tree depth (default: 4 for reduced overfitting)
-            learning_rate: Learning rate (eta)
-            subsample: Subsample ratio of training instances (default: 0.7)
-            colsample_bytree: Subsample ratio of columns (default: 0.7)
-            min_child_weight: Minimum sum of instance weight in a child (default: 5)
-            reg_alpha: L1 regularization (default: 0.2)
-            reg_lambda: L2 regularization (default: 2.0)
+            max_depth: Maximum tree depth (default: 3 for aggressive regularization)
+            learning_rate: Learning rate (eta) (default: 0.01 for slower learning)
+            subsample: Subsample ratio of training instances (default: 0.6)
+            colsample_bytree: Subsample ratio of columns (default: 0.6)
+            min_child_weight: Minimum sum of instance weight in a child (default: 10)
+            reg_alpha: L1 regularization (default: 0.5)
+            reg_lambda: L2 regularization (default: 3.0)
+            max_delta_step: Maximum delta step for weight updates (default: 1)
             scale_pos_weight: Balancing of positive/negative weights
             early_stopping_rounds: Early stopping patience
             use_gpu: Whether to use GPU acceleration
@@ -109,7 +111,7 @@ class XGBoostSMCModel(BaseSMCModel):
         # Set device
         tree_method = 'gpu_hist' if use_gpu else 'hist'
         
-        # Initialize model
+        # Initialize model with AGGRESSIVE regularization
         self.model = xgb.XGBClassifier(
             n_estimators=n_estimators,
             max_depth=max_depth,
@@ -119,6 +121,7 @@ class XGBoostSMCModel(BaseSMCModel):
             min_child_weight=min_child_weight,
             reg_alpha=reg_alpha,
             reg_lambda=reg_lambda,
+            max_delta_step=max_delta_step,  # AGGRESSIVE: Limit weight updates
             scale_pos_weight=scale_pos_weight,
             tree_method=tree_method,
             objective=objective,

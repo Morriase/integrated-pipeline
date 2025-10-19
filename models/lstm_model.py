@@ -116,14 +116,14 @@ class LSTMSMCModel(BaseSMCModel):
     
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              hidden_dim: int = 64,  # REDUCED to 64 for small datasets
-              num_layers: int = 1,  # REDUCED to 1 for simplification
-              dropout: float = 0.5,  # INCREASED for more regularization
-              learning_rate: float = 0.0005,  # REDUCED to 0.0005 for stability
+              hidden_dim: int = 32,  # AGGRESSIVE: Reduced from 64
+              num_layers: int = 1,  # Keep simple
+              dropout: float = 0.6,  # AGGRESSIVE: Increased from 0.5
+              learning_rate: float = 0.0001,  # AGGRESSIVE: Reduced from 0.0005 (5x slower)
               batch_size: int = 16,  # REDUCED to 16 for small datasets
               epochs: int = 200,  # More epochs for full One-Cycle
               patience: int = 15,  # REDUCED to 15 for earlier stopping
-              weight_decay: float = 0.05,  # INCREASED from 0.01 for more L2 reg
+              weight_decay: float = 0.1,  # AGGRESSIVE: Increased from 0.05 (2x more L2)
               bidirectional: bool = True,  # Use BiLSTM
               **kwargs) -> Dict:
         """
@@ -244,9 +244,9 @@ class LSTMSMCModel(BaseSMCModel):
                 loss = criterion(outputs, batch_y)
                 loss.backward()
                 
-                # Check for exploding gradients before clipping
-                grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
-                training_monitor.check_exploding_gradients(grad_norm.item(), threshold=10.0, epoch=epoch + 1)
+                # AGGRESSIVE gradient clipping to prevent explosions
+                grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=0.5)  # Reduced from 1.0
+                training_monitor.check_exploding_gradients(grad_norm.item(), threshold=5.0, epoch=epoch + 1)  # Lower threshold
                 
                 optimizer.step()
                 scheduler.step()  # Step after each batch (One-Cycle policy)

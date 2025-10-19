@@ -78,13 +78,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              hidden_dims: List[int] = [256, 128, 64],  # REDUCED from [512, 256, 128, 64] - smaller network
-              dropout: float = 0.4,  # INCREASED from 0.3 for regularization (Task 4)
-              learning_rate: float = 0.005,  # REDUCED from 0.01 for smoother training
+              hidden_dims: List[int] = [128, 64, 32],  # AGGRESSIVE: Smaller network
+              dropout: float = 0.5,  # AGGRESSIVE: Increased from 0.4
+              learning_rate: float = 0.001,  # AGGRESSIVE: Reduced from 0.005
               batch_size: int = 64,  # INCREASED from 32 for better generalization
               epochs: int = 200,  # Maximum epochs
               patience: int = 20,  # INCREASED from 15 for better convergence
-              weight_decay: float = 0.001,  # INCREASED from 0.0001 for L2 regularization (Task 4)
+              weight_decay: float = 0.01,  # AGGRESSIVE: Increased from 0.001 (10x more L2)
               **kwargs) -> Dict:
         """
         Train Neural Network model
@@ -152,8 +152,8 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
         self.model.apply(init_weights)
 
-        # Loss with label smoothing (reduces overconfidence)
-        criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # INCREASED from 0.15 for stronger regularization (Task 4)
+        # Loss with AGGRESSIVE label smoothing (reduces overconfidence)
+        criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # Strong regularization
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
