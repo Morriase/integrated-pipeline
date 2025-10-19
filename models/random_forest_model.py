@@ -13,6 +13,7 @@ from typing import Dict, Optional
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from models.base_model import BaseSMCModel
+from models.data_augmentation import DataAugmenter
 
 
 class RandomForestSMCModel(BaseSMCModel):
@@ -33,15 +34,17 @@ class RandomForestSMCModel(BaseSMCModel):
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               n_estimators: int = 200,
-              max_depth: Optional[int] = 10,  # REDUCED from 20 to prevent overfitting
-              min_samples_split: int = 50,  # INCREASED from 10 for more regularization
-              min_samples_leaf: int = 25,  # INCREASED from 5 for more regularization
+              max_depth: Optional[int] = 15,  # Anti-overfitting constraint
+              min_samples_split: int = 20,  # Anti-overfitting constraint
+              min_samples_leaf: int = 10,  # Anti-overfitting constraint
               max_features: str = 'sqrt',
+              max_samples: float = 0.8,  # NEW: Bootstrap sampling control
               class_weight: str = 'balanced',
               use_grid_search: bool = False,
+              use_cross_validation: bool = True,  # NEW: Enable CV by default
               **kwargs) -> Dict:
         """
-        Train Random Forest model
+        Train Random Forest model with anti-overfitting constraints
         
         Args:
             X_train: Training features
@@ -49,12 +52,14 @@ class RandomForestSMCModel(BaseSMCModel):
             X_val: Validation features (optional)
             y_val: Validation labels (optional)
             n_estimators: Number of trees
-            max_depth: Maximum tree depth
-            min_samples_split: Minimum samples to split node
-            min_samples_leaf: Minimum samples in leaf
+            max_depth: Maximum tree depth (default: 15 for anti-overfitting)
+            min_samples_split: Minimum samples to split node (default: 20)
+            min_samples_leaf: Minimum samples in leaf (default: 10)
             max_features: Number of features for best split
+            max_samples: Bootstrap sampling ratio (default: 0.8)
             class_weight: Class weighting strategy
             use_grid_search: Whether to use grid search for hyperparameters
+            use_cross_validation: Whether to perform cross-validation (default: True)
             
         Returns:
             Training history dictionary
@@ -62,6 +67,20 @@ class RandomForestSMCModel(BaseSMCModel):
         print(f"\n🌲 Training Random Forest for {self.symbol}...")
         print(f"  Training samples: {len(X_train):,}")
         print(f"  Features: {X_train.shape[1]}")
+        
+        # Data augmentation for small datasets
+        original_size = len(X_train)
+        if original_size < 300:
+            print(f"\n  📊 Dataset has {original_size} samples (< 300), applying augmentation...")
+            augmenter = DataAugmenter(noise_std=0.01, smote_k_neighbors=5)
+            X_train, y_train = augmenter.augment(X_train, y_train, threshold=300)
+            print(f"  Augmented: {original_size} → {len(X_train)} samples")
+        
+        # Cross-validation before final training
+        cv_results = None
+        if use_cross_validation:
+            print("\n  🔄 Performing cross-validation...")
+            cv_results = self.cross_validate(X_train, y_train, n_folds=5, stratified=True)
         
         if use_grid_search and X_val is not None:
             print("\n  Running grid search for hyperparameters...")
@@ -92,13 +111,14 @@ class RandomForestSMCModel(BaseSMCModel):
             print(f"  Best CV score: {grid_search.best_score_:.3f}")
             
         else:
-            # Train with specified parameters
+            # Train with specified parameters (anti-overfitting constraints)
             self.model = RandomForestClassifier(
                 n_estimators=n_estimators,
                 max_depth=max_depth,
                 min_samples_split=min_samples_split,
                 min_samples_leaf=min_samples_leaf,
                 max_features=max_features,
+                max_samples=max_samples,  # NEW: Bootstrap sampling control
                 class_weight=class_weight,
                 random_state=42,
                 n_jobs=-1,
@@ -117,13 +137,35 @@ class RandomForestSMCModel(BaseSMCModel):
             'train_accuracy': train_score,
             'n_estimators': self.model.n_estimators,
             'max_depth': self.model.max_depth,
+            'min_samples_split': min_samples_split,
+            'min_samples_leaf': min_samples_leaf,
+            'max_samples': max_samples,
         }
+        
+        # Add cross-validation results to history
+        if cv_results is not None:
+            self.training_history['cv_mean_accuracy'] = cv_results['mean_accuracy']
+            self.training_history['cv_std_accuracy'] = cv_results['std_accuracy']
+            self.training_history['cv_is_stable'] = cv_results['is_stable']
+            self.training_history['cv_fold_accuracies'] = cv_results['fold_accuracies']
         
         if X_val is not None and y_val is not None:
             val_score = self.model.score(X_val, y_val)
             self.training_history['val_accuracy'] = val_score
+            
+            # Calculate train-val gap for overfitting detection
+            train_val_gap = train_score - val_score
+            self.training_history['train_val_gap'] = train_val_gap
+            self.training_history['overfitting_detected'] = train_val_gap > 0.15
+            
             print(f"\n  Train accuracy: {train_score:.3f}")
             print(f"  Val accuracy:   {val_score:.3f}")
+            print(f"  Train-Val gap:  {train_val_gap:.3f}")
+            
+            if train_val_gap > 0.15:
+                print(f"  ⚠️ Warning: Overfitting detected (gap > 15%)")
+            else:
+                print(f"  ✅ Good generalization (gap ≤ 15%)")
         else:
             print(f"\n  Train accuracy: {train_score:.3f}")
         

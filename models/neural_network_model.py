@@ -8,6 +8,7 @@ Key Learning Objectives (from WHATS_NEEDED.md):
 - Extract high-level patterns from raw features
 """
 
+import os
 import numpy as np
 from typing import Dict, Optional, List
 try:
@@ -22,10 +23,12 @@ except ImportError:
 
 from sklearn.preprocessing import StandardScaler
 from models.base_model import BaseSMCModel
+from models.data_augmentation import DataAugmenter
+from models.overfitting_monitor import OverfittingMonitor
 
 
 class MLPClassifier(nn.Module):
-    """Multi-Layer Perceptron for classification"""
+    """Multi-Layer Perceptron for classification with Batch Normalization"""
 
     def __init__(self, input_dim: int, hidden_dims: List[int], output_dim: int = 3,
                  dropout: float = 0.3):
@@ -36,7 +39,9 @@ class MLPClassifier(nn.Module):
 
         for hidden_dim in hidden_dims:
             layers.append(nn.Linear(prev_dim, hidden_dim))
-            # BatchNorm removed - causes issues with small batches
+            # Add BatchNorm1d after each Linear layer for better training stability
+            # track_running_stats=True ensures it works with small batches
+            layers.append(nn.BatchNorm1d(hidden_dim, track_running_stats=True))
             layers.append(nn.ReLU())
             layers.append(nn.Dropout(dropout))
             prev_dim = hidden_dim
@@ -46,6 +51,9 @@ class MLPClassifier(nn.Module):
         self.network = nn.Sequential(*layers)
 
     def forward(self, x):
+        # The network automatically handles training vs eval mode for batch norm
+        # When model.train() is called, batch norm uses batch statistics
+        # When model.eval() is called, batch norm uses running statistics
         return self.network(x)
 
 
@@ -75,8 +83,8 @@ class NeuralNetworkSMCModel(BaseSMCModel):
               learning_rate: float = 0.005,  # REDUCED from 0.01 for smoother training
               batch_size: int = 64,  # INCREASED from 32 for better generalization
               epochs: int = 200,  # Maximum epochs
-              patience: int = 15,  # REDUCED from 20 for earlier stopping
-              weight_decay: float = 0.05,  # INCREASED from 0.01 for more L2 regularization
+              patience: int = 20,  # INCREASED from 15 for better convergence
+              weight_decay: float = 0.1,  # INCREASED from 0.05 for stronger L2 regularization
               **kwargs) -> Dict:
         """
         Train Neural Network model
@@ -102,6 +110,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         print(f"  Features: {X_train.shape[1]}")
         print(
             f"  Architecture: {X_train.shape[1]} -> {' -> '.join(map(str, hidden_dims))} -> 3")
+
+        # Data augmentation for small datasets
+        if len(X_train) < 300:
+            print(f"\n  Dataset has < 300 samples. Applying data augmentation...")
+            augmenter = DataAugmenter(noise_std=0.01, smote_k_neighbors=5)
+            X_train, y_train = augmenter.augment(X_train, y_train, threshold=300)
+            print(f"  Augmented training samples: {len(X_train):,}")
 
         # Scale features
         X_train_scaled = self.scaler.fit_transform(X_train)
@@ -138,7 +153,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         self.model.apply(init_weights)
 
         # Loss with label smoothing (reduces overconfidence)
-        criterion = nn.CrossEntropyLoss(label_smoothing=0.15)  # INCREASED from 0.1
+        criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # INCREASED from 0.15 for stronger regularization
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
@@ -148,12 +163,14 @@ class NeuralNetworkSMCModel(BaseSMCModel):
             mode='min',
             factor=0.5,  # Reduce LR by half
             patience=5,  # Wait 5 epochs before reducing
-            verbose=True,
             min_lr=1e-6
         )
 
         # Store reverse label map
         self.label_map_reverse = {0: -1, 1: 0, 2: 1}
+
+        # Initialize overfitting monitor
+        monitor = OverfittingMonitor(warning_threshold=0.15)
 
         # Training loop
         history = {'train_loss': [], 'train_acc': [],
@@ -193,7 +210,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
             history['train_loss'].append(train_loss)
             history['train_acc'].append(train_acc)
 
-            # Validation phase
+            # Validation phase and monitoring
             if X_val is not None and y_val is not None:
                 X_val_scaled = self.scaler.transform(X_val)
                 y_val_mapped = np.array([label_map[y] for y in y_val])
@@ -213,10 +230,17 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 history['val_loss'].append(val_loss)
                 history['val_acc'].append(val_acc)
 
+                # Update overfitting monitor
+                monitor.update(
+                    epoch=epoch,
+                    train_metrics={'accuracy': train_acc, 'loss': train_loss},
+                    val_metrics={'accuracy': val_acc, 'loss': val_loss}
+                )
+
                 # Step scheduler based on validation loss
                 scheduler.step(val_loss)
 
-                # Early stopping
+                # Early stopping based on validation loss
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     patience_counter = 0
@@ -232,7 +256,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                           f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.3f}")
 
                 if patience_counter >= patience:
-                    print(f"\n  Early stopping at epoch {epoch+1}")
+                    print(f"\n  Early stopping at epoch {epoch+1} (patience={patience})")
                     # Restore best model if it was saved
                     if self.best_model_state is not None:
                         self.model.load_state_dict(self.best_model_state)
@@ -245,9 +269,24 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         self.training_history = history
         self.is_trained = True
 
+        # Generate and save learning curves
+        curves_dir = 'models/trained'
+        os.makedirs(curves_dir, exist_ok=True)
+        curves_path = os.path.join(curves_dir, f'{self.symbol}_NN_learning_curves.png')
+        monitor.generate_learning_curves(curves_path)
+
+        # Save overfitting metrics to JSON
+        metrics_path = os.path.join(curves_dir, f'{self.symbol}_NN_overfitting_metrics.json')
+        monitor.save_to_json(metrics_path)
+
+        # Print overfitting summary
+        monitor.print_summary()
+
         print(f"\n  Final Train Accuracy: {history['train_acc'][-1]:.3f}")
         if history['val_acc']:
             print(f"  Final Val Accuracy:   {history['val_acc'][-1]:.3f}")
+            gap = history['train_acc'][-1] - history['val_acc'][-1]
+            print(f"  Train-Val Gap:        {gap:.3f} ({gap*100:.1f}%)")
 
         return history
 

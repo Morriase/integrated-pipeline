@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-10-19T02:57:38.355483",
+  "summary": {
+    "total_models": 4,
+    "overfitting_models": 2,
+    "average_gap": 0.14,
+    "max_gap": 0.26,
+    "min_gap": 0.06
+  },
+  "all_models": [
+    {
+      "symbol": "EURUSD",
+      "model": "RandomForest",
+      "train_accuracy": 0.95,
+      "val_accuracy": 0.78,
+      "test_accuracy": 0.76,
+      "train_val_gap": 0.17,
+      "is_overfitting": true,
+      "cv_mean_accuracy": 0.76,
+      "cv_std_accuracy": 0.05,
+      "cv_is_stable": true
+    },
+    {
+      "symbol": "EURUSD",
+      "model": "NeuralNetwork",
+      "train_accuracy": 0.88,
+      "val_accuracy": 0.82,
+      "test_accuracy": 0.81,
+      "train_val_gap": 0.06,
+      "is_overfitting": false,
+      "cv_mean_accuracy": null,
+      "cv_std_accuracy": null,
+      "cv_is_stable": null
+    },
+    {
+      "symbol": "GBPUSD",
+      "model": "RandomForest",
+      "train_accuracy": 0.92,
+      "val_accuracy": 0.85,
+      "test_accuracy": 0.84,
+      "train_val_gap": 0.07,
+      "is_overfitting": false,
+      "cv_mean_accuracy": 0.84,
+      "cv_std_accuracy": 0.03,
+      "cv_is_stable": true
+    },
+    {
+      "symbol": "GBPUSD",
+      "model": "NeuralNetwork",
+      "train_accuracy": 0.98,
+      "val_accuracy": 0.72,
+      "test_accuracy": 0.7,
+      "train_val_gap": 0.26,
+      "is_overfitting": true,
+      "cv_mean_accuracy": null,
+      "cv_std_accuracy": null,
+      "cv_is_stable": null
+    }
+  ],
+  "problematic_models": [
+    {
+      "symbol": "EURUSD",
+      "model": "RandomForest",
+      "train_accuracy": 0.95,
+      "val_accuracy": 0.78,
+      "test_accuracy": 0.76,
+      "train_val_gap": 0.17,
+      "is_overfitting": true,
+      "cv_mean_accuracy": 0.76,
+      "cv_std_accuracy": 0.05,
+      "cv_is_stable": true
+    },
+    {
+      "symbol": "GBPUSD",
+      "model": "NeuralNetwork",
+      "train_accuracy": 0.98,
+      "val_accuracy": 0.72,
+      "test_accuracy": 0.7,
+      "train_val_gap": 0.26,
+      "is_overfitting": true,
+      "cv_mean_accuracy": null,
+      "cv_std_accuracy": null,
+      "cv_is_stable": null
+    }
+  ]
+}

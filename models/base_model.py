@@ -14,8 +14,209 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix, classification_report
 )
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.model_selection import StratifiedKFold
 import warnings
 warnings.filterwarnings('ignore')
+
+
+class FeatureSelector:
+    """
+    Feature selection class for dimensionality reduction
+    
+    Uses multiple methods to identify and select the most important features:
+    - Random Forest feature importance
+    - Mutual information
+    - Correlation-based redundancy removal
+    """
+    
+    def __init__(self, methods: List[str] = ['importance', 'correlation', 'mutual_info'],
+                 importance_threshold_percentile: int = 25,
+                 correlation_threshold: float = 0.9,
+                 min_features: int = 30):
+        """
+        Initialize FeatureSelector
+        
+        Args:
+            methods: List of selection methods to use
+            importance_threshold_percentile: Percentile threshold for feature importance
+            correlation_threshold: Correlation threshold for redundancy removal
+            min_features: Minimum number of features to keep
+        """
+        self.methods = methods
+        self.importance_threshold_percentile = importance_threshold_percentile
+        self.correlation_threshold = correlation_threshold
+        self.min_features = min_features
+        
+        self.selected_features_ = None
+        self.selected_indices_ = None
+        self.feature_scores_ = None
+        self.feature_names_ = None
+        self.is_fitted_ = False
+    
+    def fit(self, X: np.ndarray, y: np.ndarray, feature_names: List[str]) -> 'FeatureSelector':
+        """
+        Analyze features and determine selection criteria
+        
+        Args:
+            X: Feature matrix (n_samples, n_features)
+            y: Target labels (n_samples,)
+            feature_names: List of feature names
+            
+        Returns:
+            self
+        """
+        print(f"\n🔍 Feature Selection: Analyzing {X.shape[1]} features...")
+        
+        self.feature_names_ = feature_names
+        n_features = X.shape[1]
+        
+        # Initialize scores dictionary
+        scores_dict = {name: 0.0 for name in feature_names}
+        
+        # Method 1: Random Forest feature importance
+        if 'importance' in self.methods:
+            print("  Computing Random Forest importance...")
+            rf = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1)
+            rf.fit(X, y)
+            rf_importance = rf.feature_importances_
+            
+            # Normalize to 0-1 range
+            rf_importance = (rf_importance - rf_importance.min()) / (rf_importance.max() - rf_importance.min() + 1e-10)
+            
+            for i, name in enumerate(feature_names):
+                scores_dict[name] += rf_importance[i]
+        
+        # Method 2: Mutual information
+        if 'mutual_info' in self.methods:
+            print("  Computing mutual information...")
+            mi_scores = mutual_info_classif(X, y, random_state=42)
+            
+            # Normalize to 0-1 range
+            mi_scores = (mi_scores - mi_scores.min()) / (mi_scores.max() - mi_scores.min() + 1e-10)
+            
+            for i, name in enumerate(feature_names):
+                scores_dict[name] += mi_scores[i]
+        
+        # Average scores across methods
+        n_methods = len([m for m in self.methods if m in ['importance', 'mutual_info']])
+        if n_methods > 0:
+            for name in scores_dict:
+                scores_dict[name] /= n_methods
+        
+        # Convert to DataFrame for easier manipulation
+        self.feature_scores_ = pd.DataFrame({
+            'feature': feature_names,
+            'score': [scores_dict[name] for name in feature_names]
+        })
+        
+        # Step 1: Remove features below importance threshold
+        threshold_value = np.percentile(self.feature_scores_['score'], self.importance_threshold_percentile)
+        selected_features = self.feature_scores_[self.feature_scores_['score'] >= threshold_value]['feature'].tolist()
+        
+        print(f"  After importance filtering: {len(selected_features)} features (threshold: {threshold_value:.4f})")
+        
+        # Step 2: Remove correlated features
+        if 'correlation' in self.methods and len(selected_features) > self.min_features:
+            print("  Removing correlated features...")
+            
+            # Get indices of selected features
+            selected_indices = [feature_names.index(f) for f in selected_features]
+            X_selected = X[:, selected_indices]
+            
+            # Compute correlation matrix
+            corr_matrix = np.corrcoef(X_selected.T)
+            
+            # Find correlated pairs
+            to_remove = set()
+            for i in range(len(selected_features)):
+                if selected_features[i] in to_remove:
+                    continue
+                for j in range(i + 1, len(selected_features)):
+                    if selected_features[j] in to_remove:
+                        continue
+                    if abs(corr_matrix[i, j]) > self.correlation_threshold:
+                        # Remove the feature with lower importance score
+                        score_i = scores_dict[selected_features[i]]
+                        score_j = scores_dict[selected_features[j]]
+                        if score_i < score_j:
+                            to_remove.add(selected_features[i])
+                        else:
+                            to_remove.add(selected_features[j])
+            
+            selected_features = [f for f in selected_features if f not in to_remove]
+            print(f"  After correlation filtering: {len(selected_features)} features (removed {len(to_remove)} correlated)")
+        
+        # Step 3: Enforce minimum feature threshold
+        if len(selected_features) < self.min_features:
+            print(f"  ⚠️ Only {len(selected_features)} features selected, enforcing minimum of {self.min_features}")
+            # Select top features by score
+            top_features = self.feature_scores_.nlargest(self.min_features, 'score')['feature'].tolist()
+            selected_features = top_features
+        
+        # Store selected features and their indices
+        self.selected_features_ = selected_features
+        self.selected_indices_ = [feature_names.index(f) for f in selected_features]
+        self.is_fitted_ = True
+        
+        print(f"  ✅ Final selection: {len(self.selected_features_)} features ({len(self.selected_features_)/n_features*100:.1f}% of original)")
+        
+        return self
+    
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        """
+        Apply feature selection to dataset
+        
+        Args:
+            X: Feature matrix (n_samples, n_features)
+            
+        Returns:
+            Transformed feature matrix with selected features only
+        """
+        if not self.is_fitted_:
+            raise ValueError("FeatureSelector must be fitted before transform")
+        
+        return X[:, self.selected_indices_]
+    
+    def fit_transform(self, X: np.ndarray, y: np.ndarray, feature_names: List[str]) -> np.ndarray:
+        """
+        Fit and transform in one step
+        
+        Args:
+            X: Feature matrix (n_samples, n_features)
+            y: Target labels (n_samples,)
+            feature_names: List of feature names
+            
+        Returns:
+            Transformed feature matrix with selected features only
+        """
+        self.fit(X, y, feature_names)
+        return self.transform(X)
+    
+    def get_selected_features(self) -> List[str]:
+        """
+        Get list of selected feature names
+        
+        Returns:
+            List of selected feature names
+        """
+        if not self.is_fitted_:
+            raise ValueError("FeatureSelector must be fitted first")
+        
+        return self.selected_features_
+    
+    def get_feature_scores(self) -> pd.DataFrame:
+        """
+        Get importance scores for all features
+        
+        Returns:
+            DataFrame with feature names and scores, sorted by score descending
+        """
+        if not self.is_fitted_:
+            raise ValueError("FeatureSelector must be fitted first")
+        
+        return self.feature_scores_.sort_values('score', ascending=False).reset_index(drop=True)
 
 
 class BaseSMCModel(ABC):
@@ -46,6 +247,7 @@ class BaseSMCModel(ABC):
         self.is_trained = False
         self.training_history = {}
         self.feature_importance = None
+        self.feature_selector = None
         
     @abstractmethod
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
@@ -107,13 +309,15 @@ class BaseSMCModel(ABC):
         
         return train_df, val_df, test_df
     
-    def prepare_features(self, df: pd.DataFrame, fit_scaler: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+    def prepare_features(self, df: pd.DataFrame, fit_scaler: bool = False, 
+                        apply_feature_selection: bool = False) -> Tuple[np.ndarray, np.ndarray]:
         """
         Prepare features and target from DataFrame
         
         Args:
             df: Input DataFrame
             fit_scaler: Whether to fit scaler (True for training data)
+            apply_feature_selection: Whether to apply feature selection (default: False for backward compatibility)
             
         Returns:
             Tuple of (X, y) arrays
@@ -171,12 +375,143 @@ class BaseSMCModel(ABC):
         elif self.scaler is not None:
             X = self.scaler.transform(X)
         
+        # Apply feature selection if enabled
+        if apply_feature_selection:
+            if fit_scaler:
+                # Fit feature selector on training data
+                self.feature_selector = FeatureSelector()
+                X = self.feature_selector.fit_transform(X, y, self.feature_cols)
+                # Update feature_cols to selected features only
+                self.feature_cols = self.feature_selector.get_selected_features()
+            elif self.feature_selector is not None:
+                # Transform using fitted selector
+                X = self.feature_selector.transform(X)
+            else:
+                print("  ⚠️ Warning: Feature selection requested but no selector fitted")
+        
         # FIX 3: Final validation - check for any remaining NaN/inf
         if np.any(np.isnan(X)) or np.any(np.isinf(X)):
             print("  ⚠️ Warning: NaN/inf detected after processing, replacing with 0")
             X = np.nan_to_num(X, nan=0.0, posinf=1e10, neginf=-1e10)
         
         return X, y
+    
+    def cross_validate(self, X: np.ndarray, y: np.ndarray, 
+                      n_folds: int = 5, stratified: bool = True) -> Dict:
+        """
+        Perform k-fold cross-validation
+        
+        Args:
+            X: Feature array
+            y: Target labels
+            n_folds: Number of folds (default: 5)
+            stratified: Whether to use stratified splits (default: True)
+            
+        Returns:
+            Dictionary with cross-validation results
+        """
+        print(f"\n🔄 Performing {n_folds}-fold cross-validation...")
+        
+        # Initialize cross-validator
+        if stratified:
+            cv = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=42)
+        else:
+            from sklearn.model_selection import KFold
+            cv = KFold(n_splits=n_folds, shuffle=True, random_state=42)
+        
+        # Store results for each fold
+        fold_accuracies = []
+        fold_precisions = []
+        fold_recalls = []
+        fold_f1s = []
+        
+        # Perform cross-validation
+        for fold_idx, (train_idx, val_idx) in enumerate(cv.split(X, y), 1):
+            X_train_fold, X_val_fold = X[train_idx], X[val_idx]
+            y_train_fold, y_val_fold = y[train_idx], y[val_idx]
+            
+            # Create a temporary model instance for this fold
+            # Note: Subclasses should implement _create_model() if needed
+            temp_model = self._clone_model()
+            
+            # Train on fold (disable nested cross-validation to avoid recursion)
+            temp_model.train(X_train_fold, y_train_fold, X_val_fold, y_val_fold, 
+                           use_cross_validation=False)
+            
+            # Evaluate on validation fold
+            y_pred = temp_model.predict(X_val_fold)
+            
+            fold_acc = accuracy_score(y_val_fold, y_pred)
+            fold_prec = precision_score(y_val_fold, y_pred, average='macro', zero_division=0)
+            fold_rec = recall_score(y_val_fold, y_pred, average='macro', zero_division=0)
+            fold_f1 = f1_score(y_val_fold, y_pred, average='macro', zero_division=0)
+            
+            fold_accuracies.append(fold_acc)
+            fold_precisions.append(fold_prec)
+            fold_recalls.append(fold_rec)
+            fold_f1s.append(fold_f1)
+            
+            print(f"  Fold {fold_idx}/{n_folds}: Accuracy={fold_acc:.3f}, F1={fold_f1:.3f}")
+        
+        # Calculate statistics
+        mean_accuracy = np.mean(fold_accuracies)
+        std_accuracy = np.std(fold_accuracies)
+        is_stable = std_accuracy < 0.15
+        
+        cv_results = {
+            'mean_accuracy': mean_accuracy,
+            'std_accuracy': std_accuracy,
+            'mean_precision': np.mean(fold_precisions),
+            'std_precision': np.std(fold_precisions),
+            'mean_recall': np.mean(fold_recalls),
+            'std_recall': np.std(fold_recalls),
+            'mean_f1': np.mean(fold_f1s),
+            'std_f1': np.std(fold_f1s),
+            'fold_accuracies': fold_accuracies,
+            'is_stable': is_stable,
+            'n_folds': n_folds
+        }
+        
+        print(f"\n  Cross-Validation Results:")
+        print(f"    Mean Accuracy: {mean_accuracy:.3f} ± {std_accuracy:.3f}")
+        print(f"    Mean F1-Score: {cv_results['mean_f1']:.3f} ± {cv_results['std_f1']:.3f}")
+        
+        if not is_stable:
+            print(f"    ⚠️ Warning: High variance detected (std={std_accuracy:.3f} > 0.15)")
+            print(f"    Model may be unstable - consider more data or simpler architecture")
+        else:
+            print(f"    ✅ Model is stable across folds")
+        
+        return cv_results
+    
+    def _clone_model(self):
+        """
+        Create a clone of this model for cross-validation
+        Subclasses should override if special initialization is needed
+        
+        Returns:
+            New instance of the same model class
+        """
+        # Try to create new instance with same parameters
+        # Handle different constructor signatures
+        try:
+            cloned = self.__class__(self.model_name, self.symbol, self.target_col)
+        except TypeError:
+            # If that fails, try with just symbol
+            try:
+                cloned = self.__class__(self.symbol)
+                cloned.model_name = self.model_name
+                cloned.target_col = self.target_col
+            except TypeError:
+                # Last resort: try with no arguments
+                cloned = self.__class__()
+                cloned.model_name = self.model_name
+                cloned.symbol = self.symbol
+                cloned.target_col = self.target_col
+        
+        cloned.feature_cols = self.feature_cols
+        cloned.scaler = self.scaler
+        return cloned
     
     def evaluate(self, X: np.ndarray, y_true: np.ndarray, 
                  dataset_name: str = 'Test') -> Dict:
@@ -276,6 +611,35 @@ class BaseSMCModel(ABC):
             print(f"  True Loss      {cm[0,0]:6d}      {cm[0,1]:6d}    {cm[0,2]:6d}")
             print(f"  True Timeout   {cm[1,0]:6d}      {cm[1,1]:6d}    {cm[1,2]:6d}")
             print(f"  True Win       {cm[2,0]:6d}      {cm[2,1]:6d}    {cm[2,2]:6d}")
+        
+        # Calculate train-val gap if training history is available
+        if hasattr(self, 'training_history') and self.training_history:
+            # Try to get training accuracy from history
+            train_acc = None
+            
+            # Check different possible keys for training accuracy
+            if 'train_accuracy' in self.training_history:
+                train_acc = self.training_history['train_accuracy']
+                if isinstance(train_acc, list):
+                    train_acc = train_acc[-1]  # Get final epoch
+            elif 'final_train_accuracy' in self.training_history:
+                train_acc = self.training_history['final_train_accuracy']
+            
+            # If we have training accuracy and this is validation set, calculate gap
+            if train_acc is not None and dataset_name in ['Validation', 'Val']:
+                train_val_gap = train_acc - metrics['accuracy']
+                metrics['train_val_gap'] = train_val_gap
+                metrics['overfitting_detected'] = train_val_gap > 0.15
+                
+                print(f"\n  Overfitting Analysis:")
+                print(f"    Training Accuracy: {train_acc:.3f}")
+                print(f"    Validation Accuracy: {metrics['accuracy']:.3f}")
+                print(f"    Train-Val Gap: {train_val_gap:.3f}")
+                
+                if metrics['overfitting_detected']:
+                    print(f"    ⚠️ OVERFITTING DETECTED (gap > 15%)")
+                else:
+                    print(f"    ✅ No significant overfitting")
         
         return metrics
     
