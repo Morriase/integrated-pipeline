@@ -144,10 +144,10 @@ class RandomForestSMCModel(BaseSMCModel):
         
         # Add cross-validation results to history
         if cv_results is not None:
-            self.training_history['cv_mean_accuracy'] = cv_results['mean_accuracy']
-            self.training_history['cv_std_accuracy'] = cv_results['std_accuracy']
-            self.training_history['cv_is_stable'] = cv_results['is_stable']
-            self.training_history['cv_fold_accuracies'] = cv_results['fold_accuracies']
+            self.training_history['cv_mean_accuracy'] = cv_results.get('mean_accuracy', 0.0)
+            self.training_history['cv_std_accuracy'] = cv_results.get('std_accuracy', 0.0)
+            self.training_history['cv_is_stable'] = cv_results.get('is_stable', True)
+            self.training_history['cv_fold_accuracies'] = cv_results.get('fold_accuracies', [])
         
         if X_val is not None and y_val is not None:
             val_score = self.model.score(X_val, y_val)
@@ -171,11 +171,15 @@ class RandomForestSMCModel(BaseSMCModel):
         
         self.is_trained = True
         
-        # Print top features
-        print(f"\n  Top 10 Most Important Features:")
-        top_features = self.get_feature_importance(top_n=10)
-        for idx, row in top_features.iterrows():
-            print(f"    {row['feature']:<40s}: {row['importance']:.4f}")
+        # Print top features (only if feature names are available)
+        if hasattr(self, 'feature_cols') and self.feature_cols is not None and len(self.feature_cols) > 0:
+            print(f"\n  Top 10 Most Important Features:")
+            top_features = self.get_feature_importance(top_n=10)
+            for idx, row in top_features.iterrows():
+                feature_name = row['feature'] if row['feature'] is not None else f"Feature_{idx}"
+                print(f"    {feature_name:<40s}: {row['importance']:.4f}")
+        else:
+            print(f"\n  Feature importance computed (feature names not available)")
         
         return self.training_history
     
@@ -190,6 +194,10 @@ class RandomForestSMCModel(BaseSMCModel):
         if not self.is_trained:
             raise ValueError("Model not trained yet!")
         return self.model.predict_proba(X)
+    
+    def _clone_model(self):
+        """Create a clone of this model for cross-validation"""
+        return RandomForestSMCModel(symbol=self.symbol, target_col=self.target_col)
 
 
 # Example usage
