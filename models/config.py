@@ -69,31 +69,87 @@ class RandomForestConfig:
 
 
 @dataclass
+class XGBoostConfig:
+    """
+    XGBoost Anti-Overfitting Configuration
+    
+    Attributes:
+        max_depth: Maximum tree depth (default: 3, reduced from 6)
+        min_child_weight: Minimum sum of instance weight in child (default: 10, increased from 3)
+        subsample: Subsample ratio of training instances (default: 0.6, reduced from 0.8)
+        colsample_bytree: Subsample ratio of columns (default: 0.6, reduced from 0.8)
+        learning_rate: Boosting learning rate (default: 0.01, reduced from 0.1)
+        n_estimators: Number of boosting rounds (default: 200)
+        early_stopping_rounds: Early stopping rounds (default: 20)
+        reg_alpha: L1 regularization (default: 0.1)
+        reg_lambda: L2 regularization (default: 1.0)
+        random_state: Random seed (default: 42)
+    """
+    max_depth: int = 3
+    min_child_weight: int = 10
+    subsample: float = 0.6
+    colsample_bytree: float = 0.6
+    learning_rate: float = 0.01
+    n_estimators: int = 200
+    early_stopping_rounds: int = 20
+    reg_alpha: float = 0.1
+    reg_lambda: float = 1.0
+    random_state: int = 42
+    
+    def validate(self) -> List[str]:
+        """Validate configuration parameters and return list of errors"""
+        errors = []
+        
+        if self.max_depth < 1 or self.max_depth > 10:
+            errors.append(f"max_depth must be between 1 and 10, got {self.max_depth}")
+        
+        if self.min_child_weight < 1 or self.min_child_weight > 50:
+            errors.append(f"min_child_weight must be between 1 and 50, got {self.min_child_weight}")
+        
+        if self.subsample <= 0.0 or self.subsample > 1.0:
+            errors.append(f"subsample must be between 0.0 and 1.0, got {self.subsample}")
+        
+        if self.colsample_bytree <= 0.0 or self.colsample_bytree > 1.0:
+            errors.append(f"colsample_bytree must be between 0.0 and 1.0, got {self.colsample_bytree}")
+        
+        if self.learning_rate <= 0.0 or self.learning_rate > 1.0:
+            errors.append(f"learning_rate must be between 0.0 and 1.0, got {self.learning_rate}")
+        
+        if self.n_estimators < 10 or self.n_estimators > 1000:
+            errors.append(f"n_estimators must be between 10 and 1000, got {self.n_estimators}")
+        
+        if self.early_stopping_rounds < 5 or self.early_stopping_rounds > 100:
+            errors.append(f"early_stopping_rounds must be between 5 and 100, got {self.early_stopping_rounds}")
+        
+        return errors
+
+
+@dataclass
 class NeuralNetworkConfig:
     """
     Neural Network Anti-Overfitting Configuration
     
     Attributes:
-        hidden_dims: List of hidden layer dimensions (default: [256, 128, 64], reduced from [512, 256, 128, 64])
-        dropout: Dropout rate for regularization (default: 0.5, increased from 0.4)
-        learning_rate: Initial learning rate (default: 0.005, reduced from 0.01)
-        batch_size: Training batch size (default: 64, increased from 32)
+        hidden_dims: List of hidden layer dimensions (default: [128, 64], simplified from [256, 128, 64])
+        dropout: Dropout rate for regularization (default: 0.5)
+        learning_rate: Initial learning rate (default: 0.005)
+        batch_size: Training batch size (default: 64)
         epochs: Maximum training epochs (default: 200)
-        weight_decay: L2 regularization strength (default: 0.1, increased from 0.01)
-        label_smoothing: Label smoothing factor (default: 0.2, increased from 0.15)
-        patience: Early stopping patience in epochs (default: 20, increased from 15)
+        weight_decay: L2 regularization strength (default: 0.01)
+        label_smoothing: Label smoothing factor (default: 0.2)
+        patience: Early stopping patience in epochs (default: 30)
         lr_scheduler_patience: Epochs to wait before reducing LR (default: 5)
         lr_scheduler_factor: Factor to reduce LR by (default: 0.5)
         min_lr: Minimum learning rate (default: 1e-6)
     """
-    hidden_dims: List[int] = field(default_factory=lambda: [256, 128, 64])
+    hidden_dims: List[int] = field(default_factory=lambda: [128, 64])
     dropout: float = 0.5
     learning_rate: float = 0.005
     batch_size: int = 64
     epochs: int = 200
-    weight_decay: float = 0.1
+    weight_decay: float = 0.01
     label_smoothing: float = 0.2
-    patience: int = 20
+    patience: int = 30
     lr_scheduler_patience: int = 5
     lr_scheduler_factor: float = 0.5
     min_lr: float = 1e-6
@@ -142,17 +198,29 @@ class FeatureSelectionConfig:
     Feature Selection Configuration
     
     Attributes:
-        methods: List of feature selection methods to use (default: ['importance', 'correlation', 'mutual_info'])
+        methods: List of feature selection methods to use (default: ['importance'])
         importance_threshold_percentile: Percentile threshold for feature importance (default: 25)
         correlation_threshold: Correlation threshold for redundancy removal (default: 0.9)
-        min_features: Minimum number of features to keep (default: 30)
+        min_features: Minimum number of features to keep (default: 25)
+        max_features: Maximum number of features to keep (default: 25)
         enabled: Whether feature selection is enabled (default: True)
+        selected_features: Explicit list of features to use (overrides other methods if provided)
     """
-    methods: List[str] = field(default_factory=lambda: ['importance', 'correlation', 'mutual_info'])
+    methods: List[str] = field(default_factory=lambda: ['importance'])
     importance_threshold_percentile: int = 25
     correlation_threshold: float = 0.9
-    min_features: int = 30
+    min_features: int = 25
+    max_features: int = 25
     enabled: bool = True
+    selected_features: Optional[List[str]] = field(default_factory=lambda: [
+        'TBM_Bars_to_Hit', 'TBM_Risk_Per_Trade_ATR', 'TBM_Reward_Per_Trade_ATR',
+        'Distance_to_Entry_ATR', 'OB_Age',
+        'FVG_Distance_to_Price_ATR', 'FVG_Depth_ATR', 'FVG_Quality_Fuzzy', 'FVG_Size_Fuzzy_Score',
+        'ATR_ZScore', 'BOS_Dist_ATR_ZScore', 'FVG_Distance_to_Price_ATR_ZScore', 'FVG_Depth_ATR_ZScore',
+        'ChoCH_Detected', 'ChoCH_Direction', 'BOS_Commitment_Flag', 'BOS_Close_Confirm', 'BOS_Wick_Confirm',
+        'OB_Bullish_Valid', 'OB_Bearish_Valid', 'FVG_Bullish_Valid', 'FVG_Bearish_Valid',
+        'Trend_Bias_Indicator', 'Trend_Strength', 'atr'
+    ])
     
     def validate(self) -> List[str]:
         """Validate configuration parameters and return list of errors"""
@@ -278,6 +346,7 @@ class AntiOverfittingConfig:
     
     Attributes:
         rf_config: Random Forest configuration
+        xgb_config: XGBoost configuration
         nn_config: Neural Network configuration
         feature_selection_config: Feature selection configuration
         augmentation_config: Data augmentation configuration
@@ -285,6 +354,7 @@ class AntiOverfittingConfig:
         monitor_config: Overfitting monitor configuration
     """
     rf_config: RandomForestConfig = field(default_factory=RandomForestConfig)
+    xgb_config: XGBoostConfig = field(default_factory=XGBoostConfig)
     nn_config: NeuralNetworkConfig = field(default_factory=NeuralNetworkConfig)
     feature_selection_config: FeatureSelectionConfig = field(default_factory=FeatureSelectionConfig)
     augmentation_config: AugmentationConfig = field(default_factory=AugmentationConfig)
@@ -303,6 +373,10 @@ class AntiOverfittingConfig:
         rf_errors = self.rf_config.validate()
         if rf_errors:
             all_errors.extend([f"RF Config: {e}" for e in rf_errors])
+        
+        xgb_errors = self.xgb_config.validate()
+        if xgb_errors:
+            all_errors.extend([f"XGB Config: {e}" for e in xgb_errors])
         
         nn_errors = self.nn_config.validate()
         if nn_errors:
@@ -337,6 +411,7 @@ class AntiOverfittingConfig:
         """Convert configuration to dictionary"""
         return {
             'rf_config': asdict(self.rf_config),
+            'xgb_config': asdict(self.xgb_config),
             'nn_config': asdict(self.nn_config),
             'feature_selection_config': asdict(self.feature_selection_config),
             'augmentation_config': asdict(self.augmentation_config),
@@ -349,6 +424,7 @@ class AntiOverfittingConfig:
         """Create configuration from dictionary"""
         return cls(
             rf_config=RandomForestConfig(**config_dict.get('rf_config', {})),
+            xgb_config=XGBoostConfig(**config_dict.get('xgb_config', {})),
             nn_config=NeuralNetworkConfig(**config_dict.get('nn_config', {})),
             feature_selection_config=FeatureSelectionConfig(**config_dict.get('feature_selection_config', {})),
             augmentation_config=AugmentationConfig(**config_dict.get('augmentation_config', {})),
@@ -401,6 +477,7 @@ DEFAULT_CONFIG = AntiOverfittingConfig()
 
 # Legacy dictionary exports for backward compatibility
 RF_CONFIG = asdict(DEFAULT_CONFIG.rf_config)
+XGB_CONFIG = asdict(DEFAULT_CONFIG.xgb_config)
 NN_CONFIG = asdict(DEFAULT_CONFIG.nn_config)
 FEATURE_SELECTION_CONFIG = asdict(DEFAULT_CONFIG.feature_selection_config)
 AUGMENTATION_CONFIG = asdict(DEFAULT_CONFIG.augmentation_config)
@@ -462,6 +539,12 @@ if __name__ == '__main__':
     print(f"  - min_samples_leaf: {config.rf_config.min_samples_leaf}")
     print(f"  - max_samples: {config.rf_config.max_samples}\n")
     
+    print("XGBoost Config:")
+    print(f"  - max_depth: {config.xgb_config.max_depth}")
+    print(f"  - min_child_weight: {config.xgb_config.min_child_weight}")
+    print(f"  - learning_rate: {config.xgb_config.learning_rate}")
+    print(f"  - early_stopping_rounds: {config.xgb_config.early_stopping_rounds}\n")
+    
     print("Neural Network Config:")
     print(f"  - hidden_dims: {config.nn_config.hidden_dims}")
     print(f"  - dropout: {config.nn_config.dropout}")
@@ -469,9 +552,9 @@ if __name__ == '__main__':
     print(f"  - weight_decay: {config.nn_config.weight_decay}\n")
     
     print("Feature Selection Config:")
-    print(f"  - methods: {config.feature_selection_config.methods}")
-    print(f"  - correlation_threshold: {config.feature_selection_config.correlation_threshold}")
-    print(f"  - min_features: {config.feature_selection_config.min_features}\n")
+    print(f"  - max_features: {config.feature_selection_config.max_features}")
+    print(f"  - selected_features: {len(config.feature_selection_config.selected_features)} features")
+    print(f"  - enabled: {config.feature_selection_config.enabled}\n")
     
     # Save to file
     config_path = 'models/anti_overfitting_config.json'

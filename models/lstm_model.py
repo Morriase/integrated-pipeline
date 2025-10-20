@@ -198,8 +198,13 @@ class LSTMSMCModel(BaseSMCModel):
         
         self.model.apply(init_weights)
         
-        # Loss and optimizer (AdamW with decoupled weight decay)
-        criterion = nn.CrossEntropyLoss()
+        # Calculate class weights for imbalanced data
+        unique_labels, counts = np.unique(y_train_mapped, return_counts=True)
+        class_weights = len(y_train_mapped) / (len(unique_labels) * counts)
+        class_weights_tensor = torch.FloatTensor(class_weights).to(self.device)
+        
+        # Loss and optimizer (AdamW with decoupled weight decay) + class weights
+        criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
         optimizer = optim.AdamW(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         
         # One-Cycle Learning Rate Policy

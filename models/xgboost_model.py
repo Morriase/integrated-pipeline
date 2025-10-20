@@ -18,6 +18,7 @@ except ImportError:
     print("⚠️ XGBoost not installed. Install with: pip install xgboost")
 
 from models.base_model import BaseSMCModel
+from models.config import XGB_CONFIG
 
 
 class XGBoostSMCModel(BaseSMCModel):
@@ -39,43 +40,52 @@ class XGBoostSMCModel(BaseSMCModel):
         
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              n_estimators: int = 200,
-              max_depth: int = 3,  # AGGRESSIVE: Reduced from 4
-              learning_rate: float = 0.01,  # AGGRESSIVE: Reduced from 0.1 (10x slower)
-              subsample: float = 0.6,  # AGGRESSIVE: Reduced from 0.7
-              colsample_bytree: float = 0.6,  # AGGRESSIVE: Reduced from 0.7
-              min_child_weight: int = 10,  # AGGRESSIVE: Increased from 5
-              reg_alpha: float = 0.5,  # AGGRESSIVE: Increased from 0.2
-              reg_lambda: float = 3.0,  # AGGRESSIVE: Increased from 2.0
-              max_delta_step: int = 1,  # AGGRESSIVE: Limit weight updates
+              n_estimators: int = None,
+              max_depth: int = None,
+              learning_rate: float = None,
+              subsample: float = None,
+              colsample_bytree: float = None,
+              min_child_weight: int = None,
+              reg_alpha: float = None,
+              reg_lambda: float = None,
               scale_pos_weight: Optional[float] = None,
-              early_stopping_rounds: int = 20,
+              early_stopping_rounds: int = None,
               use_gpu: bool = False,
               **kwargs) -> Dict:
         """
-        Train XGBoost model
+        Train XGBoost model with config defaults
         
         Args:
             X_train: Training features
             y_train: Training labels
-            X_val: Validation features (optional)
-            y_val: Validation labels (optional)
-            n_estimators: Number of boosting rounds
-            max_depth: Maximum tree depth (default: 3 for aggressive regularization)
-            learning_rate: Learning rate (eta) (default: 0.01 for slower learning)
-            subsample: Subsample ratio of training instances (default: 0.6)
-            colsample_bytree: Subsample ratio of columns (default: 0.6)
-            min_child_weight: Minimum sum of instance weight in a child (default: 10)
-            reg_alpha: L1 regularization (default: 0.5)
-            reg_lambda: L2 regularization (default: 3.0)
-            max_delta_step: Maximum delta step for weight updates (default: 1)
-            scale_pos_weight: Balancing of positive/negative weights
-            early_stopping_rounds: Early stopping patience
+            X_val: Validation features (optional, required for early stopping)
+            y_val: Validation labels (optional, required for early stopping)
+            n_estimators: Number of boosting rounds (default: from config)
+            max_depth: Maximum tree depth (default: from config)
+            learning_rate: Learning rate (default: from config)
+            subsample: Subsample ratio (default: from config)
+            colsample_bytree: Column subsample ratio (default: from config)
+            min_child_weight: Minimum child weight (default: from config)
+            reg_alpha: L1 regularization (default: from config)
+            reg_lambda: L2 regularization (default: from config)
+            scale_pos_weight: Class weight balancing
+            early_stopping_rounds: Early stopping patience (default: from config)
             use_gpu: Whether to use GPU acceleration
             
         Returns:
             Training history dictionary
         """
+        # Use config defaults if not specified
+        n_estimators = n_estimators or XGB_CONFIG['n_estimators']
+        max_depth = max_depth or XGB_CONFIG['max_depth']
+        learning_rate = learning_rate or XGB_CONFIG['learning_rate']
+        subsample = subsample or XGB_CONFIG['subsample']
+        colsample_bytree = colsample_bytree or XGB_CONFIG['colsample_bytree']
+        min_child_weight = min_child_weight or XGB_CONFIG['min_child_weight']
+        reg_alpha = reg_alpha or XGB_CONFIG['reg_alpha']
+        reg_lambda = reg_lambda or XGB_CONFIG['reg_lambda']
+        early_stopping_rounds = early_stopping_rounds or XGB_CONFIG['early_stopping_rounds']
+        
         print(f"\n🚀 Training XGBoost for {self.symbol}...")
         print(f"  Training samples: {len(X_train):,}")
         print(f"  Features: {X_train.shape[1]}")
@@ -121,14 +131,14 @@ class XGBoostSMCModel(BaseSMCModel):
             min_child_weight=min_child_weight,
             reg_alpha=reg_alpha,
             reg_lambda=reg_lambda,
-            max_delta_step=max_delta_step,  # AGGRESSIVE: Limit weight updates
             scale_pos_weight=scale_pos_weight,
             tree_method=tree_method,
             objective=objective,
             num_class=num_classes if objective == 'multi:softmax' else None,
             eval_metric=eval_metric,
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
+            early_stopping_rounds=early_stopping_rounds if X_val is not None else None
         )
         
         # Prepare evaluation set
@@ -146,12 +156,19 @@ class XGBoostSMCModel(BaseSMCModel):
             self.label_map = label_map
             self.reverse_map = {v: k for k, v in label_map.items()}
         
-        # Train (simplified - no early stopping to avoid API issues)
-        self.model.fit(
-            X_train, y_train_mapped,
-            eval_set=eval_set,
-            verbose=False
-        )
+        # Train with early stopping if validation set provided
+        if X_val is not None and y_val is not None:
+            self.model.fit(
+                X_train, y_train_mapped,
+                eval_set=eval_set,
+                verbose=False
+            )
+        else:
+            # No validation set - train without early stopping
+            self.model.fit(
+                X_train, y_train_mapped,
+                verbose=False
+            )
         
         # Store reverse label map for predictions (only for 3-class)
         if not is_binary:

@@ -698,10 +698,62 @@ class BaseSMCModel(ABC):
         cloned.scaler = self.scaler
         return cloned
     
+    def calculate_trading_metrics(self, y_true: np.ndarray, y_pred: np.ndarray, 
+                                  rr_ratio: float = 2.0) -> Dict:
+        """
+        Calculate trading-specific business metrics
+        
+        Args:
+            y_true: True labels
+            y_pred: Predicted labels
+            rr_ratio: Risk-Reward ratio (default: 2.0 for 1:2 R:R)
+            
+        Returns:
+            Dictionary of trading metrics
+        """
+        # Count wins and losses (exclude timeouts if present)
+        wins = np.sum(y_pred == 1)
+        losses = np.sum(y_pred == -1)
+        timeouts = np.sum(y_pred == 0)
+        total_trades = wins + losses
+        
+        # Win rate (excluding timeouts)
+        win_rate = wins / total_trades if total_trades > 0 else 0
+        
+        # Profit factor (assuming R:R ratio)
+        total_profit = wins * rr_ratio  # Each win = rr_ratio * R
+        total_loss = losses * 1.0  # Each loss = 1R
+        profit_factor = total_profit / total_loss if total_loss > 0 else float('inf')
+        
+        # Expected value per trade
+        ev_per_trade = (win_rate * rr_ratio) - ((1 - win_rate) * 1.0)
+        
+        # Accuracy on actual trades (excluding timeouts)
+        actual_trades_mask = (y_true != 0) & (y_pred != 0)
+        if np.sum(actual_trades_mask) > 0:
+            trade_accuracy = accuracy_score(
+                y_true[actual_trades_mask], 
+                y_pred[actual_trades_mask]
+            )
+        else:
+            trade_accuracy = 0.0
+        
+        return {
+            'win_rate': win_rate,
+            'profit_factor': profit_factor,
+            'expected_value_per_trade': ev_per_trade,
+            'total_wins': int(wins),
+            'total_losses': int(losses),
+            'total_timeouts': int(timeouts),
+            'total_trades': int(total_trades),
+            'trade_accuracy': trade_accuracy,
+            'risk_reward_ratio': rr_ratio
+        }
+    
     def evaluate(self, X: np.ndarray, y_true: np.ndarray, 
                  dataset_name: str = 'Test') -> Dict:
         """
-        Evaluate model performance
+        Evaluate model performance with both classification and trading metrics
         
         Args:
             X: Feature array
@@ -775,16 +827,31 @@ class BaseSMCModel(ABC):
         cm = confusion_matrix(y_true, y_pred, labels=cm_labels)
         metrics['confusion_matrix'] = cm.tolist()
         
-        # Print results
-        print(f"\n  Accuracy: {metrics['accuracy']:.3f}")
-        print(f"  Precision (macro): {metrics['precision_macro']:.3f}")
-        print(f"  Recall (macro): {metrics['recall_macro']:.3f}")
-        print(f"  F1-Score (macro): {metrics['f1_macro']:.3f}")
+        # Calculate trading metrics
+        trading_metrics = self.calculate_trading_metrics(y_true, y_pred, rr_ratio=2.0)
+        metrics.update(trading_metrics)
         
-        if 'win_rate_predicted' in metrics:
-            print(f"\n  Win Rate (excl. timeouts):")
-            print(f"    Predicted: {metrics['win_rate_predicted']:.1%}")
-            print(f"    Actual:    {metrics['win_rate_actual']:.1%}")
+        # Print classification results
+        print(f"\n  Classification Metrics:")
+        print(f"    Accuracy: {metrics['accuracy']:.3f}")
+        print(f"    Precision (macro): {metrics['precision_macro']:.3f}")
+        print(f"    Recall (macro): {metrics['recall_macro']:.3f}")
+        print(f"    F1-Score (macro): {metrics['f1_macro']:.3f}")
+        
+        # Print trading metrics
+        print(f"\n  Trading Metrics (1:{trading_metrics['risk_reward_ratio']} R:R):")
+        print(f"    Win Rate: {trading_metrics['win_rate']:.1%} ({trading_metrics['total_wins']}/{trading_metrics['total_trades']} trades)")
+        print(f"    Profit Factor: {trading_metrics['profit_factor']:.2f}")
+        print(f"    Expected Value/Trade: {trading_metrics['expected_value_per_trade']:.2f}R")
+        print(f"    Trade Accuracy: {trading_metrics['trade_accuracy']:.1%}")
+        if trading_metrics['total_timeouts'] > 0:
+            print(f"    Timeouts: {trading_metrics['total_timeouts']} ({trading_metrics['total_timeouts']/(trading_metrics['total_trades']+trading_metrics['total_timeouts'])*100:.1f}%)")
+        
+        # Profitability assessment
+        if trading_metrics['expected_value_per_trade'] > 0:
+            print(f"    💰 PROFITABLE STRATEGY (EV > 0)")
+        else:
+            print(f"    ⚠️ LOSING STRATEGY (EV < 0)")
         
         print(f"\n  Confusion Matrix:")
         if is_binary:

@@ -152,8 +152,16 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
         self.model.apply(init_weights)
 
-        # Loss with AGGRESSIVE label smoothing (reduces overconfidence)
-        criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # Strong regularization
+        # Calculate class weights for imbalanced data
+        unique_labels, counts = np.unique(y_train_mapped, return_counts=True)
+        class_weights = len(y_train_mapped) / (len(unique_labels) * counts)
+        class_weights_tensor = torch.FloatTensor(class_weights).to(self.device)
+        
+        # Loss with AGGRESSIVE label smoothing (reduces overconfidence) + class weights
+        criterion = nn.CrossEntropyLoss(
+            label_smoothing=0.2,  # Strong regularization
+            weight=class_weights_tensor  # Handle class imbalance
+        )
         optimizer = optim.AdamW(self.model.parameters(
         ), lr=learning_rate, weight_decay=weight_decay)
 
