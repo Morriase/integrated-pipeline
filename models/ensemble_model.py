@@ -46,8 +46,19 @@ class ConsensusEnsembleSMCModel:
         if rf_file.exists():
             with open(rf_file, 'rb') as f:
                 model_data = pickle.load(f)
-                self.models['RandomForest'] = model_data['model']
-                self.feature_cols['RandomForest'] = model_data['feature_cols']
+                # Handle both dict and direct model formats
+                if isinstance(model_data, dict):
+                    self.models['RandomForest'] = model_data['model']
+                    self.feature_cols['RandomForest'] = model_data['feature_cols']
+                else:
+                    # Model saved directly (old format)
+                    self.models['RandomForest'] = model_data
+                    # Load metadata separately
+                    meta_file = model_path / f"{self.symbol}_RandomForest_metadata.json"
+                    if meta_file.exists():
+                        with open(meta_file, 'r') as mf:
+                            metadata = json.load(mf)
+                            self.feature_cols['RandomForest'] = metadata['feature_cols']
             print(f"  ✅ RandomForest loaded")
         else:
             print(f"  ❌ RandomForest not found: {rf_file}")
@@ -57,8 +68,19 @@ class ConsensusEnsembleSMCModel:
         if xgb_file.exists():
             with open(xgb_file, 'rb') as f:
                 model_data = pickle.load(f)
-                self.models['XGBoost'] = model_data['model']
-                self.feature_cols['XGBoost'] = model_data['feature_cols']
+                # Handle both dict and direct model formats
+                if isinstance(model_data, dict):
+                    self.models['XGBoost'] = model_data['model']
+                    self.feature_cols['XGBoost'] = model_data['feature_cols']
+                else:
+                    # Model saved directly (old format)
+                    self.models['XGBoost'] = model_data
+                    # Load metadata separately
+                    meta_file = model_path / f"{self.symbol}_XGBoost_metadata.json"
+                    if meta_file.exists():
+                        with open(meta_file, 'r') as mf:
+                            metadata = json.load(mf)
+                            self.feature_cols['XGBoost'] = metadata['feature_cols']
             print(f"  ✅ XGBoost loaded")
         else:
             print(f"  ❌ XGBoost not found: {xgb_file}")
@@ -68,10 +90,26 @@ class ConsensusEnsembleSMCModel:
         if nn_file.exists():
             with open(nn_file, 'rb') as f:
                 model_data = pickle.load(f)
-                self.models['NeuralNetwork'] = model_data['model']
-                self.feature_cols['NeuralNetwork'] = model_data['feature_cols']
-                if 'scaler' in model_data:
-                    self.scalers['NeuralNetwork'] = model_data['scaler']
+                # Handle both dict and direct model formats
+                if isinstance(model_data, dict):
+                    self.models['NeuralNetwork'] = model_data['model']
+                    self.feature_cols['NeuralNetwork'] = model_data['feature_cols']
+                    if 'scaler' in model_data:
+                        self.scalers['NeuralNetwork'] = model_data['scaler']
+                else:
+                    # Model saved directly (old format)
+                    self.models['NeuralNetwork'] = model_data
+                    # Load metadata and scaler separately
+                    meta_file = model_path / f"{self.symbol}_NeuralNetwork_metadata.json"
+                    if meta_file.exists():
+                        with open(meta_file, 'r') as mf:
+                            metadata = json.load(mf)
+                            self.feature_cols['NeuralNetwork'] = metadata['feature_cols']
+                    
+                    scaler_file = model_path / f"{self.symbol}_NeuralNetwork_scaler.pkl"
+                    if scaler_file.exists():
+                        with open(scaler_file, 'rb') as sf:
+                            self.scalers['NeuralNetwork'] = pickle.load(sf)
             print(f"  ✅ NeuralNetwork loaded")
         else:
             print(f"  ❌ NeuralNetwork not found: {nn_file}")
