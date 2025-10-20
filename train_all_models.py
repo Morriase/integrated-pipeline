@@ -118,9 +118,10 @@ class UnifiedModelTrainer:
         print(f"  Val:   {len(val_df):,} samples")
         print(f"  Test:  {len(test_df):,} samples")
 
-        # Prepare features (all symbols combined) with feature selection
+        # Prepare features (all symbols combined) WITHOUT feature selection for now
+        # TODO: Fix feature selection correlation issue with small datasets
         X_train, y_train = model.prepare_features(train_df, fit_scaler=True, 
-                                                  apply_feature_selection=True)
+                                                  apply_feature_selection=False)
         X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
         X_test, y_test = model.prepare_features(test_df, fit_scaler=False)
 
@@ -186,9 +187,9 @@ class UnifiedModelTrainer:
         print(f"  Val:   {len(val_df):,} samples")
         print(f"  Test:  {len(test_df):,} samples")
 
-        # Prepare features with feature selection
+        # Prepare features WITHOUT feature selection for now
         X_train, y_train = model.prepare_features(train_df, fit_scaler=True,
-                                                  apply_feature_selection=True)
+                                                  apply_feature_selection=False)
         X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
         X_test, y_test = model.prepare_features(test_df, fit_scaler=False)
 
@@ -235,9 +236,9 @@ class UnifiedModelTrainer:
         print(f"  Val:   {len(val_df):,} samples")
         print(f"  Test:  {len(test_df):,} samples")
 
-        # Prepare features with feature selection
+        # Prepare features WITHOUT feature selection for now
         X_train, y_train = model.prepare_features(train_df, fit_scaler=True,
-                                                  apply_feature_selection=True)
+                                                  apply_feature_selection=False)
         X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
         X_test, y_test = model.prepare_features(test_df, fit_scaler=False)
 
@@ -290,9 +291,9 @@ class UnifiedModelTrainer:
         print(f"  Test:  {len(test_df):,} samples")
         print(f"  Lookback: 10 candles")
 
-        # Prepare features with feature selection (LSTM needs scaler fitted)
+        # Prepare features WITHOUT feature selection for now (LSTM needs scaler fitted)
         X_train, y_train = model.prepare_features(train_df, fit_scaler=True,
-                                                  apply_feature_selection=True)
+                                                  apply_feature_selection=False)
         X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
         X_test, y_test = model.prepare_features(test_df, fit_scaler=False)
 
