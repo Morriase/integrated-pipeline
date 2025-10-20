@@ -122,7 +122,7 @@ class ConsensusEnsembleSMCModel:
         else:
             print(f"\n⚠️ Only {len(self.models)}/3 models loaded")
             print(f"   Required: RandomForest, XGBoost, NeuralNetwork")
-        
+    
     def set_consensus_mode(self, mode: str = 'strict'):
         """
         Set consensus mode
@@ -227,124 +227,6 @@ class ConsensusEnsembleSMCModel:
                     confidence_flags[i] = False
         
         return consensus_pred, confidence_flags
-        return ensemble_pred
-    
-    def evaluate(self, X: pd.DataFrame, y: np.ndarray) -> Dict:
-        """Evaluate ensemble performance"""
-        y_pred = self.predict(X)
-        
-        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-        
-        metrics = {
-            'accuracy': accuracy_score(y, y_pred),
-            'precision': precision_score(y, y_pred, average='macro', zero_division=0),
-            'recall': recall_score(y, y_pred, average='macro', zero_division=0),
-            'f1': f1_score(y, y_pred, average='macro', zero_division=0)
-        }
-        
-        # Win rate
-        if len(np.unique(y)) == 2:  # Binary
-            win_rate = (y_pred == 1).sum() / len(y_pred)
-            actual_win_rate = (y == 1).sum() / len(y)
-        else:
-            win_rate = (y_pred == 1).sum() / len(y_pred)
-            actual_win_rate = (y == 1).sum() / len(y)
-        
-        metrics['win_rate_predicted'] = win_rate
-        metrics['win_rate_actual'] = actual_win_rate
-        
-        return metrics
-
-
-def create_ensemble_for_all_symbols(model_dir='/kaggle/working', 
-                                     results_file='/kaggle/working/all_models_results.json'):
-    """
-    Create ensemble models for all symbols and evaluate
-    """
-    import json
-    
-    # Load training results to get validation accuracies
-    with open(results_file, 'r') as f:
-        results = json.load(f)
-    
-    # Load test data
-    test_df = pd.read_csv('/kaggle/working/processed_smc_data_test.csv')
-    test_df = test_df[test_df['TBM_Label'] != 0]  # Exclude timeout
-    
-    ensemble_results = {}
-    
-    for symbol in results.keys():
-        print(f"\n{'='*80}")
-        print(f"Creating Ensemble for {symbol}")
-        print(f"{'='*80}")
-        
-        # Create ensemble
-        ensemble = EnsembleSMCModel(symbol)
-        ensemble.load_models(model_dir)
-        
-        # Set weights based on validation performance
-        val_accuracies = {}
-        if 'RandomForest' in results[symbol]:
-            val_acc = results[symbol]['RandomForest'].get('val_metrics', {}).get('accuracy', 0.5)
-            val_accuracies['RandomForest'] = val_acc
-        
-        if 'NeuralNetwork' in results[symbol]:
-            val_acc = results[symbol]['NeuralNetwork'].get('val_metrics', {}).get('accuracy', 0.5)
-            val_accuracies['NeuralNetwork'] = val_acc
-        
-        ensemble.set_weights(val_accuracies)
-        
-        # Evaluate on test set
-        symbol_test = test_df[test_df['symbol'] == symbol].copy()
-        
-        if len(symbol_test) > 0:
-            y_test = symbol_test['TBM_Label'].values
-            # Remap labels if needed
-            if -1 in y_test:
-                y_test = np.where(y_test == -1, 0, y_test)
-            
-            metrics = ensemble.evaluate(symbol_test, y_test)
-            
-            print(f"\n📊 Ensemble Test Performance:")
-            print(f"  Accuracy:  {metrics['accuracy']:.1%}")
-            print(f"  Precision: {metrics['precision']:.1%}")
-            print(f"  Recall:    {metrics['recall']:.1%}")
-            print(f"  F1-Score:  {metrics['f1']:.1%}")
-            print(f"  Win Rate:  {metrics['win_rate_predicted']:.1%} (actual: {metrics['win_rate_actual']:.1%})")
-            
-            # Compare to individual models
-            rf_acc = results[symbol].get('RandomForest', {}).get('test_metrics', {}).get('accuracy', 0)
-            nn_acc = results[symbol].get('NeuralNetwork', {}).get('test_metrics', {}).get('accuracy', 0)
-            
-            print(f"\n  vs Random Forest:   {rf_acc:.1%}")
-            print(f"  vs Neural Network:  {nn_acc:.1%}")
-            
-            improvement = metrics['accuracy'] - max(rf_acc, nn_acc)
-            print(f"  Improvement: {improvement:+.1%}")
-            
-            ensemble_results[symbol] = metrics
-    
-    # Overall summary
-    print(f"\n{'='*80}")
-    print("ENSEMBLE SUMMARY")
-    print(f"{'='*80}")
-    
-    avg_accuracy = np.mean([m['accuracy'] for m in ensemble_results.values()])
-    print(f"\nAverage Ensemble Accuracy: {avg_accuracy:.1%}")
-    
-    # Save results
-    with open(f'{model_dir}/ensemble_results.json', 'w') as f:
-        json.dump(ensemble_results, f, indent=2, default=str)
-    
-    print(f"\n✅ Ensemble results saved to {model_dir}/ensemble_results.json")
-    
-    return ensemble_results
-
-
-if __name__ == "__main__":
-    # Create ensembles for all symbols
-    results = create_ensemble_for_all_symbols()
-
     
     def evaluate(self, X: pd.DataFrame, y_true: np.ndarray, dataset_name: str = 'Test') -> Dict:
         """
@@ -489,40 +371,3 @@ if __name__ == "__main__":
         predictions['NeuralNetwork'] = np.array([label_map.get(p, p) for p in nn_pred])
         
         return predictions
-
-
-# Example usage
-if __name__ == "__main__":
-    """
-    Example: Load and use consensus ensemble
-    """
-    import pandas as pd
-    
-    # Initialize ensemble
-    ensemble = ConsensusEnsembleSMCModel(symbol='UNIFIED')
-    
-    # Load models
-    ensemble.load_models(model_dir='/kaggle/working/Model-output')
-    
-    # Set consensus mode
-    ensemble.set_consensus_mode('strict')  # All 3 must agree
-    
-    # Load test data
-    test_df = pd.read_csv('/kaggle/working/Data-output/processed_smc_data_test.csv')
-    
-    # Remove NaN labels
-    test_df = test_df[test_df['TBM_Label'].notna()].copy()
-    
-    # Get features and labels
-    X_test = test_df
-    y_test = test_df['TBM_Label'].values
-    
-    # Evaluate
-    metrics = ensemble.evaluate(X_test, y_test, 'Test')
-    
-    print("\n✅ Consensus Ensemble evaluation complete!")
-    print(f"\nKey Insight:")
-    print(f"  By only trading when all 3 models agree:")
-    print(f"  - Trade count: {metrics['high_confidence_trades']} ({metrics['confidence_rate']*100:.1f}% of opportunities)")
-    print(f"  - Win rate: {metrics['win_rate']:.1%}")
-    print(f"  - Expected value: {metrics['expected_value_per_trade']:.2f}R per trade")
