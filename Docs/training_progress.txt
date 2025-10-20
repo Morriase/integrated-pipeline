@@ -1,4667 +1,782 @@
-📋 Copying files to working directory...
-🗑️ Clearing Python cache...
-✅ Code updated, cache cleared, modules reloaded!
-
-🤖 TRAINING ALL MODELS
 ================================================================================
-Training 11 symbols × 4 models = 44 total models
-With AGGRESSIVE anti-overfitting fixes
-Duration: ~5 minutes
+SMC MODEL TRAINING - FULL DATASET APPROACH
 ================================================================================
 
+🎯 Training Strategy:
+  - Train on ALL symbols combined (unified dataset)
+  - 2,500+ samples (vs 178-295 per symbol)
+  - 4 models total (vs 44 models)
+  - Better generalization, less overfitting
+  - ATR normalization makes features comparable
+
+⚠️  LSTM ENABLED (Experimental):
+   - May show overfitting and gradient issues
+   - Included for research/comparison purposes
+   - Not recommended for production use
+🔍 Detected Kaggle environment
+📂 Data Directory: /kaggle/working/Data-output
+📂 Model Output Directory: /kaggle/working/Model-output
 
 🔍 Checking data availability...
-  ✓ Train data: /kaggle/working/processed_smc_data_train.csv
-  ✓ Val data:   /kaggle/working/processed_smc_data_val.csv
-  ✓ Test data:  /kaggle/working/processed_smc_data_test.csv
+  ✓ Train data: /kaggle/working/Data-output/processed_smc_data_train.csv
+  ✓ Val data:   /kaggle/working/Data-output/processed_smc_data_val.csv
+  ✓ Test data:  /kaggle/working/Data-output/processed_smc_data_test.csv
 
-📊 Available symbols: ['AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'EURUSD', 'GBPUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAUUSD']
-
-################################################################################
-# Training AUDCAD
-################################################################################
-
-################################################################################
-# Training All Models for AUDCAD
-################################################################################
-
-🌲 Starting RandomForest training for AUDCAD...
+📊 Dataset Statistics:
+  Train samples: 76,982
+  Val samples:   16,500
+  Test samples:  16,518
+  Total:         110,000
+  Symbols:       11
+  Features:      82
 
 ================================================================================
-Training Random Forest for AUDCAD
+STARTING UNIFIED TRAINING
 ================================================================================
 
-📂 Loading data for AUDCAD...
-  Train: 243 samples
-  Val:   50 samples
-  Test:  60 samples
+################################################################################
+# Training All Models on UNIFIED DATASET
+################################################################################
+
+🎯 Strategy: Train on ALL data for maximum generalization
+   Core Models: RandomForest, XGBoost, NeuralNetwork
+   Experimental: LSTM (may be unstable)
+
+🌲 Starting RandomForest training...
+
+================================================================================
+Training Random Forest on FULL UNIFIED DATASET
+================================================================================
+
+📊 Training on FULL dataset:
+  Train: 76,982 samples (11 symbols)
+  Val:   16,500 samples
+  Test:  16,518 samples
   Selected 57 features
-
-🌲 Training Random Forest for AUDCAD...
-  Training samples: 243
-  Features: 57
-
-  📊 Dataset has 243 samples (< 300), applying augmentation...
-  Augmented: 243 → 690 samples
-
-  🔄 Performing cross-validation...
+  ⚠️ Removing 74,352 samples with NaN labels (96.6%)
+  ⚠️ Removing 15,915 samples with NaN labels (96.5%)
+  ⚠️ Removing 15,942 samples with NaN labels (96.5%)
 
 🔄 Performing 5-fold cross-validation...
 
-🌲 Training Random Forest for AUDCAD...
-  Training samples: 552
+🔄 Performing 5-fold cross-validation...
+
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.877
-  Val accuracy:   0.841
-  Train-Val gap:  0.036
+  Train accuracy: 0.648
+  Val accuracy:   0.652
+  Train-Val gap:  -0.004
   ✅ Good generalization (gap ≤ 15%)
 
   Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.841, F1=0.837
+  Fold 1/5: Accuracy=0.652, F1=0.708
 
-🌲 Training Random Forest for AUDCAD...
-  Training samples: 552
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.873
-  Val accuracy:   0.754
-  Train-Val gap:  0.120
+  Train accuracy: 0.661
+  Val accuracy:   0.663
+  Train-Val gap:  -0.003
   ✅ Good generalization (gap ≤ 15%)
 
   Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.754, F1=0.746
+  Fold 2/5: Accuracy=0.663, F1=0.743
 
-🌲 Training Random Forest for AUDCAD...
-  Training samples: 552
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.861
-  Val accuracy:   0.812
-  Train-Val gap:  0.049
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.812, F1=0.809
-
-🌲 Training Random Forest for AUDCAD...
-  Training samples: 552
-  Features: 57
-
-  Train accuracy: 0.880
-  Val accuracy:   0.819
-  Train-Val gap:  0.062
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.819, F1=0.816
-
-🌲 Training Random Forest for AUDCAD...
-  Training samples: 552
-  Features: 57
-
-  Train accuracy: 0.886
-  Val accuracy:   0.848
-  Train-Val gap:  0.038
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.848, F1=0.848
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.814 ± 0.033
-    Min Accuracy:  0.754
-    Max Accuracy:  0.848
-    Range:         0.094
-    Mean F1-Score: 0.811 ± 0.036
-    ✅ STABLE: Std dev 0.033 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 2: 0.754 (deviation: -0.061)
-
-  Train accuracy: 0.965
+  Train accuracy: 0.662
   Val accuracy:   0.660
-  Train-Val gap:  0.305
-  ⚠️ Warning: Overfitting detected (gap > 15%)
+  Train-Val gap:  0.002
+  ✅ Good generalization (gap ≤ 15%)
 
-  Top 10 Most Important Features:
-    TBM_Bars_to_Hit                         : 0.1162
-    TBM_Reward_Per_Trade_ATR                : 0.0916
-    TBM_Risk_Per_Trade_ATR                  : 0.0906
-    Distance_to_Entry_ATR                   : 0.0697
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0511
-    ATR_ZScore                              : 0.0434
-    FVG_Quality_Fuzzy                       : 0.0386
-    FVG_Size_Fuzzy_Score                    : 0.0367
-    FVG_Distance_to_Price_ATR               : 0.0360
-    FVG_Depth_ATR                           : 0.0326
+  Feature importance computed (feature names not available)
+  Fold 3/5: Accuracy=0.660, F1=0.747
 
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.660
-  Precision (macro): 0.656
-  Recall (macro): 0.651
-  F1-Score (macro): 0.653
-
-  Win Rate (excl. timeouts):
-    Predicted: 69.6%
-    Actual:    65.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           7           0         9
-  True Timeout        1           3         0
-  True Win            6           1        23
-
-  Overfitting Analysis:
-    Training Accuracy: 0.965
-    Validation Accuracy: 0.660
-    Train-Val Gap: 0.305
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.650
-  Precision (macro): 0.603
-  Recall (macro): 0.763
-  F1-Score (macro): 0.655
-
-  Win Rate (excl. timeouts):
-    Predicted: 49.2%
-    Actual:    50.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          19           0        10
-  True Timeout        0           1         0
-  True Win           10           1        19
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCAD_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCAD_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.0s
-
-🚀 Starting XGBoost training for AUDCAD...
-
-================================================================================
-Training XGBoost for AUDCAD
-================================================================================
-
-📂 Loading data for AUDCAD...
-  Train: 243 samples
-  Val:   50 samples
-  Test:  60 samples
-  Selected 57 features
-
-🚀 Training XGBoost for AUDCAD...
-  Training samples: 243
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 1.000
-  Val accuracy:   0.640
-  Best iteration: 200
+  Train accuracy: 0.655
+  Val accuracy:   0.650
+  Train-Val gap:  0.005
+  ✅ Good generalization (gap ≤ 15%)
 
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.0622
-    TBM_Bars_to_Hit                         : 0.0500
-    TBM_Reward_Per_Trade_ATR                : 0.0479
-    TBM_Risk_Per_Trade_ATR                  : 0.0441
-    BOS_Wick_Confirm                        : 0.0331
-    Distance_to_Entry_ATR                   : 0.0303
-    FVG_Depth_ATR                           : 0.0300
-    FVG_Distance_to_Price_ATR               : 0.0282
-    OB_Bearish_Valid                        : 0.0266
-    FVG_Bearish_Valid                       : 0.0262
+  Feature importance computed (feature names not available)
+  Fold 4/5: Accuracy=0.650, F1=0.747
 
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.640
-  Precision (macro): 0.723
-  Recall (macro): 0.650
-  F1-Score (macro): 0.680
-
-  Win Rate (excl. timeouts):
-    Predicted: 63.0%
-    Actual:    65.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           8           0         8
-  True Timeout        1           3         0
-  True Win            9           0        21
-
-  Overfitting Analysis:
-    Training Accuracy: 1.000
-    Validation Accuracy: 0.640
-    Train-Val Gap: 0.360
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.650
-  Precision (macro): 0.763
-  Recall (macro): 0.762
-  F1-Score (macro): 0.762
-
-  Win Rate (excl. timeouts):
-    Predicted: 55.9%
-    Actual:    50.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          17           0        12
-  True Timeout        0           1         0
-  True Win            9           0        21
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCAD_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCAD_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.2s
-
-🧠 Starting Neural Network training for AUDCAD...
-
-================================================================================
-Training Neural Network for AUDCAD
-================================================================================
-
-📂 Loading data for AUDCAD...
-  Train: 243 samples
-  Val:   50 samples
-  Test:  60 samples
-  Selected 57 features
-
-🧠 Training Neural Network for AUDCAD...
-  Device: cuda
-  Training samples: 243
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 690
-  Epoch 10/200 - LR: 0.010000 - Train Loss: 0.7133, Train Acc: 0.825 | Val Loss: 0.8953, Val Acc: 0.700
-  Epoch 20/200 - LR: 0.005000 - Train Loss: 0.6640, Train Acc: 0.870 | Val Loss: 0.9733, Val Acc: 0.660
-  Epoch 30/200 - LR: 0.001250 - Train Loss: 0.6301, Train Acc: 0.909 | Val Loss: 1.0228, Val Acc: 0.700
-
-  Early stopping at epoch 39 (patience=30)
-Learning curves saved to: models/trained/AUDCAD_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/AUDCAD_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 24.61% (Threshold: 15%)
-Total Epochs: 39
-Training Duration: 0:00:03.808394
-
-Final Metrics:
-  Train Accuracy: 0.9261
-  Val Accuracy:   0.6800
-  Train Loss:     0.5927
-  Val Loss:       1.0494
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          14
-  Train Accuracy: 0.8362
-  Val Accuracy:   0.7200
-  Train Loss:     0.7193
-  Val Loss:       0.9253
-============================================================
-
-
-  Final Train Accuracy: 0.926
-  Final Val Accuracy:   0.680
-  Train-Val Gap:        0.246 (24.6%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.680
-  Precision (macro): 0.570
-  Recall (macro): 0.581
-  F1-Score (macro): 0.567
-
-  Win Rate (excl. timeouts):
-    Predicted: 73.9%
-    Actual:    65.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           6           2         8
-  True Timeout        2           2         0
-  True Win            3           1        26
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.600
-  Precision (macro): 0.407
-  Recall (macro): 0.406
-  F1-Score (macro): 0.406
-
-  Win Rate (excl. timeouts):
-    Predicted: 55.9%
-    Actual:    50.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          16           0        13
-  True Timeout        1           0         0
-  True Win            9           1        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCAD_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCAD_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDCAD_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 4.8s
-
-🔄 Starting LSTM training for AUDCAD...
-
-================================================================================
-Training LSTM for AUDCAD
-================================================================================
-
-📂 Loading data for AUDCAD...
-  Train: 243 samples
-  Val:   50 samples
-  Test:  60 samples
-  Selected 57 features
-
-🔄 Training LSTM for AUDCAD...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 243
-  Features: 57
-  Creating sequences...
-  Sequence shape: (223, 20, 57)
-  Epoch 10/200 - LR: 0.001045 - Train Loss: 0.7219, Train Acc: 0.700 | Val Loss: 1.1634, Val Acc: 0.533
-⚠️ Validation loss divergence: increasing for 10 consecutive epochs
-  Epoch 20/200 - LR: 0.002805 - Train Loss: 0.5894, Train Acc: 0.758 | Val Loss: 2.0221, Val Acc: 0.467
-  Epoch 30/200 - LR: 0.005209 - Train Loss: 0.4170, Train Acc: 0.892 | Val Loss: 3.1043, Val Acc: 0.500
-
-  Early stopping at epoch 33
-
-  ⚠️ Training Warnings (1):
-    - Validation loss divergence: increasing for 10 consecutive epochs
-
-  Final Train Accuracy: 0.870
-  Final Val Accuracy:   0.533
-  Train-Val Gap:        0.337 (33.7%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.340
-  Precision (macro): 0.373
-  Recall (macro): 0.310
-  F1-Score (macro): 0.301
-
-  Win Rate (excl. timeouts):
-    Predicted: 28.3%
-    Actual:    65.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           5           9         2
-  True Timeout        0           1         3
-  True Win            8          11        11
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.383
-  Precision (macro): 0.381
-  Recall (macro): 0.583
-  F1-Score (macro): 0.323
-
-  Win Rate (excl. timeouts):
-    Predicted: 25.4%
-    Actual:    50.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          14           8         7
-  True Timeout        0           1         0
-  True Win           11          11         8
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCAD_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCAD_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDCAD_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 6.2s
-
-================================================================================
-Symbol AUDCAD Training Summary:
-  Total Duration: 17.2s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training AUDCHF
-################################################################################
-
-################################################################################
-# Training All Models for AUDCHF
-################################################################################
-
-🌲 Starting RandomForest training for AUDCHF...
-
-================================================================================
-Training Random Forest for AUDCHF
-================================================================================
-
-📂 Loading data for AUDCHF...
-  Train: 279 samples
-  Val:   60 samples
-  Test:  50 samples
-  Selected 57 features
-
-🌲 Training Random Forest for AUDCHF...
-  Training samples: 279
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  📊 Dataset has 279 samples (< 300), applying augmentation...
-  Augmented: 279 → 792 samples
+  Train accuracy: 0.654
+  Val accuracy:   0.641
+  Train-Val gap:  0.014
+  ✅ Good generalization (gap ≤ 15%)
+
+  Feature importance computed (feature names not available)
+  Fold 5/5: Accuracy=0.641, F1=0.714
+
+  Cross-Validation Results:
+    Mean Accuracy: 0.653 ± 0.008
+    Min Accuracy:  0.641
+    Max Accuracy:  0.663
+    Range:         0.023
+    Mean F1-Score: 0.732 ± 0.017
+    ✅ STABLE: Std dev 0.008 ≤ 0.10
+
+    Poor-Performing Folds (below mean - std):
+      Fold 5: 0.641 (deviation: -0.013)
+
+📈 Cross-Validation Results:
+  Mean Accuracy: 0.6532 ± 0.0079
+  Stability: ✅ Stable
+
+🎯 Training final model...
+
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,630
+  Features: 57
 
   🔄 Performing cross-validation...
 
 🔄 Performing 5-fold cross-validation...
 
-🌲 Training Random Forest for AUDCHF...
-  Training samples: 633
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.905
-  Val accuracy:   0.805
-  Train-Val gap:  0.100
+  Train accuracy: 0.648
+  Val accuracy:   0.652
+  Train-Val gap:  -0.004
   ✅ Good generalization (gap ≤ 15%)
 
   Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.805, F1=0.801
+  Fold 1/5: Accuracy=0.652, F1=0.708
 
-🌲 Training Random Forest for AUDCHF...
-  Training samples: 633
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.896
-  Val accuracy:   0.818
-  Train-Val gap:  0.078
+  Train accuracy: 0.661
+  Val accuracy:   0.663
+  Train-Val gap:  -0.003
   ✅ Good generalization (gap ≤ 15%)
 
   Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.818, F1=0.814
+  Fold 2/5: Accuracy=0.663, F1=0.743
 
-🌲 Training Random Forest for AUDCHF...
-  Training samples: 634
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.907
-  Val accuracy:   0.854
-  Train-Val gap:  0.053
+  Train accuracy: 0.662
+  Val accuracy:   0.660
+  Train-Val gap:  0.002
   ✅ Good generalization (gap ≤ 15%)
 
   Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.854, F1=0.853
+  Fold 3/5: Accuracy=0.660, F1=0.747
 
-🌲 Training Random Forest for AUDCHF...
-  Training samples: 634
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.897
-  Val accuracy:   0.867
-  Train-Val gap:  0.030
+  Train accuracy: 0.655
+  Val accuracy:   0.650
+  Train-Val gap:  0.005
   ✅ Good generalization (gap ≤ 15%)
 
   Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.867, F1=0.865
+  Fold 4/5: Accuracy=0.650, F1=0.747
 
-🌲 Training Random Forest for AUDCHF...
-  Training samples: 634
+🌲 Training Random Forest for UNIFIED...
+  Training samples: 2,104
   Features: 57
 
-  Train accuracy: 0.912
-  Val accuracy:   0.873
-  Train-Val gap:  0.038
+  Train accuracy: 0.654
+  Val accuracy:   0.641
+  Train-Val gap:  0.014
   ✅ Good generalization (gap ≤ 15%)
 
   Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.873, F1=0.871
+  Fold 5/5: Accuracy=0.641, F1=0.714
 
   Cross-Validation Results:
-    Mean Accuracy: 0.844 ± 0.027
-    Min Accuracy:  0.805
-    Max Accuracy:  0.873
-    Range:         0.068
-    Mean F1-Score: 0.841 ± 0.028
-    ✅ STABLE: Std dev 0.027 ≤ 0.10
+    Mean Accuracy: 0.653 ± 0.008
+    Min Accuracy:  0.641
+    Max Accuracy:  0.663
+    Range:         0.023
+    Mean F1-Score: 0.732 ± 0.017
+    ✅ STABLE: Std dev 0.008 ≤ 0.10
 
     Poor-Performing Folds (below mean - std):
-      Fold 1: 0.805 (deviation: -0.038)
+      Fold 5: 0.641 (deviation: -0.013)
 
-  Train accuracy: 0.968
-  Val accuracy:   0.533
-  Train-Val gap:  0.435
-  ⚠️ Warning: Overfitting detected (gap > 15%)
+  Train accuracy: 0.657
+  Val accuracy:   0.641
+  Train-Val gap:  0.016
+  ✅ Good generalization (gap ≤ 15%)
 
   Top 10 Most Important Features:
-    TBM_Bars_to_Hit                         : 0.1313
-    Distance_to_Entry_ATR                   : 0.0959
-    TBM_Reward_Per_Trade_ATR                : 0.0877
-    TBM_Risk_Per_Trade_ATR                  : 0.0839
-    FVG_Distance_to_Price_ATR               : 0.0449
-    OB_Age                                  : 0.0398
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0386
-    FVG_Depth_ATR_ZScore                    : 0.0358
-    ATR_ZScore                              : 0.0357
-    FVG_Depth_ATR                           : 0.0281
+    TBM_Bars_to_Hit                         : 0.3556
+    Distance_to_Entry_ATR                   : 0.1159
+    TBM_Risk_Per_Trade_ATR                  : 0.1014
+    TBM_Reward_Per_Trade_ATR                : 0.0977
+    OB_Age                                  : 0.0562
+    FVG_Depth_ATR                           : 0.0380
+    FVG_Quality_Fuzzy                       : 0.0351
+    FVG_Depth_ATR_ZScore                    : 0.0315
+    FVG_Size_Fuzzy_Score                    : 0.0303
+    FVG_Distance_to_Price_ATR               : 0.0249
 
 📊 Evaluating on Validation set...
 
-  Accuracy: 0.533
-  Precision (macro): 0.547
-  Recall (macro): 0.610
-  F1-Score (macro): 0.566
+  Classification Metrics:
+    Accuracy: 0.641
+    Precision (macro): 0.717
+    Recall (macro): 0.737
+    F1-Score (macro): 0.724
 
-  Win Rate (excl. timeouts):
-    Predicted: 45.5%
-    Actual:    60.0%
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 49.6% (267/538 trades)
+    Profit Factor: 1.97
+    Expected Value/Trade: 0.49R
+    Trade Accuracy: 61.8%
+    Timeouts: 47 (8.0%)
+    💰 PROFITABLE STRATEGY (EV > 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
-  True Loss          12           1         9
-  True Timeout        1           4         0
-  True Win           15           2        16
+  True Loss         150           1        84
+  True Timeout        0          43         1
+  True Win          121           3       182
 
   Overfitting Analysis:
-    Training Accuracy: 0.968
-    Validation Accuracy: 0.533
-    Train-Val Gap: 0.435
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
+    Training Accuracy: 0.657
+    Validation Accuracy: 0.641
+    Train-Val Gap: 0.016
+    ✅ No significant overfitting
 
 📊 Evaluating on Test set...
 
-  Accuracy: 0.680
-  Precision (macro): 0.776
-  Recall (macro): 0.715
-  F1-Score (macro): 0.736
+  Classification Metrics:
+    Accuracy: 0.615
+    Precision (macro): 0.719
+    Recall (macro): 0.720
+    F1-Score (macro): 0.718
 
-  Win Rate (excl. timeouts):
-    Predicted: 57.8%
-    Actual:    46.7%
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 50.6% (278/549 trades)
+    Profit Factor: 2.05
+    Expected Value/Trade: 0.52R
+    Trade Accuracy: 59.9%
+    Timeouts: 27 (4.7%)
+    💰 PROFITABLE STRATEGY (EV > 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
-  True Loss          14           0        10
-  True Timeout        0           4         1
-  True Win            5           0        16
+  True Loss         146           1        95
+  True Timeout        0          26         1
+  True Win          125           0       182
 
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCHF_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCHF_RandomForest_metadata.json
+💾 Model pickle saved to /kaggle/working/Model-output/UNIFIED_RandomForest.pkl
+💾 Metadata saved to /kaggle/working/Model-output/UNIFIED_RandomForest_metadata.json
 
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.0s
+✅ Model save complete: /kaggle/working/Model-output
+✅ RandomForest completed in 10.8s
 
-🚀 Starting XGBoost training for AUDCHF...
+🚀 Starting XGBoost training...
 
 ================================================================================
-Training XGBoost for AUDCHF
+Training XGBoost on FULL UNIFIED DATASET
 ================================================================================
 
-📂 Loading data for AUDCHF...
-  Train: 279 samples
-  Val:   60 samples
-  Test:  50 samples
+📊 Training on FULL dataset:
+  Train: 76,982 samples (11 symbols)
+  Val:   16,500 samples
+  Test:  16,518 samples
   Selected 57 features
+  ⚠️ Removing 74,352 samples with NaN labels (96.6%)
+  ⚠️ Removing 15,915 samples with NaN labels (96.5%)
+  ⚠️ Removing 15,942 samples with NaN labels (96.5%)
 
-🚀 Training XGBoost for AUDCHF...
-  Training samples: 279
+🎯 Training with aggressive regularization...
+
+🚀 Training XGBoost for UNIFIED...
+  Training samples: 2,630
   Features: 57
 
-  Train accuracy: 1.000
-  Val accuracy:   0.450
-  Best iteration: 200
+  Train accuracy: 0.775
+  Val accuracy:   0.738
+  Best iteration: 199
 
   Top 10 Most Important Features:
-    OB_Age                                  : 0.0886
-    TBM_Bars_to_Hit                         : 0.0572
-    TBM_Risk_Per_Trade_ATR                  : 0.0455
-    TBM_Reward_Per_Trade_ATR                : 0.0400
-    Distance_to_Entry_ATR                   : 0.0391
-    FVG_Depth_ATR                           : 0.0388
-    FVG_Distance_to_Price_ATR               : 0.0338
-    BOS_Commitment_Flag                     : 0.0331
-    FVG_Bullish_Valid                       : 0.0329
-    ChoCH_Detected                          : 0.0313
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.450
-  Precision (macro): 0.607
-  Recall (macro): 0.544
-  F1-Score (macro): 0.569
-
-  Win Rate (excl. timeouts):
-    Predicted: 49.1%
-    Actual:    60.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           0        13
-  True Timeout        0           4         1
-  True Win           19           0        14
-
-  Overfitting Analysis:
-    Training Accuracy: 1.000
-    Validation Accuracy: 0.450
-    Train-Val Gap: 0.550
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.700
-  Precision (macro): 0.784
-  Recall (macro): 0.727
-  F1-Score (macro): 0.750
-
-  Win Rate (excl. timeouts):
-    Predicted: 51.1%
-    Actual:    46.7%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          16           0         8
-  True Timeout        0           4         1
-  True Win            6           0        15
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCHF_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCHF_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.3s
-
-🧠 Starting Neural Network training for AUDCHF...
-
-================================================================================
-Training Neural Network for AUDCHF
-================================================================================
-
-📂 Loading data for AUDCHF...
-  Train: 279 samples
-  Val:   60 samples
-  Test:  50 samples
-  Selected 57 features
-
-🧠 Training Neural Network for AUDCHF...
-  Device: cuda
-  Training samples: 279
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 792
-  Epoch 10/200 - LR: 0.010000 - Train Loss: 0.7679, Train Acc: 0.784 | Val Loss: 1.0008, Val Acc: 0.500
-  Epoch 20/200 - LR: 0.005000 - Train Loss: 0.6840, Train Acc: 0.847 | Val Loss: 1.0921, Val Acc: 0.517
-  Epoch 30/200 - LR: 0.001250 - Train Loss: 0.6381, Train Acc: 0.898 | Val Loss: 1.1591, Val Acc: 0.483
-  Epoch 40/200 - LR: 0.000313 - Train Loss: 0.6223, Train Acc: 0.915 | Val Loss: 1.1801, Val Acc: 0.550
-
-  Early stopping at epoch 40 (patience=30)
-Learning curves saved to: models/trained/AUDCHF_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/AUDCHF_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 36.54% (Threshold: 15%)
-Total Epochs: 40
-Training Duration: 0:00:04.495915
-
-Final Metrics:
-  Train Accuracy: 0.9154
-  Val Accuracy:   0.5500
-  Train Loss:     0.6223
-  Val Loss:       1.1801
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          23
-  Train Accuracy: 0.8662
-  Val Accuracy:   0.5833
-  Train Loss:     0.6627
-  Val Loss:       1.1066
-============================================================
-
-
-  Final Train Accuracy: 0.915
-  Final Val Accuracy:   0.550
-  Train-Val Gap:        0.365 (36.5%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.550
-  Precision (macro): 0.519
-  Recall (macro): 0.492
-  F1-Score (macro): 0.503
-
-  Win Rate (excl. timeouts):
-    Predicted: 60.0%
-    Actual:    60.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           2        11
-  True Timeout        2           2         1
-  True Win           11           0        22
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.520
-  Precision (macro): 0.658
-  Recall (macro): 0.539
-  F1-Score (macro): 0.582
-
-  Win Rate (excl. timeouts):
-    Predicted: 46.7%
-    Actual:    46.7%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          13           0        11
-  True Timeout        1           3         1
-  True Win           11           0        10
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCHF_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCHF_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDCHF_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 5.5s
-
-🔄 Starting LSTM training for AUDCHF...
-
-================================================================================
-Training LSTM for AUDCHF
-================================================================================
-
-📂 Loading data for AUDCHF...
-  Train: 279 samples
-  Val:   60 samples
-  Test:  50 samples
-  Selected 57 features
-
-🔄 Training LSTM for AUDCHF...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 279
-  Features: 57
-  Creating sequences...
-  Sequence shape: (259, 20, 57)
-  Epoch 10/200 - LR: 0.001044 - Train Loss: 0.7602, Train Acc: 0.625 | Val Loss: 1.1025, Val Acc: 0.525
-⚠️ Epoch 15: Exploding gradient detected (norm=14.23 > 10.0)
-  Epoch 20/200 - LR: 0.002804 - Train Loss: 0.6942, Train Acc: 0.730 | Val Loss: 1.7042, Val Acc: 0.225
-⚠️ Epoch 22: Exploding gradient detected (norm=12.11 > 10.0)
-⚠️ Epoch 25: Exploding gradient detected (norm=11.01 > 10.0)
-⚠️ Epoch 30: Exploding gradient detected (norm=12.91 > 10.0)
-  Epoch 30/200 - LR: 0.005207 - Train Loss: 0.5863, Train Acc: 0.803 | Val Loss: 2.1089, Val Acc: 0.400
-
-  Early stopping at epoch 33
-
-  ⚠️ Training Warnings (4):
-    - Epoch 15: Exploding gradient detected (norm=14.23 > 10.0)
-    - Epoch 22: Exploding gradient detected (norm=12.11 > 10.0)
-    - Epoch 25: Exploding gradient detected (norm=11.01 > 10.0)
-    - Epoch 30: Exploding gradient detected (norm=12.91 > 10.0)
-
-  Final Train Accuracy: 0.892
-  Final Val Accuracy:   0.400
-  Train-Val Gap:        0.492 (49.2%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.283
-  Precision (macro): 0.343
-  Recall (macro): 0.269
-  F1-Score (macro): 0.256
-
-  Win Rate (excl. timeouts):
-    Predicted: 21.8%
-    Actual:    60.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           8          10         4
-  True Timeout        4           1         0
-  True Win           13          12         8
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.300
-  Precision (macro): 0.323
-  Recall (macro): 0.429
-  F1-Score (macro): 0.299
-
-  Win Rate (excl. timeouts):
-    Predicted: 28.9%
-    Actual:    46.7%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           6          10         8
-  True Timeout        0           4         1
-  True Win            8           8         5
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDCHF_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDCHF_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDCHF_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 7.2s
-
-================================================================================
-Symbol AUDCHF Training Summary:
-  Total Duration: 19.0s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training AUDJPY
-################################################################################
-
-################################################################################
-# Training All Models for AUDJPY
-################################################################################
-
-🌲 Starting RandomForest training for AUDJPY...
-
-================================================================================
-Training Random Forest for AUDJPY
-================================================================================
-
-📂 Loading data for AUDJPY...
-  Train: 240 samples
-  Val:   49 samples
-  Test:  56 samples
-  Selected 57 features
-
-🌲 Training Random Forest for AUDJPY...
-  Training samples: 240
-  Features: 57
-
-  📊 Dataset has 240 samples (< 300), applying augmentation...
-  Augmented: 240 → 738 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for AUDJPY...
-  Training samples: 590
-  Features: 57
-
-  Train accuracy: 0.890
-  Val accuracy:   0.831
-  Train-Val gap:  0.059
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.831, F1=0.831
-
-🌲 Training Random Forest for AUDJPY...
-  Training samples: 590
-  Features: 57
-
-  Train accuracy: 0.897
-  Val accuracy:   0.791
-  Train-Val gap:  0.106
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.791, F1=0.788
-
-🌲 Training Random Forest for AUDJPY...
-  Training samples: 590
-  Features: 57
-
-  Train accuracy: 0.910
-  Val accuracy:   0.858
-  Train-Val gap:  0.052
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.858, F1=0.855
-
-🌲 Training Random Forest for AUDJPY...
-  Training samples: 591
-  Features: 57
-
-  Train accuracy: 0.905
-  Val accuracy:   0.796
-  Train-Val gap:  0.109
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.796, F1=0.796
-
-🌲 Training Random Forest for AUDJPY...
-  Training samples: 591
-  Features: 57
-
-  Train accuracy: 0.904
-  Val accuracy:   0.850
-  Train-Val gap:  0.053
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.850, F1=0.849
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.825 ± 0.028
-    Min Accuracy:  0.791
-    Max Accuracy:  0.858
-    Range:         0.068
-    Mean F1-Score: 0.824 ± 0.027
-    ✅ STABLE: Std dev 0.028 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 2: 0.791 (deviation: -0.035)
-      Fold 4: 0.796 (deviation: -0.029)
-
-  Train accuracy: 0.976
-  Val accuracy:   0.694
-  Train-Val gap:  0.282
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    Distance_to_Entry_ATR                   : 0.0932
-    TBM_Bars_to_Hit                         : 0.0903
-    TBM_Risk_Per_Trade_ATR                  : 0.0852
-    TBM_Reward_Per_Trade_ATR                : 0.0818
-    OB_Age                                  : 0.0445
-    atr                                     : 0.0354
-    FVG_Depth_ATR_ZScore                    : 0.0305
-    Trend_Bias_Indicator                    : 0.0288
-    BOS_Dist_ATR_ZScore                     : 0.0240
-    FVG_Depth_ATR                           : 0.0237
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.694
-  Precision (macro): 0.788
-  Recall (macro): 0.643
-  F1-Score (macro): 0.686
-
-  Win Rate (excl. timeouts):
-    Predicted: 48.9%
-    Actual:    55.6%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          15           0         5
-  True Timeout        1           2         1
-  True Win            8           0        17
-
-  Overfitting Analysis:
-    Training Accuracy: 0.976
-    Validation Accuracy: 0.694
-    Train-Val Gap: 0.282
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.607
-  Precision (macro): 0.579
-  Recall (macro): 0.655
-  F1-Score (macro): 0.605
-
-  Win Rate (excl. timeouts):
-    Predicted: 51.0%
-    Actual:    54.9%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          12           3         8
-  True Timeout        1           4         0
-  True Win            9           1        18
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDJPY_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDJPY_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 4.8s
-
-🚀 Starting XGBoost training for AUDJPY...
-
-================================================================================
-Training XGBoost for AUDJPY
-================================================================================
-
-📂 Loading data for AUDJPY...
-  Train: 240 samples
-  Val:   49 samples
-  Test:  56 samples
-  Selected 57 features
-
-🚀 Training XGBoost for AUDJPY...
-  Training samples: 240
-  Features: 57
-
-  Train accuracy: 1.000
-  Val accuracy:   0.673
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.0637
-    TBM_Reward_Per_Trade_ATR                : 0.0444
-    Distance_to_Entry_ATR                   : 0.0428
-    ChoCH_Direction                         : 0.0416
-    TBM_Risk_Per_Trade_ATR                  : 0.0408
-    TBM_Bars_to_Hit                         : 0.0394
-    ChoCH_Detected                          : 0.0377
-    BOS_Close_Confirm                       : 0.0320
-    OB_Bullish_Valid                        : 0.0317
-    OB_Bearish                              : 0.0313
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.673
-  Precision (macro): 0.674
-  Recall (macro): 0.617
-  F1-Score (macro): 0.637
-
-  Win Rate (excl. timeouts):
-    Predicted: 62.2%
-    Actual:    55.6%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          11           1         8
-  True Timeout        0           2         2
-  True Win            5           0        20
-
-  Overfitting Analysis:
-    Training Accuracy: 1.000
-    Validation Accuracy: 0.673
-    Train-Val Gap: 0.327
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.643
-  Precision (macro): 0.751
-  Recall (macro): 0.574
-  F1-Score (macro): 0.619
-
-  Win Rate (excl. timeouts):
-    Predicted: 56.9%
-    Actual:    54.9%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          14           0         9
-  True Timeout        1           2         2
-  True Win            8           0        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDJPY_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDJPY_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.2s
-
-🧠 Starting Neural Network training for AUDJPY...
-
-================================================================================
-Training Neural Network for AUDJPY
-================================================================================
-
-📂 Loading data for AUDJPY...
-  Train: 240 samples
-  Val:   49 samples
-  Test:  56 samples
-  Selected 57 features
-
-🧠 Training Neural Network for AUDJPY...
-  Device: cuda
-  Training samples: 240
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 738
-  Epoch 10/200 - LR: 0.005000 - Train Loss: 0.7023, Train Acc: 0.829 | Val Loss: 0.9718, Val Acc: 0.571
-⚠️ Epoch 11: Exploding gradient detected (norm=33.88 > 10.0)
-  Epoch 20/200 - LR: 0.002500 - Train Loss: 0.7081, Train Acc: 0.877 | Val Loss: 0.9972, Val Acc: 0.592
-  Epoch 30/200 - LR: 0.000625 - Train Loss: 0.6230, Train Acc: 0.909 | Val Loss: 0.9869, Val Acc: 0.633
-
-  Early stopping at epoch 33 (patience=30)
-Learning curves saved to: models/trained/AUDJPY_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/AUDJPY_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 24.25% (Threshold: 15%)
-Total Epochs: 33
-Training Duration: 0:00:03.618821
-
-Final Metrics:
-  Train Accuracy: 0.9160
-  Val Accuracy:   0.6735
-  Train Loss:     0.6488
-  Val Loss:       0.9744
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          26
-  Train Accuracy: 0.8916
-  Val Accuracy:   0.7143
-  Train Loss:     0.6993
-  Val Loss:       0.9683
-============================================================
-
-
-  ⚠️ Training Warnings (1):
-    - Epoch 11: Exploding gradient detected (norm=33.88 > 10.0)
-
-  Final Train Accuracy: 0.916
-  Final Val Accuracy:   0.673
-  Train-Val Gap:        0.243 (24.3%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.673
-  Precision (macro): 0.623
-  Recall (macro): 0.623
-  F1-Score (macro): 0.623
-
-  Win Rate (excl. timeouts):
-    Predicted: 51.1%
-    Actual:    55.6%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          13           2         5
-  True Timeout        1           2         1
-  True Win            7           0        18
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.607
-  Precision (macro): 0.584
-  Recall (macro): 0.702
-  F1-Score (macro): 0.618
-
-  Win Rate (excl. timeouts):
-    Predicted: 58.8%
-    Actual:    54.9%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           4        10
-  True Timeout        0           5         0
-  True Win            8           0        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDJPY_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDJPY_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDJPY_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 4.6s
-
-🔄 Starting LSTM training for AUDJPY...
-
-================================================================================
-Training LSTM for AUDJPY
-================================================================================
-
-📂 Loading data for AUDJPY...
-  Train: 240 samples
-  Val:   49 samples
-  Test:  56 samples
-  Selected 57 features
-
-🔄 Training LSTM for AUDJPY...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 240
-  Features: 57
-  Creating sequences...
-  Sequence shape: (220, 20, 57)
-  Epoch 10/200 - LR: 0.001045 - Train Loss: 0.7994, Train Acc: 0.600 | Val Loss: 0.9786, Val Acc: 0.517
-  Epoch 20/200 - LR: 0.002805 - Train Loss: 0.7214, Train Acc: 0.659 | Val Loss: 1.0977, Val Acc: 0.379
-  Epoch 30/200 - LR: 0.005209 - Train Loss: 0.4504, Train Acc: 0.864 | Val Loss: 2.0817, Val Acc: 0.345
-
-  Early stopping at epoch 32
-
-  Final Train Accuracy: 0.873
-  Final Val Accuracy:   0.379
-  Train-Val Gap:        0.493 (49.3%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.286
-  Precision (macro): 0.316
-  Recall (macro): 0.410
-  F1-Score (macro): 0.279
-
-  Win Rate (excl. timeouts):
-    Predicted: 28.9%
-    Actual:    55.6%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           4          10         6
-  True Timeout        1           3         0
-  True Win           10           8         7
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.411
-  Precision (macro): 0.417
-  Recall (macro): 0.459
-  F1-Score (macro): 0.383
-
-  Win Rate (excl. timeouts):
-    Predicted: 37.3%
-    Actual:    54.9%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           8           8         7
-  True Timeout        1           3         1
-  True Win            7           9        12
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDJPY_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDJPY_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDJPY_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 6.0s
-
-================================================================================
-Symbol AUDJPY Training Summary:
-  Total Duration: 16.7s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training AUDNZD
-################################################################################
-
-################################################################################
-# Training All Models for AUDNZD
-################################################################################
-
-🌲 Starting RandomForest training for AUDNZD...
-
-================================================================================
-Training Random Forest for AUDNZD
-================================================================================
-
-📂 Loading data for AUDNZD...
-  Train: 178 samples
-  Val:   39 samples
-  Test:  42 samples
-  Selected 57 features
-
-🌲 Training Random Forest for AUDNZD...
-  Training samples: 178
-  Features: 57
-
-  📊 Dataset has 178 samples (< 300), applying augmentation...
-  Augmented: 178 → 765 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for AUDNZD...
-  Training samples: 612
-  Features: 57
-
-  Train accuracy: 0.907
-  Val accuracy:   0.817
-  Train-Val gap:  0.090
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.817, F1=0.812
-
-🌲 Training Random Forest for AUDNZD...
-  Training samples: 612
-  Features: 57
-
-  Train accuracy: 0.899
-  Val accuracy:   0.797
-  Train-Val gap:  0.101
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.797, F1=0.797
-
-🌲 Training Random Forest for AUDNZD...
-  Training samples: 612
-  Features: 57
-
-  Train accuracy: 0.908
-  Val accuracy:   0.784
-  Train-Val gap:  0.124
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.784, F1=0.781
-
-🌲 Training Random Forest for AUDNZD...
-  Training samples: 612
-  Features: 57
-
-  Train accuracy: 0.897
-  Val accuracy:   0.804
-  Train-Val gap:  0.093
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.804, F1=0.798
-
-🌲 Training Random Forest for AUDNZD...
-  Training samples: 612
-  Features: 57
-
-  Train accuracy: 0.900
-  Val accuracy:   0.771
-  Train-Val gap:  0.129
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.771, F1=0.766
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.795 ± 0.016
-    Min Accuracy:  0.771
-    Max Accuracy:  0.817
-    Range:         0.046
-    Mean F1-Score: 0.791 ± 0.016
-    ✅ STABLE: Std dev 0.016 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 5: 0.771 (deviation: -0.024)
-
-  Train accuracy: 0.946
-  Val accuracy:   0.718
-  Train-Val gap:  0.228
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    TBM_Bars_to_Hit                         : 0.0829
-    TBM_Risk_Per_Trade_ATR                  : 0.0788
-    Distance_to_Entry_ATR                   : 0.0551
-    FVG_Size_Fuzzy_Score                    : 0.0493
-    TBM_Reward_Per_Trade_ATR                : 0.0466
-    FVG_Distance_to_Price_ATR               : 0.0415
-    FVG_Depth_ATR                           : 0.0412
-    OB_Age                                  : 0.0389
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0313
-    BOS_Dist_ATR_ZScore                     : 0.0292
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.718
-  Precision (macro): 0.808
-  Recall (macro): 0.714
-  F1-Score (macro): 0.727
-
-  Win Rate (excl. timeouts):
-    Predicted: 35.5%
-    Actual:    54.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          13           0         1
-  True Timeout        2           5         1
-  True Win            7           0        10
-
-  Overfitting Analysis:
-    Training Accuracy: 0.946
-    Validation Accuracy: 0.718
-    Train-Val Gap: 0.228
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.690
-  Precision (macro): 0.480
-  Recall (macro): 0.469
-  F1-Score (macro): 0.474
-
-  Win Rate (excl. timeouts):
-    Predicted: 51.2%
-    Actual:    56.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          12           2         4
-  True Timeout        0           0         1
-  True Win            6           0        17
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDNZD_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDNZD_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.0s
-
-🚀 Starting XGBoost training for AUDNZD...
-
-================================================================================
-Training XGBoost for AUDNZD
-================================================================================
-
-📂 Loading data for AUDNZD...
-  Train: 178 samples
-  Val:   39 samples
-  Test:  42 samples
-  Selected 57 features
-
-🚀 Training XGBoost for AUDNZD...
-  Training samples: 178
-  Features: 57
-
-  Train accuracy: 0.994
-  Val accuracy:   0.615
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.0909
-    TBM_Risk_Per_Trade_ATR                  : 0.0510
-    TBM_Bars_to_Hit                         : 0.0479
-    ChoCH_Detected                          : 0.0474
-    Distance_to_Entry_ATR                   : 0.0457
-    TBM_Reward_Per_Trade_ATR                : 0.0440
-    BOS_Dist_ATR                            : 0.0323
-    FVG_Distance_to_Price_ATR               : 0.0312
-    FVG_Depth_ATR_ZScore                    : 0.0306
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0294
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.615
-  Precision (macro): 0.721
-  Recall (macro): 0.575
-  F1-Score (macro): 0.598
-
-  Win Rate (excl. timeouts):
-    Predicted: 54.8%
-    Actual:    54.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           0         5
-  True Timeout        2           3         3
-  True Win            5           0        12
-
-  Overfitting Analysis:
-    Training Accuracy: 0.994
-    Validation Accuracy: 0.615
-    Train-Val Gap: 0.379
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.643
-  Precision (macro): 0.438
-  Recall (macro): 0.440
-  F1-Score (macro): 0.438
-
-  Win Rate (excl. timeouts):
-    Predicted: 48.8%
-    Actual:    56.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          12           1         5
-  True Timeout        0           0         1
-  True Win            8           0        15
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDNZD_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDNZD_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.2s
-
-🧠 Starting Neural Network training for AUDNZD...
-
-================================================================================
-Training Neural Network for AUDNZD
-================================================================================
-
-📂 Loading data for AUDNZD...
-  Train: 178 samples
-  Val:   39 samples
-  Test:  42 samples
-  Selected 57 features
-
-🧠 Training Neural Network for AUDNZD...
-  Device: cuda
-  Training samples: 178
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 765
-  Epoch 10/200 - LR: 0.005000 - Train Loss: 0.7553, Train Acc: 0.804 | Val Loss: 0.9817, Val Acc: 0.641
-  Epoch 20/200 - LR: 0.002500 - Train Loss: 0.6609, Train Acc: 0.872 | Val Loss: 1.0762, Val Acc: 0.615
-  Epoch 30/200 - LR: 0.000625 - Train Loss: 0.6195, Train Acc: 0.915 | Val Loss: 1.0857, Val Acc: 0.564
-
-  Early stopping at epoch 34 (patience=30)
-Learning curves saved to: models/trained/AUDNZD_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/AUDNZD_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 35.83% (Threshold: 15%)
-Total Epochs: 34
-Training Duration: 0:00:03.709054
-
-Final Metrics:
-  Train Accuracy: 0.8967
-  Val Accuracy:   0.5385
-  Train Loss:     0.6322
-  Val Loss:       1.0990
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          3
-  Train Accuracy: 0.6680
-  Val Accuracy:   0.6667
-  Train Loss:     0.8544
-  Val Loss:       0.9134
-============================================================
-
-
-  Final Train Accuracy: 0.897
-  Final Val Accuracy:   0.538
-  Train-Val Gap:        0.358 (35.8%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.538
-  Precision (macro): 0.574
-  Recall (macro): 0.498
-  F1-Score (macro): 0.500
-
-  Win Rate (excl. timeouts):
-    Predicted: 41.9%
-    Actual:    54.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          10           0         4
-  True Timeout        2           2         4
-  True Win            7           1         9
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.595
-  Precision (macro): 0.403
-  Recall (macro): 0.403
-  F1-Score (macro): 0.403
-
-  Win Rate (excl. timeouts):
-    Predicted: 53.7%
-    Actual:    56.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          10           1         7
-  True Timeout        0           0         1
-  True Win            8           0        15
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDNZD_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDNZD_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDNZD_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 4.7s
-
-🔄 Starting LSTM training for AUDNZD...
-
-================================================================================
-Training LSTM for AUDNZD
-================================================================================
-
-📂 Loading data for AUDNZD...
-  Train: 178 samples
-  Val:   39 samples
-  Test:  42 samples
-  Selected 57 features
-
-🔄 Training LSTM for AUDNZD...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 178
-  Features: 57
-  Creating sequences...
-  Sequence shape: (158, 20, 57)
-  Epoch 10/200 - LR: 0.001045 - Train Loss: 0.7600, Train Acc: 0.652 | Val Loss: 1.4809, Val Acc: 0.474
-  Epoch 20/200 - LR: 0.002807 - Train Loss: 0.5665, Train Acc: 0.759 | Val Loss: 3.0235, Val Acc: 0.421
-  Epoch 30/200 - LR: 0.005213 - Train Loss: 0.3363, Train Acc: 0.918 | Val Loss: 4.7114, Val Acc: 0.421
-
-  Early stopping at epoch 31
-
-  Final Train Accuracy: 0.835
-  Final Val Accuracy:   0.263
-  Train-Val Gap:        0.572 (57.2%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.231
-  Precision (macro): 0.285
-  Recall (macro): 0.273
-  F1-Score (macro): 0.232
-
-  Win Rate (excl. timeouts):
-    Predicted: 16.1%
-    Actual:    54.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           2          10         2
-  True Timeout        3           4         1
-  True Win            8           6         3
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.167
-  Precision (macro): 0.245
-  Recall (macro): 0.118
-  F1-Score (macro): 0.153
-
-  Win Rate (excl. timeouts):
-    Predicted: 17.1%
-    Actual:    56.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           4          10         4
-  True Timeout        1           0         0
-  True Win            8          12         3
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDNZD_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDNZD_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDNZD_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 4.8s
-
-================================================================================
-Symbol AUDNZD Training Summary:
-  Total Duration: 15.7s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training AUDUSD
-################################################################################
-
-################################################################################
-# Training All Models for AUDUSD
-################################################################################
-
-🌲 Starting RandomForest training for AUDUSD...
-
-================================================================================
-Training Random Forest for AUDUSD
-================================================================================
-
-📂 Loading data for AUDUSD...
-  Train: 262 samples
-  Val:   57 samples
-  Test:  58 samples
-  Selected 57 features
-
-🌲 Training Random Forest for AUDUSD...
-  Training samples: 262
-  Features: 57
-
-  📊 Dataset has 262 samples (< 300), applying augmentation...
-  Augmented: 262 → 774 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for AUDUSD...
-  Training samples: 619
-  Features: 57
-
-  Train accuracy: 0.853
-  Val accuracy:   0.774
-  Train-Val gap:  0.079
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.774, F1=0.771
-
-🌲 Training Random Forest for AUDUSD...
-  Training samples: 619
-  Features: 57
-
-  Train accuracy: 0.903
-  Val accuracy:   0.806
-  Train-Val gap:  0.097
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.806, F1=0.805
-
-🌲 Training Random Forest for AUDUSD...
-  Training samples: 619
-  Features: 57
-
-  Train accuracy: 0.898
-  Val accuracy:   0.819
-  Train-Val gap:  0.079
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.819, F1=0.817
-
-🌲 Training Random Forest for AUDUSD...
-  Training samples: 619
-  Features: 57
-
-  Train accuracy: 0.880
-  Val accuracy:   0.755
-  Train-Val gap:  0.126
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.755, F1=0.751
-
-🌲 Training Random Forest for AUDUSD...
-  Training samples: 620
-  Features: 57
-
-  Train accuracy: 0.889
-  Val accuracy:   0.792
-  Train-Val gap:  0.097
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.792, F1=0.788
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.789 ± 0.023
-    Min Accuracy:  0.755
-    Max Accuracy:  0.819
-    Range:         0.065
-    Mean F1-Score: 0.786 ± 0.024
-    ✅ STABLE: Std dev 0.023 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 4: 0.755 (deviation: -0.035)
-
-  Train accuracy: 0.974
-  Val accuracy:   0.596
-  Train-Val gap:  0.378
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    TBM_Bars_to_Hit                         : 0.1402
-    Distance_to_Entry_ATR                   : 0.0765
-    TBM_Risk_Per_Trade_ATR                  : 0.0643
-    TBM_Reward_Per_Trade_ATR                : 0.0615
-    OB_Age                                  : 0.0491
-    FVG_Distance_to_Price_ATR               : 0.0448
-    FVG_Depth_ATR                           : 0.0417
-    FVG_Size_Fuzzy_Score                    : 0.0371
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0331
-    FVG_Quality_Fuzzy                       : 0.0296
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.596
-  Precision (macro): 0.544
-  Recall (macro): 0.570
-  F1-Score (macro): 0.554
-
-  Win Rate (excl. timeouts):
-    Predicted: 50.9%
-    Actual:    49.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          15           2        10
-  True Timeout        1           2         1
-  True Win            8           1        17
-
-  Overfitting Analysis:
-    Training Accuracy: 0.974
-    Validation Accuracy: 0.596
-    Train-Val Gap: 0.378
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.638
-  Precision (macro): 0.638
-  Recall (macro): 0.753
-  F1-Score (macro): 0.661
-
-  Win Rate (excl. timeouts):
-    Predicted: 38.9%
-    Actual:    59.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          16           2         4
-  True Timeout        0           4         0
-  True Win           14           1        17
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDUSD_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDUSD_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.1s
-
-🚀 Starting XGBoost training for AUDUSD...
-
-================================================================================
-Training XGBoost for AUDUSD
-================================================================================
-
-📂 Loading data for AUDUSD...
-  Train: 262 samples
-  Val:   57 samples
-  Test:  58 samples
-  Selected 57 features
-
-🚀 Training XGBoost for AUDUSD...
-  Training samples: 262
-  Features: 57
-
-  Train accuracy: 1.000
-  Val accuracy:   0.596
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.0941
-    OB_Bearish_Valid                        : 0.0441
-    OB_Bullish                              : 0.0423
-    TBM_Bars_to_Hit                         : 0.0420
-    FVG_Quality_Fuzzy                       : 0.0396
-    ChoCH_Direction                         : 0.0357
-    Bullish_Trend_Fuzzy                     : 0.0343
-    TBM_Reward_Per_Trade_ATR                : 0.0340
-    Distance_to_Entry_ATR                   : 0.0313
-    ChoCH_Detected                          : 0.0307
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.596
-  Precision (macro): 0.651
-  Recall (macro): 0.642
-  F1-Score (macro): 0.632
-
-  Win Rate (excl. timeouts):
-    Predicted: 66.0%
-    Actual:    49.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          11           1        15
-  True Timeout        0           3         1
-  True Win            6           0        20
-
-  Overfitting Analysis:
-    Training Accuracy: 1.000
-    Validation Accuracy: 0.596
-    Train-Val Gap: 0.404
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.534
-  Precision (macro): 0.561
-  Recall (macro): 0.511
-  F1-Score (macro): 0.532
-
-  Win Rate (excl. timeouts):
-    Predicted: 59.3%
-    Actual:    59.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           1        12
-  True Timeout        1           2         1
-  True Win           12           0        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDUSD_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDUSD_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.2s
-
-🧠 Starting Neural Network training for AUDUSD...
-
-================================================================================
-Training Neural Network for AUDUSD
-================================================================================
-
-📂 Loading data for AUDUSD...
-  Train: 262 samples
-  Val:   57 samples
-  Test:  58 samples
-  Selected 57 features
-
-🧠 Training Neural Network for AUDUSD...
-  Device: cuda
-  Training samples: 262
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 774
-  Epoch 10/200 - LR: 0.005000 - Train Loss: 0.7410, Train Acc: 0.826 | Val Loss: 1.0561, Val Acc: 0.544
-  Epoch 20/200 - LR: 0.002500 - Train Loss: 0.6740, Train Acc: 0.866 | Val Loss: 1.1226, Val Acc: 0.509
-  Epoch 30/200 - LR: 0.000625 - Train Loss: 0.6401, Train Acc: 0.891 | Val Loss: 1.2001, Val Acc: 0.544
-
-  Early stopping at epoch 33 (patience=30)
-Learning curves saved to: models/trained/AUDUSD_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/AUDUSD_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 37.29% (Threshold: 15%)
-Total Epochs: 33
-Training Duration: 0:00:03.713762
-
-Final Metrics:
-  Train Accuracy: 0.8992
-  Val Accuracy:   0.5263
-  Train Loss:     0.6413
-  Val Loss:       1.1820
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          8
-  Train Accuracy: 0.7817
-  Val Accuracy:   0.5789
-  Train Loss:     0.7664
-  Val Loss:       0.9960
-============================================================
-
-
-  Final Train Accuracy: 0.899
-  Final Val Accuracy:   0.526
-  Train-Val Gap:        0.373 (37.3%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.526
-  Precision (macro): 0.522
-  Recall (macro): 0.520
-  F1-Score (macro): 0.515
-
-  Win Rate (excl. timeouts):
-    Predicted: 60.4%
-    Actual:    49.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          11           1        15
-  True Timeout        1           2         1
-  True Win            8           1        17
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.500
-  Precision (macro): 0.428
-  Recall (macro): 0.408
-  F1-Score (macro): 0.415
-
-  Win Rate (excl. timeouts):
-    Predicted: 64.8%
-    Actual:    59.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           7           1        14
-  True Timeout        3           1         0
-  True Win           10           1        21
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDUSD_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDUSD_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDUSD_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 4.7s
-
-🔄 Starting LSTM training for AUDUSD...
-
-================================================================================
-Training LSTM for AUDUSD
-================================================================================
-
-📂 Loading data for AUDUSD...
-  Train: 262 samples
-  Val:   57 samples
-  Test:  58 samples
-  Selected 57 features
-
-🔄 Training LSTM for AUDUSD...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 262
-  Features: 57
-  Creating sequences...
-  Sequence shape: (242, 20, 57)
-  Epoch 10/200 - LR: 0.001044 - Train Loss: 0.6683, Train Acc: 0.636 | Val Loss: 1.1513, Val Acc: 0.324
-⚠️ Epoch 11: Exploding gradient detected (norm=11.10 > 10.0)
-⚠️ Epoch 15: Exploding gradient detected (norm=12.34 > 10.0)
-  Epoch 20/200 - LR: 0.002805 - Train Loss: 0.6257, Train Acc: 0.694 | Val Loss: 1.1586, Val Acc: 0.351
-⚠️ Epoch 21: Exploding gradient detected (norm=10.11 > 10.0)
-⚠️ Epoch 28: Exploding gradient detected (norm=16.56 > 10.0)
-  Epoch 30/200 - LR: 0.005208 - Train Loss: 0.3377, Train Acc: 0.868 | Val Loss: 2.8810, Val Acc: 0.324
-⚠️ Epoch 33: Severe overfitting detected (train=95.87%, val=35.14%)
-
-  Early stopping at epoch 33
-
-  ⚠️ Training Warnings (5):
-    - Epoch 11: Exploding gradient detected (norm=11.10 > 10.0)
-    - Epoch 15: Exploding gradient detected (norm=12.34 > 10.0)
-    - Epoch 21: Exploding gradient detected (norm=10.11 > 10.0)
-    - Epoch 28: Exploding gradient detected (norm=16.56 > 10.0)
-    - Epoch 33: Severe overfitting detected (train=95.87%, val=35.14%)
-
-  Final Train Accuracy: 0.959
-  Final Val Accuracy:   0.351
-  Train-Val Gap:        0.607 (60.7%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.228
-  Precision (macro): 0.237
-  Recall (macro): 0.163
-  F1-Score (macro): 0.193
-
-  Win Rate (excl. timeouts):
-    Predicted: 32.1%
-    Actual:    49.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           7           9        11
-  True Timeout        1           0         3
-  True Win            9          11         6
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.259
-  Precision (macro): 0.231
-  Recall (macro): 0.239
-  F1-Score (macro): 0.204
-
-  Win Rate (excl. timeouts):
-    Predicted: 46.3%
-    Actual:    59.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           2           7        13
-  True Timeout        1           1         2
-  True Win            7          13        12
-
-💾 Model pickle saved to /kaggle/working/models/trained/AUDUSD_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/AUDUSD_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/AUDUSD_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 6.9s
-
-================================================================================
-Symbol AUDUSD Training Summary:
-  Total Duration: 17.9s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training EURUSD
-################################################################################
-
-################################################################################
-# Training All Models for EURUSD
-################################################################################
-
-🌲 Starting RandomForest training for EURUSD...
-
-================================================================================
-Training Random Forest for EURUSD
-================================================================================
-
-📂 Loading data for EURUSD...
-  Train: 228 samples
-  Val:   60 samples
-  Test:  49 samples
-  Selected 57 features
-
-🌲 Training Random Forest for EURUSD...
-  Training samples: 228
-  Features: 57
-
-  📊 Dataset has 228 samples (< 300), applying augmentation...
-  Augmented: 228 → 678 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for EURUSD...
-  Training samples: 542
-  Features: 57
-
-  Train accuracy: 0.921
-  Val accuracy:   0.838
-  Train-Val gap:  0.082
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.838, F1=0.834
-
-🌲 Training Random Forest for EURUSD...
-  Training samples: 542
-  Features: 57
-
-  Train accuracy: 0.915
-  Val accuracy:   0.787
-  Train-Val gap:  0.128
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.787, F1=0.780
-
-🌲 Training Random Forest for EURUSD...
-  Training samples: 542
-  Features: 57
-
-  Train accuracy: 0.917
-  Val accuracy:   0.860
-  Train-Val gap:  0.057
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.860, F1=0.861
-
-🌲 Training Random Forest for EURUSD...
-  Training samples: 543
-  Features: 57
-
-  Train accuracy: 0.915
-  Val accuracy:   0.815
-  Train-Val gap:  0.100
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.815, F1=0.814
-
-🌲 Training Random Forest for EURUSD...
-  Training samples: 543
-  Features: 57
-
-  Train accuracy: 0.923
-  Val accuracy:   0.852
-  Train-Val gap:  0.071
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.852, F1=0.850
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.830 ± 0.027
-    Min Accuracy:  0.787
-    Max Accuracy:  0.860
-    Range:         0.074
-    Mean F1-Score: 0.828 ± 0.029
-    ✅ STABLE: Std dev 0.027 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 2: 0.787 (deviation: -0.044)
-
-  Train accuracy: 0.982
-  Val accuracy:   0.667
-  Train-Val gap:  0.316
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    Distance_to_Entry_ATR                   : 0.0961
-    TBM_Reward_Per_Trade_ATR                : 0.0817
-    TBM_Bars_to_Hit                         : 0.0781
-    TBM_Risk_Per_Trade_ATR                  : 0.0760
-    OB_Age                                  : 0.0590
-    FVG_Depth_ATR                           : 0.0438
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0299
-    FVG_Size_Fuzzy_Score                    : 0.0297
-    BOS_Dist_ATR_ZScore                     : 0.0267
-    Trend_Bias_Indicator_ZScore             : 0.0261
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.667
-  Precision (macro): 0.654
-  Recall (macro): 0.789
-  F1-Score (macro): 0.688
-
-  Win Rate (excl. timeouts):
-    Predicted: 45.6%
-    Actual:    66.7%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          15           0         4
-  True Timeout        0           3         0
-  True Win           14           2        22
-
-  Overfitting Analysis:
-    Training Accuracy: 0.982
-    Validation Accuracy: 0.667
-    Train-Val Gap: 0.316
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.714
-  Precision (macro): 0.804
-  Recall (macro): 0.648
-  F1-Score (macro): 0.698
-
-  Win Rate (excl. timeouts):
-    Predicted: 53.2%
-    Actual:    55.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          15           0         6
-  True Timeout        1           1         0
-  True Win            7           0        19
-
-💾 Model pickle saved to /kaggle/working/models/trained/EURUSD_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/EURUSD_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.0s
-
-🚀 Starting XGBoost training for EURUSD...
-
-================================================================================
-Training XGBoost for EURUSD
-================================================================================
-
-📂 Loading data for EURUSD...
-  Train: 228 samples
-  Val:   60 samples
-  Test:  49 samples
-  Selected 57 features
-
-🚀 Training XGBoost for EURUSD...
-  Training samples: 228
-  Features: 57
-
-  Train accuracy: 0.991
-  Val accuracy:   0.700
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.0917
-    BOS_Commitment_Flag                     : 0.0747
-    TBM_Reward_Per_Trade_ATR                : 0.0444
-    Distance_to_Entry_ATR                   : 0.0368
-    OB_Size_ATR                             : 0.0343
-    FVG_Distance_to_Price_ATR               : 0.0327
-    BOS_Close_Confirm                       : 0.0323
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0306
-    TBM_Risk_Per_Trade_ATR                  : 0.0295
-    TBM_Bars_to_Hit                         : 0.0269
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.700
-  Precision (macro): 0.635
-  Recall (macro): 0.611
-  F1-Score (macro): 0.605
-
-  Win Rate (excl. timeouts):
-    Predicted: 49.1%
-    Actual:    66.7%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          16           0         3
-  True Timeout        0           1         2
-  True Win           12           1        25
-
-  Overfitting Analysis:
-    Training Accuracy: 0.991
-    Validation Accuracy: 0.700
-    Train-Val Gap: 0.291
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.755
-  Precision (macro): 0.504
-  Recall (macro): 0.526
-  F1-Score (macro): 0.513
-
-  Win Rate (excl. timeouts):
-    Predicted: 51.1%
-    Actual:    55.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          17           0         4
-  True Timeout        2           0         0
-  True Win            6           0        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/EURUSD_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/EURUSD_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.3s
-
-🧠 Starting Neural Network training for EURUSD...
-
-================================================================================
-Training Neural Network for EURUSD
-================================================================================
-
-📂 Loading data for EURUSD...
-  Train: 228 samples
-  Val:   60 samples
-  Test:  49 samples
-  Selected 57 features
-
-🧠 Training Neural Network for EURUSD...
-  Device: cuda
-  Training samples: 228
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 678
-  Epoch 10/200 - LR: 0.005000 - Train Loss: 0.7362, Train Acc: 0.795 | Val Loss: 0.9499, Val Acc: 0.550
-  Epoch 20/200 - LR: 0.002500 - Train Loss: 0.6704, Train Acc: 0.872 | Val Loss: 0.9443, Val Acc: 0.567
-  Epoch 30/200 - LR: 0.000625 - Train Loss: 0.6385, Train Acc: 0.886 | Val Loss: 1.0479, Val Acc: 0.567
-
-  Early stopping at epoch 33 (patience=30)
-Learning curves saved to: models/trained/EURUSD_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/EURUSD_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 32.67% (Threshold: 15%)
-Total Epochs: 33
-Training Duration: 0:00:03.342282
-
-Final Metrics:
-  Train Accuracy: 0.9100
-  Val Accuracy:   0.5833
-  Train Loss:     0.6174
-  Val Loss:       1.0116
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          2
-  Train Accuracy: 0.7109
-  Val Accuracy:   0.6833
-  Train Loss:     0.8147
-  Val Loss:       0.9049
-============================================================
-
-
-  Final Train Accuracy: 0.910
-  Final Val Accuracy:   0.583
-  Train-Val Gap:        0.327 (32.7%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.583
-  Precision (macro): 0.560
-  Recall (macro): 0.617
-  F1-Score (macro): 0.573
-
-  Win Rate (excl. timeouts):
-    Predicted: 49.1%
-    Actual:    66.7%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          12           0         7
-  True Timeout        1           2         0
-  True Win           15           2        21
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.592
-  Precision (macro): 0.713
-  Recall (macro): 0.550
-  F1-Score (macro): 0.596
-
-  Win Rate (excl. timeouts):
-    Predicted: 70.2%
-    Actual:    55.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           8           0        13
-  True Timeout        1           1         0
-  True Win            6           0        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/EURUSD_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/EURUSD_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/EURUSD_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 4.4s
-
-🔄 Starting LSTM training for EURUSD...
-
-================================================================================
-Training LSTM for EURUSD
-================================================================================
-
-📂 Loading data for EURUSD...
-  Train: 228 samples
-  Val:   60 samples
-  Test:  49 samples
-  Selected 57 features
-
-🔄 Training LSTM for EURUSD...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 228
-  Features: 57
-  Creating sequences...
-  Sequence shape: (208, 20, 57)
-  Epoch 10/200 - LR: 0.001045 - Train Loss: 0.7287, Train Acc: 0.663 | Val Loss: 0.9477, Val Acc: 0.475
-  Epoch 20/200 - LR: 0.002806 - Train Loss: 0.5513, Train Acc: 0.764 | Val Loss: 1.4636, Val Acc: 0.475
-  Epoch 30/200 - LR: 0.005210 - Train Loss: 0.3090, Train Acc: 0.885 | Val Loss: 2.8426, Val Acc: 0.525
-
-  Early stopping at epoch 35
-
-  Final Train Accuracy: 0.904
-  Final Val Accuracy:   0.450
-  Train-Val Gap:        0.454 (45.4%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.317
-  Precision (macro): 0.283
-  Recall (macro): 0.295
-  F1-Score (macro): 0.247
-
-  Win Rate (excl. timeouts):
-    Predicted: 40.4%
-    Actual:    66.7%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           3           8         8
-  True Timeout        0           1         2
-  True Win           12          11        15
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.306
-  Precision (macro): 0.367
-  Recall (macro): 0.220
-  F1-Score (macro): 0.265
-
-  Win Rate (excl. timeouts):
-    Predicted: 19.1%
-    Actual:    55.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           9         3
-  True Timeout        1           0         1
-  True Win            8          12         6
-
-💾 Model pickle saved to /kaggle/working/models/trained/EURUSD_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/EURUSD_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/EURUSD_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 6.3s
-
-================================================================================
-Symbol EURUSD Training Summary:
-  Total Duration: 17.0s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training GBPUSD
-################################################################################
-
-################################################################################
-# Training All Models for GBPUSD
-################################################################################
-
-🌲 Starting RandomForest training for GBPUSD...
-
-================================================================================
-Training Random Forest for GBPUSD
-================================================================================
-
-📂 Loading data for GBPUSD...
-  Train: 206 samples
-  Val:   52 samples
-  Test:  46 samples
-  Selected 57 features
-
-🌲 Training Random Forest for GBPUSD...
-  Training samples: 206
-  Features: 57
-
-  📊 Dataset has 206 samples (< 300), applying augmentation...
-  Augmented: 206 → 642 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for GBPUSD...
-  Training samples: 513
-  Features: 57
-
-  Train accuracy: 0.934
-  Val accuracy:   0.798
-  Train-Val gap:  0.135
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.798, F1=0.792
-
-🌲 Training Random Forest for GBPUSD...
-  Training samples: 513
-  Features: 57
-
-  Train accuracy: 0.940
-  Val accuracy:   0.760
-  Train-Val gap:  0.180
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.760, F1=0.749
-
-🌲 Training Random Forest for GBPUSD...
-  Training samples: 514
-  Features: 57
-
-  Train accuracy: 0.947
-  Val accuracy:   0.836
-  Train-Val gap:  0.112
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.836, F1=0.831
-
-🌲 Training Random Forest for GBPUSD...
-  Training samples: 514
-  Features: 57
-
-  Train accuracy: 0.951
-  Val accuracy:   0.797
-  Train-Val gap:  0.154
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.797, F1=0.792
-
-🌲 Training Random Forest for GBPUSD...
-  Training samples: 514
-  Features: 57
-
-  Train accuracy: 0.918
-  Val accuracy:   0.836
-  Train-Val gap:  0.082
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.836, F1=0.833
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.805 ± 0.029
-    Min Accuracy:  0.760
-    Max Accuracy:  0.836
-    Range:         0.076
-    Mean F1-Score: 0.799 ± 0.031
-    ✅ STABLE: Std dev 0.029 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 2: 0.760 (deviation: -0.046)
-
-  Train accuracy: 0.994
-  Val accuracy:   0.635
-  Train-Val gap:  0.359
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    Distance_to_Entry_ATR                   : 0.0899
-    TBM_Reward_Per_Trade_ATR                : 0.0796
-    TBM_Risk_Per_Trade_ATR                  : 0.0695
-    TBM_Bars_to_Hit                         : 0.0686
-    FVG_Depth_ATR                           : 0.0589
-    OB_Age                                  : 0.0553
-    FVG_Depth_ATR_ZScore                    : 0.0449
-    Trend_Strength                          : 0.0434
-    Trend_Strength_Fuzzy                    : 0.0419
-    BOS_Dist_ATR_ZScore                     : 0.0388
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.635
-  Precision (macro): 0.598
-  Recall (macro): 0.531
-  F1-Score (macro): 0.546
-
-  Win Rate (excl. timeouts):
-    Predicted: 47.9%
-    Actual:    56.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          15           0         6
-  True Timeout        3           1         0
-  True Win            9           1        17
-
-  Overfitting Analysis:
-    Training Accuracy: 0.994
-    Validation Accuracy: 0.635
-    Train-Val Gap: 0.359
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.630
-  Precision (macro): 0.545
-  Recall (macro): 0.591
-  F1-Score (macro): 0.563
-
-  Win Rate (excl. timeouts):
-    Predicted: 47.7%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          14           1         7
-  True Timeout        1           1         0
-  True Win            7           1        14
-
-💾 Model pickle saved to /kaggle/working/models/trained/GBPUSD_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/GBPUSD_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.0s
-
-🚀 Starting XGBoost training for GBPUSD...
-
-================================================================================
-Training XGBoost for GBPUSD
-================================================================================
-
-📂 Loading data for GBPUSD...
-  Train: 206 samples
-  Val:   52 samples
-  Test:  46 samples
-  Selected 57 features
-
-🚀 Training XGBoost for GBPUSD...
-  Training samples: 206
-  Features: 57
-
-  Train accuracy: 0.995
-  Val accuracy:   0.635
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.1059
-    FVG_Bearish                             : 0.0467
-    OB_Size_ATR                             : 0.0443
-    ChoCH_Detected                          : 0.0394
-    BOS_Close_Confirm                       : 0.0356
-    TBM_Reward_Per_Trade_ATR                : 0.0349
-    Overbought_Fuzzy                        : 0.0340
-    OB_Size_ATR_ZScore                      : 0.0310
-    Distance_to_Entry_ATR                   : 0.0304
-    FVG_Distance_to_Price_ATR               : 0.0282
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.635
-  Precision (macro): 0.753
-  Recall (macro): 0.528
-  F1-Score (macro): 0.563
-
-  Win Rate (excl. timeouts):
-    Predicted: 52.1%
-    Actual:    56.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          14           0         7
-  True Timeout        3           1         0
-  True Win            9           0        18
-
-  Overfitting Analysis:
-    Training Accuracy: 0.995
-    Validation Accuracy: 0.635
-    Train-Val Gap: 0.361
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.652
-  Precision (macro): 0.765
-  Recall (macro): 0.606
-  F1-Score (macro): 0.654
-
-  Win Rate (excl. timeouts):
-    Predicted: 61.4%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          12           0        10
-  True Timeout        1           1         0
-  True Win            5           0        17
-
-💾 Model pickle saved to /kaggle/working/models/trained/GBPUSD_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/GBPUSD_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.2s
-
-🧠 Starting Neural Network training for GBPUSD...
-
-================================================================================
-Training Neural Network for GBPUSD
-================================================================================
-
-📂 Loading data for GBPUSD...
-  Train: 206 samples
-  Val:   52 samples
-  Test:  46 samples
-  Selected 57 features
-
-🧠 Training Neural Network for GBPUSD...
-  Device: cuda
-  Training samples: 206
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 642
-  Epoch 10/200 - LR: 0.005000 - Train Loss: 0.7273, Train Acc: 0.796 | Val Loss: 0.9544, Val Acc: 0.635
-⚠️ Epoch 18: Exploding gradient detected (norm=23.53 > 10.0)
-  Epoch 20/200 - LR: 0.002500 - Train Loss: 0.6466, Train Acc: 0.885 | Val Loss: 1.0175, Val Acc: 0.558
-⚠️ Epoch 25: Exploding gradient detected (norm=3323.75 > 10.0)
-⚠️ Epoch 27: Exploding gradient detected (norm=226.50 > 10.0)
-  Epoch 30/200 - LR: 0.000625 - Train Loss: 0.6204, Train Acc: 0.917 | Val Loss: 1.0572, Val Acc: 0.596
-⚠️ Epoch 32: Exploding gradient detected (norm=13.57 > 10.0)
-
-  Early stopping at epoch 34 (patience=30)
-Learning curves saved to: models/trained/GBPUSD_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/GBPUSD_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 35.82% (Threshold: 15%)
-Total Epochs: 34
-Training Duration: 0:00:03.322697
-
-Final Metrics:
-  Train Accuracy: 0.9159
-  Val Accuracy:   0.5577
-  Train Loss:     0.6732
-  Val Loss:       1.0011
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          18
-  Train Accuracy: 0.8785
-  Val Accuracy:   0.6538
-  Train Loss:     0.7089
-  Val Loss:       1.0138
-============================================================
-
-
-  ⚠️ Training Warnings (4):
-    - Epoch 18: Exploding gradient detected (norm=23.53 > 10.0)
-    - Epoch 25: Exploding gradient detected (norm=3323.75 > 10.0)
-    - Epoch 27: Exploding gradient detected (norm=226.50 > 10.0)
-    - Epoch 32: Exploding gradient detected (norm=13.57 > 10.0)
-
-  Final Train Accuracy: 0.916
-  Final Val Accuracy:   0.558
-  Train-Val Gap:        0.358 (35.8%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.558
-  Precision (macro): 0.691
-  Recall (macro): 0.539
-  F1-Score (macro): 0.586
-
-  Win Rate (excl. timeouts):
-    Predicted: 54.2%
-    Actual:    56.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          11           0        10
-  True Timeout        2           2         0
-  True Win           11           0        16
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.522
-  Precision (macro): 0.357
-  Recall (macro): 0.364
-  F1-Score (macro): 0.359
-
-  Win Rate (excl. timeouts):
-    Predicted: 54.5%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          11           0        11
-  True Timeout        1           0         1
-  True Win            8           1        13
-
-💾 Model pickle saved to /kaggle/working/models/trained/GBPUSD_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/GBPUSD_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/GBPUSD_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 4.3s
-
-🔄 Starting LSTM training for GBPUSD...
-
-================================================================================
-Training LSTM for GBPUSD
-================================================================================
-
-📂 Loading data for GBPUSD...
-  Train: 206 samples
-  Val:   52 samples
-  Test:  46 samples
-  Selected 57 features
-
-🔄 Training LSTM for GBPUSD...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 206
-  Features: 57
-  Creating sequences...
-  Sequence shape: (186, 20, 57)
-  Epoch 10/200 - LR: 0.001045 - Train Loss: 0.7381, Train Acc: 0.629 | Val Loss: 1.1325, Val Acc: 0.344
-  Epoch 20/200 - LR: 0.002806 - Train Loss: 0.6829, Train Acc: 0.618 | Val Loss: 1.2748, Val Acc: 0.469
-  Epoch 30/200 - LR: 0.005210 - Train Loss: 0.5004, Train Acc: 0.812 | Val Loss: 2.1775, Val Acc: 0.312
-
-  Early stopping at epoch 35
-
-  Final Train Accuracy: 0.892
-  Final Val Accuracy:   0.469
-  Train-Val Gap:        0.424 (42.4%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.308
-  Precision (macro): 0.320
-  Recall (macro): 0.375
-  F1-Score (macro): 0.286
-
-  Win Rate (excl. timeouts):
-    Predicted: 18.8%
-    Actual:    56.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          10           6         5
-  True Timeout        0           2         2
-  True Win           10          13         4
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.457
-  Precision (macro): 0.541
-  Recall (macro): 0.621
-  F1-Score (macro): 0.419
-
-  Win Rate (excl. timeouts):
-    Predicted: 36.4%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           7          11         4
-  True Timeout        0           2         0
-  True Win            2           8        12
-
-💾 Model pickle saved to /kaggle/working/models/trained/GBPUSD_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/GBPUSD_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/GBPUSD_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 5.7s
-
-================================================================================
-Symbol GBPUSD Training Summary:
-  Total Duration: 16.2s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training USDCAD
-################################################################################
-
-################################################################################
-# Training All Models for USDCAD
-################################################################################
-
-🌲 Starting RandomForest training for USDCAD...
-
-================================================================================
-Training Random Forest for USDCAD
-================================================================================
-
-📂 Loading data for USDCAD...
-  Train: 209 samples
-  Val:   49 samples
-  Test:  46 samples
-  Selected 57 features
-
-🌲 Training Random Forest for USDCAD...
-  Training samples: 209
-  Features: 57
-
-  📊 Dataset has 209 samples (< 300), applying augmentation...
-  Augmented: 209 → 720 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for USDCAD...
-  Training samples: 576
-  Features: 57
-
-  Train accuracy: 0.903
-  Val accuracy:   0.826
-  Train-Val gap:  0.076
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.826, F1=0.825
-
-🌲 Training Random Forest for USDCAD...
-  Training samples: 576
-  Features: 57
-
-  Train accuracy: 0.918
-  Val accuracy:   0.785
-  Train-Val gap:  0.134
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.785, F1=0.782
-
-🌲 Training Random Forest for USDCAD...
-  Training samples: 576
-  Features: 57
-
-  Train accuracy: 0.920
-  Val accuracy:   0.826
-  Train-Val gap:  0.094
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.826, F1=0.825
-
-🌲 Training Random Forest for USDCAD...
-  Training samples: 576
-  Features: 57
-
-  Train accuracy: 0.932
-  Val accuracy:   0.882
-  Train-Val gap:  0.050
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.882, F1=0.880
-
-🌲 Training Random Forest for USDCAD...
-  Training samples: 576
-  Features: 57
-
-  Train accuracy: 0.917
-  Val accuracy:   0.799
-  Train-Val gap:  0.118
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.799, F1=0.797
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.824 ± 0.033
-    Min Accuracy:  0.785
-    Max Accuracy:  0.882
-    Range:         0.097
-    Mean F1-Score: 0.822 ± 0.034
-    ✅ STABLE: Std dev 0.033 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 2: 0.785 (deviation: -0.039)
-
-  Train accuracy: 0.985
-  Val accuracy:   0.673
-  Train-Val gap:  0.311
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    TBM_Bars_to_Hit                         : 0.1564
-    Distance_to_Entry_ATR                   : 0.0707
-    TBM_Reward_Per_Trade_ATR                : 0.0667
-    TBM_Risk_Per_Trade_ATR                  : 0.0648
-    ChoCH_Detected                          : 0.0517
-    OB_Age                                  : 0.0367
-    FVG_Size_Fuzzy_Score                    : 0.0337
-    FVG_Quality_Fuzzy                       : 0.0325
-    FVG_Depth_ATR_ZScore                    : 0.0298
-    FVG_Depth_ATR                           : 0.0278
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.673
-  Precision (macro): 0.554
-  Recall (macro): 0.793
-  F1-Score (macro): 0.561
-
-  Win Rate (excl. timeouts):
-    Predicted: 45.8%
-    Actual:    35.4%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          19           3         9
-  True Timeout        0           1         0
-  True Win            2           2        13
-
-  Overfitting Analysis:
-    Training Accuracy: 0.985
-    Validation Accuracy: 0.673
-    Train-Val Gap: 0.311
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.652
-  Precision (macro): 0.653
-  Recall (macro): 0.637
-  F1-Score (macro): 0.628
-
-  Win Rate (excl. timeouts):
-    Predicted: 74.4%
-    Actual:    55.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           7           1        11
-  True Timeout        1           2         0
-  True Win            3           0        21
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCAD_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCAD_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.0s
-
-🚀 Starting XGBoost training for USDCAD...
-
-================================================================================
-Training XGBoost for USDCAD
-================================================================================
-
-📂 Loading data for USDCAD...
-  Train: 209 samples
-  Val:   49 samples
-  Test:  46 samples
-  Selected 57 features
-
-🚀 Training XGBoost for USDCAD...
-  Training samples: 209
-  Features: 57
-
-  Train accuracy: 1.000
-  Val accuracy:   0.633
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.0716
-    TBM_Bars_to_Hit                         : 0.0582
-    TBM_Reward_Per_Trade_ATR                : 0.0531
-    TBM_Risk_Per_Trade_ATR                  : 0.0433
-    FVG_Depth_ATR_ZScore                    : 0.0372
-    OB_Size_ATR                             : 0.0335
-    ChoCH_Detected                          : 0.0324
-    BOS_Close_Confirm                       : 0.0312
-    FVG_Distance_to_Price_ATR               : 0.0306
-    OB_Bullish_Valid                        : 0.0298
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.633
-  Precision (macro): 0.614
-  Recall (macro): 0.780
-  F1-Score (macro): 0.643
-
-  Win Rate (excl. timeouts):
-    Predicted: 58.3%
-    Actual:    35.4%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          16           1        14
-  True Timeout        0           1         0
-  True Win            3           0        14
-
-  Overfitting Analysis:
-    Training Accuracy: 1.000
-    Validation Accuracy: 0.633
-    Train-Val Gap: 0.367
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.696
-  Precision (macro): 0.785
-  Recall (macro): 0.675
-  F1-Score (macro): 0.714
-
-  Win Rate (excl. timeouts):
-    Predicted: 67.4%
-    Actual:    55.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          10           0         9
-  True Timeout        1           2         0
-  True Win            4           0        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCAD_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCAD_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.2s
-
-🧠 Starting Neural Network training for USDCAD...
-
-================================================================================
-Training Neural Network for USDCAD
-================================================================================
-
-📂 Loading data for USDCAD...
-  Train: 209 samples
-  Val:   49 samples
-  Test:  46 samples
-  Selected 57 features
-
-🧠 Training Neural Network for USDCAD...
-  Device: cuda
-  Training samples: 209
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 720
-  Epoch 10/200 - LR: 0.010000 - Train Loss: 0.7281, Train Acc: 0.828 | Val Loss: 0.9423, Val Acc: 0.592
-  Epoch 20/200 - LR: 0.005000 - Train Loss: 0.6463, Train Acc: 0.896 | Val Loss: 0.9234, Val Acc: 0.633
-  Epoch 30/200 - LR: 0.001250 - Train Loss: 0.5822, Train Acc: 0.943 | Val Loss: 0.9000, Val Acc: 0.633
-⚠️ Epoch 33: Severe overfitting detected (train=95.14%, val=55.10%)
-  Epoch 40/200 - LR: 0.000313 - Train Loss: 0.5653, Train Acc: 0.953 | Val Loss: 0.9479, Val Acc: 0.612
-
-  Early stopping at epoch 46 (patience=30)
-Learning curves saved to: models/trained/USDCAD_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/USDCAD_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 33.22% (Threshold: 15%)
-Total Epochs: 46
-Training Duration: 0:00:04.549413
-
-Final Metrics:
-  Train Accuracy: 0.9444
-  Val Accuracy:   0.6122
-  Train Loss:     0.5748
-  Val Loss:       0.9774
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          15
-  Train Accuracy: 0.8681
-  Val Accuracy:   0.6939
-  Train Loss:     0.6662
-  Val Loss:       0.8679
-============================================================
-
-
-  ⚠️ Training Warnings (1):
-    - Epoch 33: Severe overfitting detected (train=95.14%, val=55.10%)
-
-  Final Train Accuracy: 0.944
-  Final Val Accuracy:   0.612
-  Train-Val Gap:        0.332 (33.2%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.612
-  Precision (macro): 0.544
-  Recall (macro): 0.760
-  F1-Score (macro): 0.577
-
-  Win Rate (excl. timeouts):
-    Predicted: 54.2%
-    Actual:    35.4%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          16           2        13
-  True Timeout        0           1         0
-  True Win            4           0        13
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.609
-  Precision (macro): 0.413
-  Recall (macro): 0.418
-  F1-Score (macro): 0.409
-
-  Win Rate (excl. timeouts):
-    Predicted: 67.4%
-    Actual:    55.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           8           2         9
-  True Timeout        2           0         1
-  True Win            4           0        20
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCAD_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCAD_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/USDCAD_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 5.5s
-
-🔄 Starting LSTM training for USDCAD...
-
-================================================================================
-Training LSTM for USDCAD
-================================================================================
-
-📂 Loading data for USDCAD...
-  Train: 209 samples
-  Val:   49 samples
-  Test:  46 samples
-  Selected 57 features
-
-🔄 Training LSTM for USDCAD...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 209
-  Features: 57
-  Creating sequences...
-  Sequence shape: (189, 20, 57)
-  Epoch 10/200 - LR: 0.001045 - Train Loss: 0.7541, Train Acc: 0.619 | Val Loss: 1.3279, Val Acc: 0.414
-  Epoch 20/200 - LR: 0.002806 - Train Loss: 0.6847, Train Acc: 0.720 | Val Loss: 1.4434, Val Acc: 0.345
-  Epoch 30/200 - LR: 0.005210 - Train Loss: 0.6398, Train Acc: 0.847 | Val Loss: 2.4618, Val Acc: 0.379
-
-  Early stopping at epoch 34
-
-  Final Train Accuracy: 0.847
-  Final Val Accuracy:   0.448
-  Train-Val Gap:        0.398 (39.8%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.286
-  Precision (macro): 0.380
-  Recall (macro): 0.526
-  F1-Score (macro): 0.258
-
-  Win Rate (excl. timeouts):
-    Predicted: 39.6%
-    Actual:    35.4%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           7          11        13
-  True Timeout        0           1         0
-  True Win            2           9         6
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.283
-  Precision (macro): 0.363
-  Recall (macro): 0.300
-  F1-Score (macro): 0.269
-
-  Win Rate (excl. timeouts):
-    Predicted: 23.3%
-    Actual:    55.8%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           6           9         4
-  True Timeout        1           1         1
-  True Win            5          13         6
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCAD_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCAD_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/USDCAD_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 5.8s
-
-================================================================================
-Symbol USDCAD Training Summary:
-  Total Duration: 17.4s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training USDCHF
-################################################################################
-
-################################################################################
-# Training All Models for USDCHF
-################################################################################
-
-🌲 Starting RandomForest training for USDCHF...
-
-================================================================================
-Training Random Forest for USDCHF
-================================================================================
-
-📂 Loading data for USDCHF...
-  Train: 219 samples
-  Val:   51 samples
-  Test:  48 samples
-  Selected 57 features
-
-🌲 Training Random Forest for USDCHF...
-  Training samples: 219
-  Features: 57
-
-  📊 Dataset has 219 samples (< 300), applying augmentation...
-  Augmented: 219 → 696 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for USDCHF...
-  Training samples: 556
-  Features: 57
-
-  Train accuracy: 0.917
-  Val accuracy:   0.879
-  Train-Val gap:  0.039
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.879, F1=0.877
-
-🌲 Training Random Forest for USDCHF...
-  Training samples: 557
-  Features: 57
-
-  Train accuracy: 0.910
-  Val accuracy:   0.827
-  Train-Val gap:  0.083
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.827, F1=0.824
-
-🌲 Training Random Forest for USDCHF...
-  Training samples: 557
-  Features: 57
-
-  Train accuracy: 0.908
-  Val accuracy:   0.820
-  Train-Val gap:  0.088
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.820, F1=0.816
-
-🌲 Training Random Forest for USDCHF...
-  Training samples: 557
-  Features: 57
-
-  Train accuracy: 0.899
-  Val accuracy:   0.799
-  Train-Val gap:  0.101
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.799, F1=0.794
-
-🌲 Training Random Forest for USDCHF...
-  Training samples: 557
-  Features: 57
-
-  Train accuracy: 0.932
-  Val accuracy:   0.856
-  Train-Val gap:  0.076
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.856, F1=0.854
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.836 ± 0.028
-    Min Accuracy:  0.799
-    Max Accuracy:  0.879
-    Range:         0.080
-    Mean F1-Score: 0.833 ± 0.029
-    ✅ STABLE: Std dev 0.028 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 4: 0.799 (deviation: -0.038)
-
-  Train accuracy: 0.971
-  Val accuracy:   0.627
-  Train-Val gap:  0.344
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    Distance_to_Entry_ATR                   : 0.0993
-    TBM_Reward_Per_Trade_ATR                : 0.0918
-    TBM_Bars_to_Hit                         : 0.0917
-    TBM_Risk_Per_Trade_ATR                  : 0.0827
-    OB_Age                                  : 0.0532
-    FVG_Depth_ATR                           : 0.0498
-    FVG_Depth_ATR_ZScore                    : 0.0493
-    FVG_Distance_to_Price_ATR               : 0.0396
-    FVG_Quality_Fuzzy                       : 0.0379
-    FVG_Size_Fuzzy_Score                    : 0.0376
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.627
-  Precision (macro): 0.573
-  Recall (macro): 0.679
-  F1-Score (macro): 0.601
-
-  Win Rate (excl. timeouts):
-    Predicted: 54.3%
-    Actual:    76.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           7           0         4
-  True Timeout        0           4         1
-  True Win           10           4        21
-
-  Overfitting Analysis:
-    Training Accuracy: 0.971
-    Validation Accuracy: 0.627
-    Train-Val Gap: 0.344
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.812
-  Precision (macro): 0.875
-  Recall (macro): 0.717
-  F1-Score (macro): 0.767
-
-  Win Rate (excl. timeouts):
-    Predicted: 45.7%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          20           0         3
-  True Timeout        1           1         0
-  True Win            5           0        18
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCHF_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCHF_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 4.9s
-
-🚀 Starting XGBoost training for USDCHF...
-
-================================================================================
-Training XGBoost for USDCHF
-================================================================================
-
-📂 Loading data for USDCHF...
-  Train: 219 samples
-  Val:   51 samples
-  Test:  48 samples
-  Selected 57 features
-
-🚀 Training XGBoost for USDCHF...
-  Training samples: 219
-  Features: 57
-
-  Train accuracy: 1.000
-  Val accuracy:   0.745
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.1009
-    Distance_to_Entry_ATR                   : 0.0596
-    TBM_Bars_to_Hit                         : 0.0562
-    FVG_Depth_ATR                           : 0.0473
+    OB_Age                                  : 0.1523
+    TBM_Bars_to_Hit                         : 0.1331
+    FVG_Mitigated                           : 0.0618
+    OB_Mitigated                            : 0.0506
+    FVG_Distance_to_Price_ATR               : 0.0439
+    FVG_Depth_ATR                           : 0.0405
     TBM_Reward_Per_Trade_ATR                : 0.0367
-    OB_Size_ATR                             : 0.0366
-    TBM_Risk_Per_Trade_ATR                  : 0.0347
-    FVG_Distance_to_Price_ATR               : 0.0333
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0287
-    OB_Size_ATR_ZScore                      : 0.0281
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.745
-  Precision (macro): 0.664
-  Recall (macro): 0.777
-  F1-Score (macro): 0.700
-
-  Win Rate (excl. timeouts):
-    Predicted: 58.7%
-    Actual:    76.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           0         2
-  True Timeout        0           4         1
-  True Win            6           4        25
-
-  Overfitting Analysis:
-    Training Accuracy: 1.000
-    Validation Accuracy: 0.745
-    Train-Val Gap: 0.255
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.667
-  Precision (macro): 0.616
-  Recall (macro): 0.616
-  F1-Score (macro): 0.616
-
-  Win Rate (excl. timeouts):
-    Predicted: 50.0%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          15           1         7
-  True Timeout        1           1         0
-  True Win            7           0        16
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCHF_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCHF_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.2s
-
-🧠 Starting Neural Network training for USDCHF...
-
-================================================================================
-Training Neural Network for USDCHF
-================================================================================
-
-📂 Loading data for USDCHF...
-  Train: 219 samples
-  Val:   51 samples
-  Test:  48 samples
-  Selected 57 features
-
-🧠 Training Neural Network for USDCHF...
-  Device: cuda
-  Training samples: 219
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 696
-  Epoch 10/200 - LR: 0.010000 - Train Loss: 0.7082, Train Acc: 0.830 | Val Loss: 0.8610, Val Acc: 0.745
-  Epoch 20/200 - LR: 0.005000 - Train Loss: 0.6606, Train Acc: 0.869 | Val Loss: 0.8689, Val Acc: 0.627
-  Epoch 30/200 - LR: 0.002500 - Train Loss: 0.6090, Train Acc: 0.925 | Val Loss: 0.9211, Val Acc: 0.706
-  Epoch 40/200 - LR: 0.000625 - Train Loss: 0.5732, Train Acc: 0.943 | Val Loss: 0.9499, Val Acc: 0.667
-  Epoch 50/200 - LR: 0.000313 - Train Loss: 0.5692, Train Acc: 0.955 | Val Loss: 0.9662, Val Acc: 0.667
-
-  Early stopping at epoch 51 (patience=30)
-Learning curves saved to: models/trained/USDCHF_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/USDCHF_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 28.88% (Threshold: 15%)
-Total Epochs: 51
-Training Duration: 0:00:04.858234
-
-Final Metrics:
-  Train Accuracy: 0.9555
-  Val Accuracy:   0.6667
-  Train Loss:     0.5666
-  Val Loss:       0.9642
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          9
-  Train Accuracy: 0.8305
-  Val Accuracy:   0.7451
-  Train Loss:     0.7082
-  Val Loss:       0.8610
-============================================================
-
-
-  Final Train Accuracy: 0.955
-  Final Val Accuracy:   0.667
-  Train-Val Gap:        0.289 (28.9%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.667
-  Precision (macro): 0.587
-  Recall (macro): 0.656
-  F1-Score (macro): 0.614
-
-  Win Rate (excl. timeouts):
-    Predicted: 67.4%
-    Actual:    76.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           5           0         6
-  True Timeout        1           4         0
-  True Win            7           3        25
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.583
-  Precision (macro): 0.717
-  Recall (macro): 0.558
-  F1-Score (macro): 0.609
-
-  Win Rate (excl. timeouts):
-    Predicted: 52.2%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          13           0        10
-  True Timeout        0           1         1
-  True Win            9           0        14
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCHF_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCHF_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/USDCHF_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 5.9s
-
-🔄 Starting LSTM training for USDCHF...
-
-================================================================================
-Training LSTM for USDCHF
-================================================================================
-
-📂 Loading data for USDCHF...
-  Train: 219 samples
-  Val:   51 samples
-  Test:  48 samples
-  Selected 57 features
-
-🔄 Training LSTM for USDCHF...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 219
-  Features: 57
-  Creating sequences...
-  Sequence shape: (199, 20, 57)
-  Epoch 10/200 - LR: 0.001045 - Train Loss: 0.6966, Train Acc: 0.628 | Val Loss: 1.0475, Val Acc: 0.387
-  Epoch 20/200 - LR: 0.002806 - Train Loss: 0.7664, Train Acc: 0.724 | Val Loss: 0.9919, Val Acc: 0.581
-  Epoch 30/200 - LR: 0.005210 - Train Loss: 0.3888, Train Acc: 0.859 | Val Loss: 1.4631, Val Acc: 0.516
-  Epoch 40/200 - LR: 0.007611 - Train Loss: 0.2673, Train Acc: 0.889 | Val Loss: 3.5583, Val Acc: 0.452
-
-  Early stopping at epoch 47
-
-  Final Train Accuracy: 0.839
-  Final Val Accuracy:   0.452
-  Train-Val Gap:        0.388 (38.8%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.373
-  Precision (macro): 0.349
-  Recall (macro): 0.487
-  F1-Score (macro): 0.310
-
-  Win Rate (excl. timeouts):
-    Predicted: 39.1%
-    Actual:    76.1%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           1           5         5
-  True Timeout        0           5         0
-  True Win            7          15        13
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.333
-  Precision (macro): 0.303
-  Recall (macro): 0.536
-  F1-Score (macro): 0.271
-
-  Win Rate (excl. timeouts):
-    Predicted: 50.0%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           1          12        10
-  True Timeout        0           2         0
-  True Win            3           7        13
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDCHF_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDCHF_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/USDCHF_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 7.7s
-
-================================================================================
-Symbol USDCHF Training Summary:
-  Total Duration: 19.7s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training USDJPY
-################################################################################
-
-################################################################################
-# Training All Models for USDJPY
-################################################################################
-
-🌲 Starting RandomForest training for USDJPY...
-
-================================================================================
-Training Random Forest for USDJPY
-================================================================================
-
-📂 Loading data for USDJPY...
-  Train: 295 samples
-  Val:   55 samples
-  Test:  55 samples
-  Selected 57 features
-
-🌲 Training Random Forest for USDJPY...
-  Training samples: 295
-  Features: 57
-
-  📊 Dataset has 295 samples (< 300), applying augmentation...
-  Augmented: 295 → 936 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for USDJPY...
-  Training samples: 748
-  Features: 57
-
-  Train accuracy: 0.914
-  Val accuracy:   0.803
-  Train-Val gap:  0.111
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.803, F1=0.799
-
-🌲 Training Random Forest for USDJPY...
-  Training samples: 749
-  Features: 57
-
-  Train accuracy: 0.919
-  Val accuracy:   0.813
-  Train-Val gap:  0.106
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.813, F1=0.813
-
-🌲 Training Random Forest for USDJPY...
-  Training samples: 749
-  Features: 57
-
-  Train accuracy: 0.923
-  Val accuracy:   0.866
-  Train-Val gap:  0.056
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.866, F1=0.866
-
-🌲 Training Random Forest for USDJPY...
-  Training samples: 749
-  Features: 57
-
-  Train accuracy: 0.913
-  Val accuracy:   0.802
-  Train-Val gap:  0.111
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.802, F1=0.801
-
-🌲 Training Random Forest for USDJPY...
-  Training samples: 749
-  Features: 57
-
-  Train accuracy: 0.915
-  Val accuracy:   0.856
-  Train-Val gap:  0.059
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.856, F1=0.853
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.828 ± 0.027
-    Min Accuracy:  0.802
-    Max Accuracy:  0.866
-    Range:         0.064
-    Mean F1-Score: 0.826 ± 0.028
-    ✅ STABLE: Std dev 0.027 ≤ 0.10
-
-  Train accuracy: 0.985
-  Val accuracy:   0.782
-  Train-Val gap:  0.203
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    TBM_Bars_to_Hit                         : 0.1235
-    OB_Age                                  : 0.0778
-    TBM_Risk_Per_Trade_ATR                  : 0.0751
-    Distance_to_Entry_ATR                   : 0.0703
-    TBM_Reward_Per_Trade_ATR                : 0.0701
-    FVG_Quality_Fuzzy                       : 0.0382
-    FVG_Distance_to_Price_ATR               : 0.0377
-    FVG_Size_Fuzzy_Score                    : 0.0375
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0337
-    FVG_Depth_ATR_ZScore                    : 0.0249
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.782
-  Precision (macro): 0.758
-  Recall (macro): 0.787
-  F1-Score (macro): 0.767
-
-  Win Rate (excl. timeouts):
-    Predicted: 42.0%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          21           1         3
-  True Timeout        1           4         0
-  True Win            6           1        18
-
-  Overfitting Analysis:
-    Training Accuracy: 0.985
-    Validation Accuracy: 0.782
-    Train-Val Gap: 0.203
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.673
-  Precision (macro): 0.597
-  Recall (macro): 0.779
-  F1-Score (macro): 0.640
-
-  Win Rate (excl. timeouts):
-    Predicted: 49.1%
-    Actual:    62.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          14           1         5
-  True Timeout        0           2         0
-  True Win           10           2        21
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDJPY_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDJPY_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.1s
-
-🚀 Starting XGBoost training for USDJPY...
-
-================================================================================
-Training XGBoost for USDJPY
-================================================================================
-
-📂 Loading data for USDJPY...
-  Train: 295 samples
-  Val:   55 samples
-  Test:  55 samples
-  Selected 57 features
-
-🚀 Training XGBoost for USDJPY...
-  Training samples: 295
-  Features: 57
-
-  Train accuracy: 0.997
-  Val accuracy:   0.691
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.1028
-    OB_Bullish_Valid                        : 0.0672
-    FVG_Distance_to_Price_ATR               : 0.0450
-    TBM_Bars_to_Hit                         : 0.0447
-    TBM_Reward_Per_Trade_ATR                : 0.0443
+    TBM_Risk_Per_Trade_ATR                  : 0.0365
     Distance_to_Entry_ATR                   : 0.0340
-    BOS_Wick_Confirm                        : 0.0297
-    TBM_Risk_Per_Trade_ATR                  : 0.0290
-    OB_Bearish_Valid                        : 0.0250
-    FVG_Quality_Fuzzy                       : 0.0246
+    FVG_Depth_ATR_ZScore                    : 0.0281
 
 📊 Evaluating on Validation set...
 
-  Accuracy: 0.691
-  Precision (macro): 0.707
-  Recall (macro): 0.667
-  F1-Score (macro): 0.684
+  Classification Metrics:
+    Accuracy: 0.738
+    Precision (macro): 0.818
+    Recall (macro): 0.819
+    F1-Score (macro): 0.811
 
-  Win Rate (excl. timeouts):
-    Predicted: 52.0%
-    Actual:    50.0%
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 44.5% (241/541 trades)
+    Profit Factor: 1.61
+    Expected Value/Trade: 0.34R
+    Trade Accuracy: 71.7%
+    Timeouts: 44 (7.5%)
+    💰 PROFITABLE STRATEGY (EV > 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
-  True Loss          17           0         8
-  True Timeout        2           3         0
-  True Win            6           1        18
+  True Loss         191           0        44
+  True Timeout        0          44         0
+  True Win          109           0       197
 
   Overfitting Analysis:
-    Training Accuracy: 0.997
-    Validation Accuracy: 0.691
-    Train-Val Gap: 0.306
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
+    Training Accuracy: 0.775
+    Validation Accuracy: 0.738
+    Train-Val Gap: 0.036
+    ✅ No significant overfitting
 
 📊 Evaluating on Test set...
 
-  Accuracy: 0.673
-  Precision (macro): 0.611
-  Recall (macro): 0.616
-  F1-Score (macro): 0.612
+  Classification Metrics:
+    Accuracy: 0.722
+    Precision (macro): 0.814
+    Recall (macro): 0.813
+    F1-Score (macro): 0.806
 
-  Win Rate (excl. timeouts):
-    Predicted: 56.6%
-    Actual:    62.3%
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 42.8% (235/549 trades)
+    Profit Factor: 1.50
+    Expected Value/Trade: 0.28R
+    Trade Accuracy: 70.9%
+    Timeouts: 27 (4.7%)
+    💰 PROFITABLE STRATEGY (EV > 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
-  True Loss          13           0         7
-  True Timeout        1           1         0
-  True Win            9           1        23
+  True Loss         198           0        44
+  True Timeout        0          27         0
+  True Win          116           0       191
 
-💾 Model pickle saved to /kaggle/working/models/trained/USDJPY_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDJPY_XGBoost_metadata.json
+💾 Model pickle saved to /kaggle/working/Model-output/UNIFIED_XGBoost.pkl
+💾 Metadata saved to /kaggle/working/Model-output/UNIFIED_XGBoost_metadata.json
 
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.3s
+✅ Model save complete: /kaggle/working/Model-output
+✅ XGBoost completed in 2.4s
 
-🧠 Starting Neural Network training for USDJPY...
+🧠 Starting Neural Network training...
 
 ================================================================================
-Training Neural Network for USDJPY
+Training Neural Network on FULL UNIFIED DATASET
 ================================================================================
 
-📂 Loading data for USDJPY...
-  Train: 295 samples
-  Val:   55 samples
-  Test:  55 samples
+📊 Training on FULL dataset:
+  Train: 76,982 samples (11 symbols)
+  Val:   16,500 samples
+  Test:  16,518 samples
   Selected 57 features
+  ⚠️ Removing 74,352 samples with NaN labels (96.6%)
+  ⚠️ Removing 15,915 samples with NaN labels (96.5%)
+  ⚠️ Removing 15,942 samples with NaN labels (96.5%)
 
-🧠 Training Neural Network for USDJPY...
+🎯 Training with simplified architecture...
+
+🧠 Training Neural Network for UNIFIED...
   Device: cuda
-  Training samples: 295
+  Training samples: 2,630
   Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
+  Architecture: 57 -> 128 -> 64 -> 32 -> 3
+⚠️ Epoch 1: Exploding gradient detected (norm=10.46 > 10.0)
+  Epoch 10/200 - LR: 0.001000 - Train Loss: 1.0933, Train Acc: 0.440 | Val Loss: 1.0155, Val Acc: 0.653
+  Epoch 20/200 - LR: 0.001000 - Train Loss: 1.0616, Train Acc: 0.556 | Val Loss: 1.0123, Val Acc: 0.648
+  Epoch 30/200 - LR: 0.001000 - Train Loss: 1.0444, Train Acc: 0.641 | Val Loss: 1.0073, Val Acc: 0.672
+  Epoch 40/200 - LR: 0.001000 - Train Loss: 1.0182, Train Acc: 0.683 | Val Loss: 1.0019, Val Acc: 0.677
+  Epoch 50/200 - LR: 0.001000 - Train Loss: 1.0114, Train Acc: 0.687 | Val Loss: 0.9967, Val Acc: 0.679
+  Epoch 60/200 - LR: 0.001000 - Train Loss: 1.0016, Train Acc: 0.693 | Val Loss: 0.9946, Val Acc: 0.682
+  Epoch 70/200 - LR: 0.000500 - Train Loss: 1.0019, Train Acc: 0.701 | Val Loss: 0.9937, Val Acc: 0.679
+  Epoch 80/200 - LR: 0.000500 - Train Loss: 1.0151, Train Acc: 0.712 | Val Loss: 0.9955, Val Acc: 0.680
+  Epoch 90/200 - LR: 0.000125 - Train Loss: 1.0146, Train Acc: 0.698 | Val Loss: 0.9955, Val Acc: 0.687
+  Epoch 100/200 - LR: 0.000063 - Train Loss: 1.0176, Train Acc: 0.698 | Val Loss: 0.9938, Val Acc: 0.691
+  Epoch 110/200 - LR: 0.000031 - Train Loss: 1.0095, Train Acc: 0.714 | Val Loss: 0.9954, Val Acc: 0.687
+  Epoch 120/200 - LR: 0.000008 - Train Loss: 0.9884, Train Acc: 0.721 | Val Loss: 0.9908, Val Acc: 0.691
 
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 936
-  Epoch 10/200 - LR: 0.010000 - Train Loss: 0.7444, Train Acc: 0.797 | Val Loss: 0.8907, Val Acc: 0.655
-  Epoch 20/200 - LR: 0.005000 - Train Loss: 0.6971, Train Acc: 0.848 | Val Loss: 0.8878, Val Acc: 0.691
-  Epoch 30/200 - LR: 0.001250 - Train Loss: 0.6316, Train Acc: 0.890 | Val Loss: 0.9281, Val Acc: 0.655
-  Epoch 40/200 - LR: 0.000625 - Train Loss: 0.6267, Train Acc: 0.907 | Val Loss: 0.9966, Val Acc: 0.618
-
-  Early stopping at epoch 41 (patience=30)
-Learning curves saved to: models/trained/USDJPY_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/USDJPY_NN_overfitting_metrics.json
+  Early stopping at epoch 121 (patience=20)
+Learning curves saved to: models/trained/UNIFIED_NN_learning_curves.png
+Overfitting metrics saved to: models/trained/UNIFIED_NN_overfitting_metrics.json
 
 ============================================================
 OVERFITTING MONITOR SUMMARY
 ============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 31.56% (Threshold: 15%)
-Total Epochs: 41
-Training Duration: 0:00:05.761522
+Status: ✓ HEALTHY
+Train-Val Gap: 2.61% (Threshold: 15%)
+Total Epochs: 121
+Training Duration: 0:00:22.715321
 
 Final Metrics:
-  Train Accuracy: 0.8974
-  Val Accuracy:   0.5818
-  Train Loss:     0.6306
-  Val Loss:       0.9993
+  Train Accuracy: 0.7133
+  Val Accuracy:   0.6872
+  Train Loss:     1.0091
+  Val Loss:       0.9926
 
 Best Epoch (Highest Val Accuracy):
-  Epoch:          11
-  Train Accuracy: 0.7863
-  Val Accuracy:   0.7273
-  Train Loss:     0.7613
-  Val Loss:       0.8680
+  Epoch:          105
+  Train Accuracy: 0.7023
+  Val Accuracy:   0.6957
+  Train Loss:     1.0097
+  Val Loss:       0.9924
 ============================================================
 
-
-  Final Train Accuracy: 0.897
-  Final Val Accuracy:   0.582
-  Train-Val Gap:        0.316 (31.6%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.582
-  Precision (macro): 0.579
-  Recall (macro): 0.640
-  F1-Score (macro): 0.571
-
-  Win Rate (excl. timeouts):
-    Predicted: 70.0%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           8           2        15
-  True Timeout        1           4         0
-  True Win            3           2        20
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.709
-  Precision (macro): 0.629
-  Recall (macro): 0.766
-  F1-Score (macro): 0.623
-
-  Win Rate (excl. timeouts):
-    Predicted: 71.7%
-    Actual:    62.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           9           1        10
-  True Timeout        0           2         0
-  True Win            2           3        28
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDJPY_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDJPY_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/USDJPY_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 6.8s
-
-🔄 Starting LSTM training for USDJPY...
-
-================================================================================
-Training LSTM for USDJPY
-================================================================================
-
-📂 Loading data for USDJPY...
-  Train: 295 samples
-  Val:   55 samples
-  Test:  55 samples
-  Selected 57 features
-
-🔄 Training LSTM for USDJPY...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 295
-  Features: 57
-  Creating sequences...
-  Sequence shape: (275, 20, 57)
-  Epoch 10/200 - LR: 0.001044 - Train Loss: 0.7397, Train Acc: 0.611 | Val Loss: 1.6072, Val Acc: 0.429
-⚠️ Epoch 15: Exploding gradient detected (norm=10.03 > 10.0)
-⚠️ Epoch 19: Exploding gradient detected (norm=12.31 > 10.0)
-  Epoch 20/200 - LR: 0.002804 - Train Loss: 0.6496, Train Acc: 0.702 | Val Loss: 1.8386, Val Acc: 0.429
-⚠️ Epoch 29: Exploding gradient detected (norm=13.34 > 10.0)
-⚠️ Epoch 30: Exploding gradient detected (norm=13.83 > 10.0)
-  Epoch 30/200 - LR: 0.005207 - Train Loss: 0.5502, Train Acc: 0.869 | Val Loss: 3.1242, Val Acc: 0.371
-
-  Early stopping at epoch 33
-
-  ⚠️ Training Warnings (4):
-    - Epoch 15: Exploding gradient detected (norm=10.03 > 10.0)
-    - Epoch 19: Exploding gradient detected (norm=12.31 > 10.0)
-    - Epoch 29: Exploding gradient detected (norm=13.34 > 10.0)
-    - Epoch 30: Exploding gradient detected (norm=13.83 > 10.0)
-
-  Final Train Accuracy: 0.869
-  Final Val Accuracy:   0.371
-  Train-Val Gap:        0.498 (49.8%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.273
-  Precision (macro): 0.303
-  Recall (macro): 0.307
-  F1-Score (macro): 0.250
-
-  Win Rate (excl. timeouts):
-    Predicted: 42.0%
-    Actual:    50.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           4           9        12
-  True Timeout        0           2         3
-  True Win            5          11         9
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.345
-  Precision (macro): 0.361
-  Recall (macro): 0.218
-  F1-Score (macro): 0.271
-
-  Win Rate (excl. timeouts):
-    Predicted: 37.7%
-    Actual:    62.3%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           4          11         5
-  True Timeout        0           0         2
-  True Win            6          12        15
-
-💾 Model pickle saved to /kaggle/working/models/trained/USDJPY_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/USDJPY_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/USDJPY_LSTM_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 7.5s
-
-================================================================================
-Symbol USDJPY Training Summary:
-  Total Duration: 20.6s
-  Successful Models: 4/4
-  Failed Models: 0/4
-================================================================================
-
-################################################################################
-# Training XAUUSD
-################################################################################
-
-################################################################################
-# Training All Models for XAUUSD
-################################################################################
-
-🌲 Starting RandomForest training for XAUUSD...
-
-================================================================================
-Training Random Forest for XAUUSD
-================================================================================
-
-📂 Loading data for XAUUSD...
-  Train: 271 samples
-  Val:   63 samples
-  Test:  66 samples
-  Selected 57 features
-
-🌲 Training Random Forest for XAUUSD...
-  Training samples: 271
-  Features: 57
-
-  📊 Dataset has 271 samples (< 300), applying augmentation...
-  Augmented: 271 → 906 samples
-
-  🔄 Performing cross-validation...
-
-🔄 Performing 5-fold cross-validation...
-
-🌲 Training Random Forest for XAUUSD...
-  Training samples: 724
-  Features: 57
-
-  Train accuracy: 0.930
-  Val accuracy:   0.846
-  Train-Val gap:  0.083
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 1/5: Accuracy=0.846, F1=0.845
-
-🌲 Training Random Forest for XAUUSD...
-  Training samples: 725
-  Features: 57
-
-  Train accuracy: 0.935
-  Val accuracy:   0.867
-  Train-Val gap:  0.068
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 2/5: Accuracy=0.867, F1=0.866
-
-🌲 Training Random Forest for XAUUSD...
-  Training samples: 725
-  Features: 57
-
-  Train accuracy: 0.923
-  Val accuracy:   0.834
-  Train-Val gap:  0.089
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 3/5: Accuracy=0.834, F1=0.831
-
-🌲 Training Random Forest for XAUUSD...
-  Training samples: 725
-  Features: 57
-
-  Train accuracy: 0.941
-  Val accuracy:   0.829
-  Train-Val gap:  0.112
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 4/5: Accuracy=0.829, F1=0.826
-
-🌲 Training Random Forest for XAUUSD...
-  Training samples: 725
-  Features: 57
-
-  Train accuracy: 0.931
-  Val accuracy:   0.867
-  Train-Val gap:  0.064
-  ✅ Good generalization (gap ≤ 15%)
-
-  Feature importance computed (feature names not available)
-  Fold 5/5: Accuracy=0.867, F1=0.866
-
-  Cross-Validation Results:
-    Mean Accuracy: 0.849 ± 0.016
-    Min Accuracy:  0.829
-    Max Accuracy:  0.867
-    Range:         0.039
-    Mean F1-Score: 0.847 ± 0.017
-    ✅ STABLE: Std dev 0.016 ≤ 0.10
-
-    Poor-Performing Folds (below mean - std):
-      Fold 4: 0.829 (deviation: -0.020)
-
-  Train accuracy: 0.982
-  Val accuracy:   0.619
-  Train-Val gap:  0.363
-  ⚠️ Warning: Overfitting detected (gap > 15%)
-
-  Top 10 Most Important Features:
-    TBM_Risk_Per_Trade_ATR                  : 0.1053
-    TBM_Reward_Per_Trade_ATR                : 0.0945
-    TBM_Bars_to_Hit                         : 0.0890
-    Distance_to_Entry_ATR                   : 0.0793
-    OB_Age                                  : 0.0540
-    FVG_Distance_to_Price_ATR               : 0.0452
-    FVG_Depth_ATR                           : 0.0386
-    FVG_Quality_Fuzzy                       : 0.0341
-    FVG_Size_Fuzzy_Score                    : 0.0338
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0316
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.619
-  Precision (macro): 0.441
-  Recall (macro): 0.422
-  F1-Score (macro): 0.430
-
-  Win Rate (excl. timeouts):
-    Predicted: 43.5%
-    Actual:    53.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          20           1         8
-  True Timeout        0           0         1
-  True Win           11           3        19
-
-  Overfitting Analysis:
-    Training Accuracy: 0.982
-    Validation Accuracy: 0.619
-    Train-Val Gap: 0.363
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.530
-  Precision (macro): 0.591
-  Recall (macro): 0.268
-  F1-Score (macro): 0.285
-
-  Win Rate (excl. timeouts):
-    Predicted: 75.6%
-    Actual:    100.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           0           0         0
-  True Timeout       10           1        10
-  True Win           11           0        34
-
-💾 Model pickle saved to /kaggle/working/models/trained/XAUUSD_RandomForest.pkl
-💾 Metadata saved to /kaggle/working/models/trained/XAUUSD_RandomForest_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ RandomForest completed in 5.1s
-
-🚀 Starting XGBoost training for XAUUSD...
-
-================================================================================
-Training XGBoost for XAUUSD
-================================================================================
-
-📂 Loading data for XAUUSD...
-  Train: 271 samples
-  Val:   63 samples
-  Test:  66 samples
-  Selected 57 features
-
-🚀 Training XGBoost for XAUUSD...
-  Training samples: 271
-  Features: 57
-
-  Train accuracy: 1.000
-  Val accuracy:   0.619
-  Best iteration: 200
-
-  Top 10 Most Important Features:
-    OB_Age                                  : 0.0801
-    FVG_Depth_ATR                           : 0.0502
-    TBM_Bars_to_Hit                         : 0.0452
-    TBM_Reward_Per_Trade_ATR                : 0.0396
-    TBM_Risk_Per_Trade_ATR                  : 0.0396
-    FVG_Distance_to_Price_ATR               : 0.0354
-    ChoCH_Detected                          : 0.0336
-    Distance_to_Entry_ATR                   : 0.0317
-    FVG_Distance_to_Price_ATR_ZScore        : 0.0314
-    OB_Displacement_ATR                     : 0.0263
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.619
-  Precision (macro): 0.433
-  Recall (macro): 0.419
-  F1-Score (macro): 0.426
-
-  Win Rate (excl. timeouts):
-    Predicted: 51.6%
-    Actual:    53.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          18           0        11
-  True Timeout        1           0         0
-  True Win            9           3        21
-
-  Overfitting Analysis:
-    Training Accuracy: 1.000
-    Validation Accuracy: 0.619
-    Train-Val Gap: 0.381
-    ⚠️ OVERFITTING DETECTED (gap > 15%)
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.561
-  Precision (macro): 0.262
-  Recall (macro): 0.274
-  F1-Score (macro): 0.268
-
-  Win Rate (excl. timeouts):
-    Predicted: 82.2%
-    Actual:    100.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           0           0         0
-  True Timeout       11           0        10
-  True Win            8           0        37
-
-💾 Model pickle saved to /kaggle/working/models/trained/XAUUSD_XGBoost.pkl
-💾 Metadata saved to /kaggle/working/models/trained/XAUUSD_XGBoost_metadata.json
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ XGBoost completed in 1.3s
-
-🧠 Starting Neural Network training for XAUUSD...
-
-================================================================================
-Training Neural Network for XAUUSD
-================================================================================
-
-📂 Loading data for XAUUSD...
-  Train: 271 samples
-  Val:   63 samples
-  Test:  66 samples
-  Selected 57 features
-
-🧠 Training Neural Network for XAUUSD...
-  Device: cuda
-  Training samples: 271
-  Features: 57
-  Architecture: 57 -> 512 -> 256 -> 128 -> 64 -> 3
-
-  Dataset has < 300 samples. Applying data augmentation...
-  Augmented training samples: 906
-  Epoch 10/200 - LR: 0.005000 - Train Loss: 0.7004, Train Acc: 0.827 | Val Loss: 1.0310, Val Acc: 0.571
-  Epoch 20/200 - LR: 0.002500 - Train Loss: 0.6570, Train Acc: 0.881 | Val Loss: 0.9887, Val Acc: 0.571
-  Epoch 30/200 - LR: 0.000625 - Train Loss: 0.6283, Train Acc: 0.898 | Val Loss: 1.0271, Val Acc: 0.587
-
-  Early stopping at epoch 33 (patience=30)
-Learning curves saved to: models/trained/XAUUSD_NN_learning_curves.png
-Overfitting metrics saved to: models/trained/XAUUSD_NN_overfitting_metrics.json
-
-============================================================
-OVERFITTING MONITOR SUMMARY
-============================================================
-Status: ⚠ WARNING
-Train-Val Gap: 33.03% (Threshold: 15%)
-Total Epochs: 33
-Training Duration: 0:00:04.189663
-
-Final Metrics:
-  Train Accuracy: 0.9018
-  Val Accuracy:   0.5714
-  Train Loss:     0.6201
-  Val Loss:       1.0267
-
-Best Epoch (Highest Val Accuracy):
-  Epoch:          3
-  Train Accuracy: 0.7494
-  Val Accuracy:   0.6190
-  Train Loss:     0.7730
-  Val Loss:       0.9561
-============================================================
-
-
-  Final Train Accuracy: 0.902
-  Final Val Accuracy:   0.571
-  Train-Val Gap:        0.330 (33.0%)
-
-📊 Evaluating on Validation set...
-
-  Accuracy: 0.571
-  Precision (macro): 0.408
-  Recall (macro): 0.389
-  F1-Score (macro): 0.397
-
-  Win Rate (excl. timeouts):
-    Predicted: 45.2%
-    Actual:    53.2%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss          18           1        10
-  True Timeout        1           0         0
-  True Win           12           3        18
-
-📊 Evaluating on Test set...
-
-  Accuracy: 0.515
-  Precision (macro): 0.578
-  Recall (macro): 0.260
-  F1-Score (macro): 0.275
-
-  Win Rate (excl. timeouts):
-    Predicted: 73.3%
-    Actual:    100.0%
-
-  Confusion Matrix:
-              Pred Loss  Pred Timeout  Pred Win
-  True Loss           0           0         0
-  True Timeout        8           1        12
-  True Win           12           0        33
-
-💾 Model pickle saved to /kaggle/working/models/trained/XAUUSD_NeuralNetwork.pkl
-💾 Metadata saved to /kaggle/working/models/trained/XAUUSD_NeuralNetwork_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/XAUUSD_NeuralNetwork_scaler.pkl
-
-✅ Model save complete: /kaggle/working/models/trained
-✅ Neural Network completed in 5.2s
-
-🔄 Starting LSTM training for XAUUSD...
-
-================================================================================
-Training LSTM for XAUUSD
-================================================================================
-
-📂 Loading data for XAUUSD...
-  Train: 271 samples
-  Val:   63 samples
-  Test:  66 samples
-  Selected 57 features
-
-🔄 Training LSTM for XAUUSD...
-  Device: cuda
-  Lookback window: 20 candles
-  Training samples: 271
-  Features: 57
-  Creating sequences...
-  Sequence shape: (251, 20, 57)
-  Epoch 10/200 - LR: 0.001044 - Train Loss: 0.7223, Train Acc: 0.657 | Val Loss: 1.0263, Val Acc: 0.419
-  Epoch 20/200 - LR: 0.002805 - Train Loss: 0.4521, Train Acc: 0.813 | Val Loss: 2.1779, Val Acc: 0.442
-  Epoch 30/200 - LR: 0.005208 - Train Loss: 0.4914, Train Acc: 0.845 | Val Loss: 1.5834, Val Acc: 0.302
-⚠️ Epoch 32: Exploding gradient detected (norm=11.99 > 10.0)
-
-  Early stopping at epoch 32
 
   ⚠️ Training Warnings (1):
-    - Epoch 32: Exploding gradient detected (norm=11.99 > 10.0)
+    - Epoch 1: Exploding gradient detected (norm=10.46 > 10.0)
 
-  Final Train Accuracy: 0.857
-  Final Val Accuracy:   0.326
-  Train-Val Gap:        0.531 (53.1%)
+  Final Train Accuracy: 0.713
+  Final Val Accuracy:   0.687
+  Train-Val Gap:        0.026 (2.6%)
 
 📊 Evaluating on Validation set...
 
-  Accuracy: 0.238
-  Precision (macro): 0.278
-  Recall (macro): 0.486
-  F1-Score (macro): 0.212
+  Classification Metrics:
+    Accuracy: 0.687
+    Precision (macro): 0.770
+    Recall (macro): 0.769
+    F1-Score (macro): 0.769
 
-  Win Rate (excl. timeouts):
-    Predicted: 21.0%
-    Actual:    53.2%
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 58.2% (315/541 trades)
+    Profit Factor: 2.79
+    Expected Value/Trade: 0.75R
+    Trade Accuracy: 66.2%
+    Timeouts: 44 (7.5%)
+    💰 PROFITABLE STRATEGY (EV > 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
-  True Loss           8          14         7
-  True Timeout        0           1         0
-  True Win           16          11         6
+  True Loss         139           0        96
+  True Timeout        0          44         0
+  True Win           87           0       219
 
 📊 Evaluating on Test set...
 
-  Accuracy: 0.394
-  Precision (macro): 0.360
-  Recall (macro): 0.252
-  F1-Score (macro): 0.292
+  Classification Metrics:
+    Accuracy: 0.648
+    Precision (macro): 0.750
+    Recall (macro): 0.749
+    F1-Score (macro): 0.749
 
-  Win Rate (excl. timeouts):
-    Predicted: 42.2%
-    Actual:    100.0%
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 57.2% (314/549 trades)
+    Profit Factor: 2.67
+    Expected Value/Trade: 0.72R
+    Trade Accuracy: 63.0%
+    Timeouts: 27 (4.7%)
+    💰 PROFITABLE STRATEGY (EV > 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
-  True Loss           0           0         0
-  True Timeout        7           7         7
-  True Win           13          13        19
+  True Loss         137           0       105
+  True Timeout        0          27         0
+  True Win           98           0       209
 
-💾 Model pickle saved to /kaggle/working/models/trained/XAUUSD_LSTM.pkl
-💾 Metadata saved to /kaggle/working/models/trained/XAUUSD_LSTM_metadata.json
-💾 Scaler saved to /kaggle/working/models/trained/XAUUSD_LSTM_scaler.pkl
+💾 Model pickle saved to /kaggle/working/Model-output/UNIFIED_NeuralNetwork.pkl
+💾 Metadata saved to /kaggle/working/Model-output/UNIFIED_NeuralNetwork_metadata.json
+💾 Scaler saved to /kaggle/working/Model-output/UNIFIED_NeuralNetwork_scaler.pkl
 
-✅ Model save complete: /kaggle/working/models/trained
-✅ LSTM completed in 6.7s
+✅ Model save complete: /kaggle/working/Model-output
+✅ Neural Network completed in 28.6s
+
+🔄 Starting LSTM training (EXPERIMENTAL)...
 
 ================================================================================
-Symbol XAUUSD Training Summary:
-  Total Duration: 18.3s
+Training LSTM on FULL UNIFIED DATASET (EXPERIMENTAL)
+================================================================================
+
+⚠️  WARNING: LSTM has shown instability in previous tests:
+   - Severe overfitting (39-61% train-val gap)
+   - Gradient explosions (24 warnings)
+   - Poor test accuracy (16-46%)
+   - Training divergence
+
+   This model is included for experimental purposes only.
+
+📊 Training on FULL dataset:
+  Train: 76,982 samples (11 symbols)
+  Val:   16,500 samples
+  Test:  16,518 samples
+  Lookback: 10 candles
+  Selected 57 features
+  ⚠️ Removing 74,352 samples with NaN labels (96.6%)
+  ⚠️ Removing 15,915 samples with NaN labels (96.5%)
+  ⚠️ Removing 15,942 samples with NaN labels (96.5%)
+
+🎯 Training with AGGRESSIVE regularization...
+
+🔄 Training LSTM for UNIFIED...
+  Device: cuda
+  Lookback window: 10 candles
+  Training samples: 2,630
+  Features: 57
+  Creating sequences...
+  Sequence shape: (2620, 10, 57)
+⚠️ Epoch 1: Exploding gradient detected (norm=5.62 > 5.0)
+⚠️ Epoch 1: Exploding gradient detected (norm=7.39 > 5.0)
+⚠️ Epoch 2: Exploding gradient detected (norm=5.73 > 5.0)
+⚠️ Epoch 2: Exploding gradient detected (norm=5.01 > 5.0)
+⚠️ Epoch 2: Exploding gradient detected (norm=5.52 > 5.0)
+⚠️ Epoch 2: Exploding gradient detected (norm=6.94 > 5.0)
+⚠️ Epoch 2: Exploding gradient detected (norm=5.61 > 5.0)
+⚠️ Epoch 3: Exploding gradient detected (norm=5.99 > 5.0)
+⚠️ Epoch 4: Exploding gradient detected (norm=8.18 > 5.0)
+⚠️ Epoch 4: Exploding gradient detected (norm=8.00 > 5.0)
+⚠️ Epoch 5: Exploding gradient detected (norm=11.69 > 5.0)
+⚠️ Epoch 5: Exploding gradient detected (norm=6.29 > 5.0)
+⚠️ Epoch 5: Exploding gradient detected (norm=7.34 > 5.0)
+⚠️ Epoch 6: Exploding gradient detected (norm=6.07 > 5.0)
+⚠️ Epoch 7: Exploding gradient detected (norm=5.05 > 5.0)
+⚠️ Epoch 7: Exploding gradient detected (norm=6.53 > 5.0)
+⚠️ Epoch 7: Exploding gradient detected (norm=5.38 > 5.0)
+⚠️ Epoch 8: Exploding gradient detected (norm=6.24 > 5.0)
+⚠️ Epoch 8: Exploding gradient detected (norm=5.09 > 5.0)
+⚠️ Epoch 8: Exploding gradient detected (norm=5.07 > 5.0)
+⚠️ Epoch 8: Exploding gradient detected (norm=7.10 > 5.0)
+⚠️ Epoch 9: Exploding gradient detected (norm=5.80 > 5.0)
+⚠️ Epoch 9: Exploding gradient detected (norm=5.82 > 5.0)
+⚠️ Epoch 10: Exploding gradient detected (norm=5.12 > 5.0)
+⚠️ Epoch 10: Exploding gradient detected (norm=7.60 > 5.0)
+  Epoch 10/200 - LR: 0.000010 - Train Loss: 1.1442, Train Acc: 0.417 | Val Loss: 1.1026, Val Acc: 0.386
+⚠️ Epoch 11: Exploding gradient detected (norm=6.47 > 5.0)
+⚠️ Epoch 11: Exploding gradient detected (norm=6.16 > 5.0)
+⚠️ Epoch 11: Exploding gradient detected (norm=8.95 > 5.0)
+⚠️ Epoch 12: Exploding gradient detected (norm=6.08 > 5.0)
+⚠️ Epoch 12: Exploding gradient detected (norm=6.78 > 5.0)
+⚠️ Epoch 13: Exploding gradient detected (norm=5.98 > 5.0)
+⚠️ Epoch 14: Exploding gradient detected (norm=6.17 > 5.0)
+⚠️ Epoch 14: Exploding gradient detected (norm=9.32 > 5.0)
+⚠️ Epoch 15: Exploding gradient detected (norm=5.23 > 5.0)
+⚠️ Epoch 15: Exploding gradient detected (norm=6.29 > 5.0)
+⚠️ Epoch 16: Exploding gradient detected (norm=8.73 > 5.0)
+⚠️ Epoch 16: Exploding gradient detected (norm=5.44 > 5.0)
+⚠️ Epoch 17: Exploding gradient detected (norm=5.96 > 5.0)
+⚠️ Epoch 17: Exploding gradient detected (norm=6.08 > 5.0)
+⚠️ Epoch 18: Exploding gradient detected (norm=5.63 > 5.0)
+⚠️ Epoch 18: Exploding gradient detected (norm=5.33 > 5.0)
+⚠️ Epoch 18: Exploding gradient detected (norm=5.48 > 5.0)
+⚠️ Epoch 18: Exploding gradient detected (norm=11.41 > 5.0)
+⚠️ Epoch 19: Exploding gradient detected (norm=5.97 > 5.0)
+⚠️ Epoch 19: Exploding gradient detected (norm=5.36 > 5.0)
+⚠️ Epoch 19: Exploding gradient detected (norm=6.25 > 5.0)
+⚠️ Epoch 19: Exploding gradient detected (norm=7.10 > 5.0)
+⚠️ Epoch 20: Exploding gradient detected (norm=6.21 > 5.0)
+⚠️ Epoch 20: Exploding gradient detected (norm=5.65 > 5.0)
+  Epoch 20/200 - LR: 0.000028 - Train Loss: 1.1331, Train Acc: 0.423 | Val Loss: 1.0992, Val Acc: 0.400
+⚠️ Epoch 21: Exploding gradient detected (norm=12.64 > 5.0)
+⚠️ Epoch 22: Exploding gradient detected (norm=5.10 > 5.0)
+⚠️ Epoch 24: Exploding gradient detected (norm=9.69 > 5.0)
+⚠️ Epoch 25: Exploding gradient detected (norm=7.22 > 5.0)
+⚠️ Epoch 26: Exploding gradient detected (norm=5.35 > 5.0)
+⚠️ Epoch 27: Exploding gradient detected (norm=5.75 > 5.0)
+⚠️ Epoch 29: Exploding gradient detected (norm=6.69 > 5.0)
+⚠️ Epoch 30: Exploding gradient detected (norm=5.27 > 5.0)
+  Epoch 30/200 - LR: 0.000052 - Train Loss: 1.1039, Train Acc: 0.458 | Val Loss: 1.0993, Val Acc: 0.424
+⚠️ Epoch 34: Exploding gradient detected (norm=8.37 > 5.0)
+⚠️ Epoch 34: Exploding gradient detected (norm=9.38 > 5.0)
+⚠️ Epoch 35: Exploding gradient detected (norm=5.73 > 5.0)
+⚠️ Epoch 36: Exploding gradient detected (norm=6.17 > 5.0)
+⚠️ Epoch 37: Exploding gradient detected (norm=5.09 > 5.0)
+⚠️ Epoch 38: Exploding gradient detected (norm=5.59 > 5.0)
+
+  Early stopping at epoch 38
+
+  ⚠️ Training Warnings (63):
+    - Epoch 1: Exploding gradient detected (norm=5.62 > 5.0)
+    - Epoch 1: Exploding gradient detected (norm=7.39 > 5.0)
+    - Epoch 2: Exploding gradient detected (norm=5.73 > 5.0)
+    - Epoch 2: Exploding gradient detected (norm=5.01 > 5.0)
+    - Epoch 2: Exploding gradient detected (norm=5.52 > 5.0)
+    - Epoch 2: Exploding gradient detected (norm=6.94 > 5.0)
+    - Epoch 2: Exploding gradient detected (norm=5.61 > 5.0)
+    - Epoch 3: Exploding gradient detected (norm=5.99 > 5.0)
+    - Epoch 4: Exploding gradient detected (norm=8.18 > 5.0)
+    - Epoch 4: Exploding gradient detected (norm=8.00 > 5.0)
+    - Epoch 5: Exploding gradient detected (norm=11.69 > 5.0)
+    - Epoch 5: Exploding gradient detected (norm=6.29 > 5.0)
+    - Epoch 5: Exploding gradient detected (norm=7.34 > 5.0)
+    - Epoch 6: Exploding gradient detected (norm=6.07 > 5.0)
+    - Epoch 7: Exploding gradient detected (norm=5.05 > 5.0)
+    - Epoch 7: Exploding gradient detected (norm=6.53 > 5.0)
+    - Epoch 7: Exploding gradient detected (norm=5.38 > 5.0)
+    - Epoch 8: Exploding gradient detected (norm=6.24 > 5.0)
+    - Epoch 8: Exploding gradient detected (norm=5.09 > 5.0)
+    - Epoch 8: Exploding gradient detected (norm=5.07 > 5.0)
+    - Epoch 8: Exploding gradient detected (norm=7.10 > 5.0)
+    - Epoch 9: Exploding gradient detected (norm=5.80 > 5.0)
+    - Epoch 9: Exploding gradient detected (norm=5.82 > 5.0)
+    - Epoch 10: Exploding gradient detected (norm=5.12 > 5.0)
+    - Epoch 10: Exploding gradient detected (norm=7.60 > 5.0)
+    - Epoch 11: Exploding gradient detected (norm=6.47 > 5.0)
+    - Epoch 11: Exploding gradient detected (norm=6.16 > 5.0)
+    - Epoch 11: Exploding gradient detected (norm=8.95 > 5.0)
+    - Epoch 12: Exploding gradient detected (norm=6.08 > 5.0)
+    - Epoch 12: Exploding gradient detected (norm=6.78 > 5.0)
+    - Epoch 13: Exploding gradient detected (norm=5.98 > 5.0)
+    - Epoch 14: Exploding gradient detected (norm=6.17 > 5.0)
+    - Epoch 14: Exploding gradient detected (norm=9.32 > 5.0)
+    - Epoch 15: Exploding gradient detected (norm=5.23 > 5.0)
+    - Epoch 15: Exploding gradient detected (norm=6.29 > 5.0)
+    - Epoch 16: Exploding gradient detected (norm=8.73 > 5.0)
+    - Epoch 16: Exploding gradient detected (norm=5.44 > 5.0)
+    - Epoch 17: Exploding gradient detected (norm=5.96 > 5.0)
+    - Epoch 17: Exploding gradient detected (norm=6.08 > 5.0)
+    - Epoch 18: Exploding gradient detected (norm=5.63 > 5.0)
+    - Epoch 18: Exploding gradient detected (norm=5.33 > 5.0)
+    - Epoch 18: Exploding gradient detected (norm=5.48 > 5.0)
+    - Epoch 18: Exploding gradient detected (norm=11.41 > 5.0)
+    - Epoch 19: Exploding gradient detected (norm=5.97 > 5.0)
+    - Epoch 19: Exploding gradient detected (norm=5.36 > 5.0)
+    - Epoch 19: Exploding gradient detected (norm=6.25 > 5.0)
+    - Epoch 19: Exploding gradient detected (norm=7.10 > 5.0)
+    - Epoch 20: Exploding gradient detected (norm=6.21 > 5.0)
+    - Epoch 20: Exploding gradient detected (norm=5.65 > 5.0)
+    - Epoch 21: Exploding gradient detected (norm=12.64 > 5.0)
+    - Epoch 22: Exploding gradient detected (norm=5.10 > 5.0)
+    - Epoch 24: Exploding gradient detected (norm=9.69 > 5.0)
+    - Epoch 25: Exploding gradient detected (norm=7.22 > 5.0)
+    - Epoch 26: Exploding gradient detected (norm=5.35 > 5.0)
+    - Epoch 27: Exploding gradient detected (norm=5.75 > 5.0)
+    - Epoch 29: Exploding gradient detected (norm=6.69 > 5.0)
+    - Epoch 30: Exploding gradient detected (norm=5.27 > 5.0)
+    - Epoch 34: Exploding gradient detected (norm=8.37 > 5.0)
+    - Epoch 34: Exploding gradient detected (norm=9.38 > 5.0)
+    - Epoch 35: Exploding gradient detected (norm=5.73 > 5.0)
+    - Epoch 36: Exploding gradient detected (norm=6.17 > 5.0)
+    - Epoch 37: Exploding gradient detected (norm=5.09 > 5.0)
+    - Epoch 38: Exploding gradient detected (norm=5.59 > 5.0)
+
+  Final Train Accuracy: 0.468
+  Final Val Accuracy:   0.449
+  Train-Val Gap:        0.019 (1.9%)
+
+📊 Evaluating on Validation set...
+
+  Classification Metrics:
+    Accuracy: 0.443
+    Precision (macro): 0.334
+    Recall (macro): 0.329
+    F1-Score (macro): 0.321
+
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 45.3% (260/574 trades)
+    Profit Factor: 1.66
+    Expected Value/Trade: 0.36R
+    Trade Accuracy: 48.6%
+    Timeouts: 11 (1.9%)
+    💰 PROFITABLE STRATEGY (EV > 0)
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss         124           3       108
+  True Timeout       25           1        18
+  True Win          165           7       134
+
+📊 Evaluating on Test set...
+
+  Classification Metrics:
+    Accuracy: 0.464
+    Precision (macro): 0.317
+    Recall (macro): 0.326
+    F1-Score (macro): 0.319
+
+  Trading Metrics (1:2.0 R:R):
+    Win Rate: 47.6% (269/565 trades)
+    Profit Factor: 1.82
+    Expected Value/Trade: 0.43R
+    Trade Accuracy: 49.6%
+    Timeouts: 11 (1.9%)
+    💰 PROFITABLE STRATEGY (EV > 0)
+
+  Confusion Matrix:
+              Pred Loss  Pred Timeout  Pred Win
+  True Loss         124           6       112
+  True Timeout       13           0        14
+  True Win          159           5       143
+
+💾 Model pickle saved to /kaggle/working/Model-output/UNIFIED_LSTM.pkl
+💾 Metadata saved to /kaggle/working/Model-output/UNIFIED_LSTM_metadata.json
+💾 Scaler saved to /kaggle/working/Model-output/UNIFIED_LSTM_scaler.pkl
+
+✅ Model save complete: /kaggle/working/Model-output
+⚠️ LSTM completed in 27.1s but showed 63 warnings
+
+================================================================================
+Training Summary:
+  Total Duration: 68.9s (1.1 min)
   Successful Models: 4/4
   Failed Models: 0/4
 ================================================================================
 
 ================================================================================
-✅ TRAINING COMPLETE!
+All training completed in 68.9s (1.1 minutes)
 ================================================================================
 
-Results: 44/44 models successful
+================================================================================
+TRAINING SUMMARY REPORT - UNIFIED DATASET
+================================================================================
 
-Download from Output tab:
-  - training_results.json
-  - models/trained/*.pkl files
-  - models/trained/*_metadata.json files
+📊 Model Performance:
+  Model                Train Acc    Val Acc      Test Acc     Gap        Status              
+  ----------------------------------------------------------------------------------------------------
+  RandomForest         0.657        0.641        0.615        1.60%      ✅ Good              
+  XGBoost              0.775        0.738        0.722        3.61%      ✅ Good              
+  NeuralNetwork        0.000        0.687        0.648        -68.72%    ✅ Good              
+  LSTM                 0.000        0.443        0.464        -44.27%    ⚠️ Unstable (63 warnings)
+
+💾 Results saved to: /kaggle/working/Model-output/training_results.json
+
+✅ Training complete!
+
+================================================================================
+NEXT STEPS:
+================================================================================
+1. Review training results in models/trained/training_results.json
+2. Check model files: UNIFIED_RandomForest.pkl, UNIFIED_XGBoost.pkl, UNIFIED_NeuralNetwork.pkl
+3. Use unified models for predictions on ANY symbol
+4. Deploy to production
+
+Models saved in: models/trained/
+
+================================================================================
+FINAL STATISTICS
+================================================================================
+  Approach:             Unified Dataset (All Symbols)
+  Total Models:         4
+  Successful:           4
+  Failed:               0
+  Success Rate:         100.0%
+  Total Duration:       68.9s (1.1 min)
+  Models per Symbol:    1 (unified model works for all)
+  LSTM Status:          ✅ Trained
+================================================================================
+
+🎉 Done! Your unified models are ready for deployment!
+
+⚠️  Note: LSTM showed 63 training warnings.
+   Consider using RF, XGB, or NN for production instead.
