@@ -290,8 +290,8 @@ class UnifiedModelTrainer:
         print(f"  Test:  {len(test_df):,} samples")
         print(f"  Lookback: 10 candles")
 
-        # Prepare features with feature selection
-        X_train, y_train = model.prepare_features(train_df, fit_scaler=False,
+        # Prepare features with feature selection (LSTM needs scaler fitted)
+        X_train, y_train = model.prepare_features(train_df, fit_scaler=True,
                                                   apply_feature_selection=True)
         X_val, y_val = model.prepare_features(val_df, fit_scaler=False)
         X_test, y_test = model.prepare_features(test_df, fit_scaler=False)

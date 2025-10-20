@@ -494,7 +494,15 @@ class BaseSMCModel(ABC):
         X = df[self.feature_cols].values
         y = df[self.target_col].values
         
-        # FIX 1: Handle NaN/inf values BEFORE any processing
+        # CRITICAL FIX: Remove rows with NaN labels FIRST
+        valid_mask = ~np.isnan(y)
+        if not valid_mask.all():
+            n_invalid = (~valid_mask).sum()
+            print(f"  ⚠️ Removing {n_invalid:,} samples with NaN labels ({n_invalid/len(y)*100:.1f}%)")
+            X = X[valid_mask]
+            y = y[valid_mask]
+        
+        # FIX 1: Handle NaN/inf values in features AFTER removing NaN labels
         # Replace NaN with column median, inf with large values
         from sklearn.impute import SimpleImputer
         if fit_scaler:
