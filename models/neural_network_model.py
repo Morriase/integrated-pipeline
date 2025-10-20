@@ -315,8 +315,12 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         # Store training warnings in history
         history['training_warnings'] = training_monitor.get_warnings()
 
-        # Generate and save learning curves
-        curves_dir = 'models/trained'
+        # Generate and save learning curves to Kaggle-friendly path
+        if Path('/kaggle/working').exists():
+            curves_dir = '/kaggle/working/Training_Images'
+        else:
+            curves_dir = 'Training_Images'
+        
         os.makedirs(curves_dir, exist_ok=True)
         curves_path = os.path.join(curves_dir, f'{self.symbol}_NN_learning_curves.png')
         monitor.generate_learning_curves(curves_path)
