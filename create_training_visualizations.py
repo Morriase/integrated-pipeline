@@ -337,14 +337,23 @@ def plot_training_curves_comparison(results):
 
 def plot_individual_training_curves():
     """Plot individual training curves for each model"""
-    print("\n📊 Creating individual training curves...")
+    print("\n📊 Checking for individual training curves...")
     
     # Check for NN learning curves (already generated during training)
     nn_curves = OUTPUT_DIR / 'UNIFIED_NN_learning_curves.png'
+    
+    # Also check old location
+    old_nn_curves = Path('models/trained/UNIFIED_NN_learning_curves.png')
+    
     if nn_curves.exists():
-        print(f"  ✅ Neural Network curves already exist: {nn_curves}")
+        print(f"  ✅ Neural Network curves found: {nn_curves}")
+    elif old_nn_curves.exists():
+        # Copy from old location to new location
+        import shutil
+        shutil.copy(old_nn_curves, nn_curves)
+        print(f"  ✅ Neural Network curves copied from old location")
     else:
-        print(f"  ⚠️ Neural Network curves not found (should be generated during training)")
+        print(f"  ℹ️ Neural Network curves will be generated during next training")
     
     # Note: RF and XGB don't have epoch-based training, so no curves for them
     print("  ℹ️ RandomForest and XGBoost don't have epoch-based training curves")
@@ -431,12 +440,13 @@ def plot_overfitting_analysis(results):
     ax2.grid(axis='y', alpha=0.3)
     ax2.legend()
     
-    # Add value labels and status
+    # Add value labels and status (use text instead of emoji to avoid font warnings)
     for bar, gap in zip(bars3, gaps):
         height = bar.get_height()
-        status = '✅' if gap < 0.15 else '⚠️' if gap < 0.30 else '❌'
+        status = 'OK' if gap < 0.15 else 'WARN' if gap < 0.30 else 'BAD'
         ax2.text(bar.get_x() + bar.get_width()/2., height,
-               f'{status}\n{gap:.1%}', ha='center', va='bottom', fontsize=9)
+               f'{status}\n{gap:.1%}', ha='center', va='bottom', fontsize=9,
+               fontweight='bold')
     
     plt.tight_layout()
     output_path = OUTPUT_DIR / 'overfitting_analysis.png'
