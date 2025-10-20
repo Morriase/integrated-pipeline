@@ -502,17 +502,9 @@ class BaseSMCModel(ABC):
             X = X[valid_mask]
             y = y[valid_mask]
         
-        # FIX 1: Handle NaN/inf values in features AFTER removing NaN labels
-        # Replace NaN with column median, inf with large values
-        from sklearn.impute import SimpleImputer
-        if fit_scaler:
-            self.imputer = SimpleImputer(strategy='median')
-            X = self.imputer.fit_transform(X)
-        elif hasattr(self, 'imputer'):
-            X = self.imputer.transform(X)
-        else:
-            # Fallback if no imputer fitted
-            X = np.nan_to_num(X, nan=0.0, posinf=1e10, neginf=-1e10)
+        # FIX 1: Handle NaN/inf values in features BEFORE feature selection
+        # Replace NaN with 0, inf with large values (simple approach)
+        X = np.nan_to_num(X, nan=0.0, posinf=1e10, neginf=-1e10)
         
         # Clip extreme values to prevent overflow
         X = np.clip(X, -1e10, 1e10)
@@ -545,6 +537,14 @@ class BaseSMCModel(ABC):
                 X = self.feature_selector.transform(X)
             else:
                 print("  ⚠️ Warning: Feature selection requested but no selector fitted")
+        
+        # Apply imputation AFTER feature selection (so dimensions match)
+        from sklearn.impute import SimpleImputer
+        if fit_scaler:
+            self.imputer = SimpleImputer(strategy='median')
+            X = self.imputer.fit_transform(X)
+        elif hasattr(self, 'imputer'):
+            X = self.imputer.transform(X)
         
         # FIX 3: Final validation - check for any remaining NaN/inf
         if np.any(np.isnan(X)) or np.any(np.isinf(X)):
