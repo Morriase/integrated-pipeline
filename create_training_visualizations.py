@@ -256,3 +256,230 @@ def create_all_visualizations():
 
 if __name__ == "__main__":
     create_all_visualizations()
+
+
+
+def plot_training_curves_comparison(results):
+    """Create combined training curves for all models"""
+    print("\n📊 Creating training curves comparison...")
+    
+    models_data = results['training_results']['UNIFIED']
+    
+    # Collect models with training history
+    models_with_history = {}
+    for model_name, model_results in models_data.items():
+        if 'error' in model_results:
+            continue
+        history = model_results.get('history', {})
+        if history and ('train_loss' in history or 'train_accuracy' in history):
+            models_with_history[model_name] = history
+    
+    if not models_with_history:
+        print("  ⚠️ No training history available")
+        return
+    
+    # Create figure with 2 rows: Loss and Accuracy
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+    fig.suptitle('Training Curves Comparison (All Models)', fontsize=16, fontweight='bold')
+    
+    colors = {'RandomForest': '#2ecc71', 'XGBoost': '#3498db', 
+              'NeuralNetwork': '#e74c3c', 'LSTM': '#f39c12'}
+    
+    # Plot Loss curves
+    for model_name, history in models_with_history.items():
+        if 'train_loss' in history and 'val_loss' in history:
+            train_loss = history['train_loss']
+            val_loss = history['val_loss']
+            
+            if isinstance(train_loss, list) and len(train_loss) > 0:
+                epochs = list(range(1, len(train_loss) + 1))
+                color = colors.get(model_name, '#95a5a6')
+                
+                ax1.plot(epochs, train_loss, '-', color=color, alpha=0.7, 
+                        linewidth=2, label=f'{model_name} (Train)')
+                ax1.plot(epochs, val_loss, '--', color=color, alpha=0.7, 
+                        linewidth=2, label=f'{model_name} (Val)')
+    
+    ax1.set_xlabel('Epoch', fontsize=12)
+    ax1.set_ylabel('Loss', fontsize=12)
+    ax1.set_title('Training & Validation Loss', fontsize=14, fontweight='bold')
+    ax1.legend(loc='upper right', fontsize=9)
+    ax1.grid(True, alpha=0.3)
+    
+    # Plot Accuracy curves
+    for model_name, history in models_with_history.items():
+        if 'train_acc' in history and 'val_acc' in history:
+            train_acc = history['train_acc']
+            val_acc = history['val_acc']
+            
+            if isinstance(train_acc, list) and len(train_acc) > 0:
+                epochs = list(range(1, len(train_acc) + 1))
+                color = colors.get(model_name, '#95a5a6')
+                
+                ax2.plot(epochs, train_acc, '-', color=color, alpha=0.7, 
+                        linewidth=2, label=f'{model_name} (Train)')
+                ax2.plot(epochs, val_acc, '--', color=color, alpha=0.7, 
+                        linewidth=2, label=f'{model_name} (Val)')
+    
+    ax2.set_xlabel('Epoch', fontsize=12)
+    ax2.set_ylabel('Accuracy', fontsize=12)
+    ax2.set_title('Training & Validation Accuracy', fontsize=14, fontweight='bold')
+    ax2.legend(loc='lower right', fontsize=9)
+    ax2.grid(True, alpha=0.3)
+    ax2.set_ylim(0, 1)
+    
+    plt.tight_layout()
+    output_path = OUTPUT_DIR / 'training_curves_comparison.png'
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"  ✅ Saved: {output_path}")
+    plt.close()
+
+
+def plot_individual_training_curves():
+    """Plot individual training curves for each model"""
+    print("\n📊 Creating individual training curves...")
+    
+    # Check for NN learning curves (already generated during training)
+    nn_curves = OUTPUT_DIR / 'UNIFIED_NN_learning_curves.png'
+    if nn_curves.exists():
+        print(f"  ✅ Neural Network curves already exist: {nn_curves}")
+    else:
+        print(f"  ⚠️ Neural Network curves not found (should be generated during training)")
+    
+    # Note: RF and XGB don't have epoch-based training, so no curves for them
+    print("  ℹ️ RandomForest and XGBoost don't have epoch-based training curves")
+
+
+def plot_overfitting_analysis(results):
+    """Create overfitting analysis visualization"""
+    print("\n📊 Creating overfitting analysis...")
+    
+    models_data = results['training_results']['UNIFIED']
+    
+    # Extract train-val gaps
+    models = []
+    train_acc = []
+    val_acc = []
+    gaps = []
+    
+    for model_name, model_results in models_data.items():
+        if 'error' in model_results:
+            continue
+        
+        history = model_results.get('history', {})
+        val_metrics = model_results.get('val_metrics', {})
+        
+        # Get training accuracy
+        if 'train_accuracy' in history:
+            t_acc = history['train_accuracy']
+            if isinstance(t_acc, list):
+                t_acc = t_acc[-1]  # Last epoch
+        elif 'final_train_accuracy' in history:
+            t_acc = history['final_train_accuracy']
+        else:
+            continue
+        
+        v_acc = val_metrics.get('accuracy', 0)
+        gap = t_acc - v_acc
+        
+        models.append(model_name)
+        train_acc.append(t_acc)
+        val_acc.append(v_acc)
+        gaps.append(gap)
+    
+    if not models:
+        print("  ⚠️ No overfitting data available")
+        return
+    
+    # Create visualization
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+    fig.suptitle('Overfitting Analysis', fontsize=16, fontweight='bold')
+    
+    x = np.arange(len(models))
+    width = 0.35
+    
+    # Plot 1: Train vs Val Accuracy
+    bars1 = ax1.bar(x - width/2, train_acc, width, label='Train Accuracy', color='#3498db')
+    bars2 = ax1.bar(x + width/2, val_acc, width, label='Val Accuracy', color='#e74c3c')
+    
+    ax1.set_xlabel('Models', fontweight='bold')
+    ax1.set_ylabel('Accuracy', fontweight='bold')
+    ax1.set_title('Train vs Validation Accuracy', fontweight='bold')
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(models, rotation=15, ha='right')
+    ax1.legend()
+    ax1.grid(axis='y', alpha=0.3)
+    ax1.set_ylim(0, 1)
+    
+    # Add value labels
+    for bars in [bars1, bars2]:
+        for bar in bars:
+            height = bar.get_height()
+            ax1.text(bar.get_x() + bar.get_width()/2., height,
+                   f'{height:.2f}', ha='center', va='bottom', fontsize=9)
+    
+    # Plot 2: Train-Val Gap
+    colors_gap = ['#2ecc71' if g < 0.15 else '#f39c12' if g < 0.30 else '#e74c3c' 
+                  for g in gaps]
+    bars3 = ax2.bar(models, gaps, color=colors_gap)
+    
+    ax2.set_xlabel('Models', fontweight='bold')
+    ax2.set_ylabel('Train-Val Gap', fontweight='bold')
+    ax2.set_title('Overfitting Gap (Train - Val)', fontweight='bold')
+    ax2.axhline(y=0.15, color='orange', linestyle='--', alpha=0.5, label='Warning (15%)')
+    ax2.axhline(y=0.30, color='red', linestyle='--', alpha=0.5, label='Critical (30%)')
+    ax2.grid(axis='y', alpha=0.3)
+    ax2.legend()
+    
+    # Add value labels and status
+    for bar, gap in zip(bars3, gaps):
+        height = bar.get_height()
+        status = '✅' if gap < 0.15 else '⚠️' if gap < 0.30 else '❌'
+        ax2.text(bar.get_x() + bar.get_width()/2., height,
+               f'{status}\n{gap:.1%}', ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    output_path = OUTPUT_DIR / 'overfitting_analysis.png'
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"  ✅ Saved: {output_path}")
+    plt.close()
+
+
+# Update the main function
+def create_all_visualizations_enhanced():
+    """Create all training visualizations including curves"""
+    print("=" * 80)
+    print("CREATING COMPREHENSIVE TRAINING VISUALIZATIONS")
+    print("=" * 80)
+    print(f"\n📂 Output directory: {OUTPUT_DIR}")
+    
+    # Load results
+    results = load_training_results()
+    if results is None:
+        print("\n❌ Cannot create visualizations without training results")
+        return
+    
+    # Create all visualizations
+    plot_model_comparison(results)
+    plot_confusion_matrices(results)
+    plot_training_summary(results)
+    plot_training_curves_comparison(results)
+    plot_individual_training_curves()
+    plot_overfitting_analysis(results)
+    
+    print("\n" + "=" * 80)
+    print("✅ ALL VISUALIZATIONS CREATED")
+    print("=" * 80)
+    print(f"\n📁 Saved to: {OUTPUT_DIR}")
+    print("\nGenerated files:")
+    for file in sorted(OUTPUT_DIR.glob('*.png')):
+        print(f"  - {file.name}")
+    
+    print("\n🎉 Visualization complete!")
+    print("\nTo view in Kaggle, run:")
+    print("  from IPython.display import Image, display")
+    print(f"  display(Image('{OUTPUT_DIR}/model_comparison.png'))")
+
+
+if __name__ == "__main__":
+    create_all_visualizations_enhanced()
