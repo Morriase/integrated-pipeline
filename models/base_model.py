@@ -125,28 +125,32 @@ class FeatureSelector:
             selected_indices = [feature_names.index(f) for f in selected_features]
             X_selected = X[:, selected_indices]
             
-            # Compute correlation matrix
-            corr_matrix = np.corrcoef(X_selected.T)
-            
-            # Find correlated pairs
-            to_remove = set()
-            for i in range(len(selected_features)):
-                if selected_features[i] in to_remove:
-                    continue
-                for j in range(i + 1, len(selected_features)):
-                    if selected_features[j] in to_remove:
+            # Skip correlation if only 1 feature
+            if X_selected.shape[1] <= 1:
+                print(f"  Skipping correlation (only {X_selected.shape[1]} feature)")
+            else:
+                # Compute correlation matrix
+                corr_matrix = np.corrcoef(X_selected.T)
+                
+                # Find correlated pairs
+                to_remove = set()
+                for i in range(len(selected_features)):
+                    if selected_features[i] in to_remove:
                         continue
-                    if abs(corr_matrix[i, j]) > self.correlation_threshold:
-                        # Remove the feature with lower importance score
-                        score_i = scores_dict[selected_features[i]]
-                        score_j = scores_dict[selected_features[j]]
-                        if score_i < score_j:
-                            to_remove.add(selected_features[i])
-                        else:
-                            to_remove.add(selected_features[j])
-            
-            selected_features = [f for f in selected_features if f not in to_remove]
-            print(f"  After correlation filtering: {len(selected_features)} features (removed {len(to_remove)} correlated)")
+                    for j in range(i + 1, len(selected_features)):
+                        if selected_features[j] in to_remove:
+                            continue
+                        if abs(corr_matrix[i, j]) > self.correlation_threshold:
+                            # Remove the feature with lower importance score
+                            score_i = scores_dict[selected_features[i]]
+                            score_j = scores_dict[selected_features[j]]
+                            if score_i < score_j:
+                                to_remove.add(selected_features[i])
+                            else:
+                                to_remove.add(selected_features[j])
+                
+                selected_features = [f for f in selected_features if f not in to_remove]
+                print(f"  After correlation filtering: {len(selected_features)} features (removed {len(to_remove)} correlated)")
         
         # Step 3: Enforce minimum feature threshold
         if len(selected_features) < self.min_features:
@@ -518,13 +522,7 @@ class BaseSMCModel(ABC):
             if fit_scaler:
                 print(f"  Remapped labels: {np.unique(y)}")
         
-        # Optional scaling (for neural networks)
-        if fit_scaler and self.scaler is not None:
-            X = self.scaler.fit_transform(X)
-        elif self.scaler is not None:
-            X = self.scaler.transform(X)
-        
-        # Apply feature selection if enabled
+        # Apply feature selection FIRST (before scaling/imputation)
         if apply_feature_selection:
             if fit_scaler:
                 # Fit feature selector on training data
@@ -545,6 +543,12 @@ class BaseSMCModel(ABC):
             X = self.imputer.fit_transform(X)
         elif hasattr(self, 'imputer'):
             X = self.imputer.transform(X)
+        
+        # Apply scaling AFTER feature selection and imputation (for neural networks)
+        if fit_scaler and self.scaler is not None:
+            X = self.scaler.fit_transform(X)
+        elif self.scaler is not None:
+            X = self.scaler.transform(X)
         
         # FIX 3: Final validation - check for any remaining NaN/inf
         if np.any(np.isnan(X)) or np.any(np.isinf(X)):
