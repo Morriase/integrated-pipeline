@@ -43,6 +43,14 @@ def load_test_data():
     y = y[valid_mask]
     print(f"  After removing NaN labels: {len(X):,} samples")
     
+    # Filter to only Loss (-1) and Win (1) - remove Timeout (0)
+    # Models were trained on binary classification
+    binary_mask = (y == -1) | (y == 1)
+    X = X[binary_mask]
+    y = y[binary_mask]
+    print(f"  After filtering to Loss/Win only: {len(X):,} samples")
+    print(f"  Label distribution: Loss={np.sum(y==-1):,}, Win={np.sum(y==1):,}")
+    
     # Use last 30% as test set (same as training)
     test_size = int(len(X) * 0.3)
     X_test = X[-test_size:]

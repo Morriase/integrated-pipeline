@@ -538,13 +538,9 @@ if __name__ == "__main__":
     # Detect environment and set paths
     if Path('/kaggle/input').exists():
         print("🔍 Detected Kaggle environment")
-        # Check for cleaned data first (better for NN)
-        if Path('/kaggle/working/Data-output-clean').exists():
-            data_dir = '/kaggle/working/Data-output-clean'
-            print("  ✓ Using cleaned data (optimized for Neural Network)")
-        else:
-            data_dir = '/kaggle/working/Data-output'
-            print("  ⚠️ Using raw data (run fix_nn_training.py for better NN results)")
+        # Use original 3-class data (not cleaned binary data)
+        data_dir = '/kaggle/working/Data-output'
+        print("  ✓ Using original 3-class data (Loss/Timeout/Win)")
         output_dir = '/kaggle/working/Model-output'
     else:
         # Local paths - check for cleaned data
