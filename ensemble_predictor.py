@@ -211,7 +211,15 @@ class EnsemblePredictor:
             outputs = nn_model(X_tensor)
             _, predicted = torch.max(outputs, 1)
 
-        return predicted.cpu().numpy()
+        predicted_np = predicted.cpu().numpy()
+        
+        # Map binary predictions back to original labels
+        # NN was trained on binary (0, 1) but needs to output (-1, 1)
+        # 0 -> -1 (Loss), 1 -> 1 (Win)
+        label_map = {0: -1, 1: 1}
+        predicted_mapped = np.array([label_map[p] for p in predicted_np])
+        
+        return predicted_mapped
 
     def _predict_proba_nn(self, X: np.ndarray, nn_model) -> np.ndarray:
         """Get probabilities from PyTorch NN model"""
