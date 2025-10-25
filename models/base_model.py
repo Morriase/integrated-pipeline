@@ -444,10 +444,19 @@ class BaseSMCModel(ABC):
         val_df = val_df[val_df['symbol'] == self.symbol].copy()
         test_df = test_df[test_df['symbol'] == self.symbol].copy()
         
-        # Remove rows with NaN labels (critical fix)
-        train_df = train_df[train_df[self.target_col].notna()].copy()
-        val_df = val_df[val_df[self.target_col].notna()].copy()
-        test_df = test_df[test_df[self.target_col].notna()].copy()
+        # For TBM_Entry: Keep ALL rows (0=HOLD, 1=BUY, -1=SELL)
+        # For TBM_Label: Filter NaN (only labeled entries)
+        if self.target_col == 'TBM_Entry':
+            # TBM_Entry should never be NaN (0=HOLD for all non-entry bars)
+            # Fill any NaN with 0 (HOLD) just in case
+            train_df[self.target_col] = train_df[self.target_col].fillna(0)
+            val_df[self.target_col] = val_df[self.target_col].fillna(0)
+            test_df[self.target_col] = test_df[self.target_col].fillna(0)
+        else:
+            # For TBM_Label (WIN/LOSS), remove NaN rows
+            train_df = train_df[train_df[self.target_col].notna()].copy()
+            val_df = val_df[val_df[self.target_col].notna()].copy()
+            test_df = test_df[test_df[self.target_col].notna()].copy()
         
         # NEW: Train on ALL data (no filtering)
         # Models learn to predict BUY/SELL/HOLD from full market context

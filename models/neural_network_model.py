@@ -11,6 +11,7 @@ Key Learning Objectives (from WHATS_NEEDED.md):
 import os
 import numpy as np
 from typing import Dict, Optional, List
+from pathlib import Path
 try:
     import torch
     import torch.nn as nn
@@ -49,6 +50,17 @@ class MLPClassifier(nn.Module):
         layers.append(nn.Linear(prev_dim, output_dim))
 
         self.network = nn.Sequential(*layers)
+        
+        # Xavier/Glorot initialization for better gradient flow
+        self._initialize_weights()
+    
+    def _initialize_weights(self):
+        """Initialize weights with Xavier uniform to prevent exploding gradients"""
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=nn.init.calculate_gain('relu'))
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         # The network automatically handles training vs eval mode for batch norm
@@ -80,7 +92,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
               hidden_dims: List[int] = [128, 64, 32],  # AGGRESSIVE: Smaller network
               dropout: float = 0.5,  # AGGRESSIVE: Increased from 0.4
-              learning_rate: float = 0.001,  # AGGRESSIVE: Reduced from 0.005
+              learning_rate: float = 0.0001,  # REDUCED: Lower LR to prevent exploding gradients
               batch_size: int = 64,  # INCREASED from 32 for better generalization
               epochs: int = 200,  # Maximum epochs
               patience: int = 20,  # INCREASED from 15 for better convergence
