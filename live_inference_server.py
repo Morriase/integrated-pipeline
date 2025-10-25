@@ -506,28 +506,6 @@ class ModelManager:
                 self.ensemble.feature_cols.get('RandomForest', []))
             logger.info(
                 f"   ✓ RandomForest validated ({rf_features} features)")
-        if 'NeuralNetwork' not in self.ensemble.models:
-            error_msg = "NeuralNetwork model not loaded"
-            validation_errors.append(error_msg)
-            logger.error(f"❌ {error_msg}")
-        elif 'NeuralNetwork' not in self.ensemble.feature_cols:
-            error_msg = "NeuralNetwork feature columns not loaded"
-            validation_errors.append(error_msg)
-            logger.error(f"❌ {error_msg}")
-        else:
-            nn_features = len(
-                self.ensemble.feature_cols.get('NeuralNetwork', []))
-
-            # Check for scaler (required for NeuralNetwork)
-            if 'NeuralNetwork' not in self.ensemble.scalers:
-                warning_msg = "NeuralNetwork scaler not found - predictions may be inaccurate"
-                logger.warning(f"⚠️  {warning_msg}")
-                self.load_errors.append(warning_msg)
-                logger.info(
-                    f"   ⚠️  NeuralNetwork validated ({nn_features} features, NO SCALER)")
-            else:
-                logger.info(
-                    f"   ✓ NeuralNetwork validated ({nn_features} features, with scaler)")
 
         # If any validation errors, raise exception
         if validation_errors:
