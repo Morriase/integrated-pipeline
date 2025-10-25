@@ -160,15 +160,30 @@ class NeuralNetworkSMCModel(BaseSMCModel):
             pct = count / len(y_train) * 100
             print(f"    {label:>4}: {count:>6} ({pct:>5.1f}%)")
         
-        # Simple mapping: just map to 0, 1, 2... in sorted order
+        # Map labels for training
         num_classes = len(unique_labels)
         sorted_labels = sorted(unique_labels)
+        
+        # Create mapping: input labels -> 0, 1, 2...
         label_map = {label: i for i, label in enumerate(sorted_labels)}
-        self.label_map_reverse = {i: label for label, i in label_map.items()}
+        
+        # Reverse mapping for predictions
+        # If cleaned data (0, 1), map back to original (-1, 1)
+        # If original data (-1, 0, 1), keep as is
+        if set(sorted_labels) == {0, 1}:
+            # Binary cleaned data: 0=Loss, 1=Win -> map to -1, 1
+            self.label_map_reverse = {0: -1, 1: 1}
+            print(f"\n  Detected cleaned binary data (0, 1)")
+            print(f"  Will map predictions back to original labels (-1, 1)")
+        else:
+            # Original labels or 3-class
+            self.label_map_reverse = {i: label for label, i in label_map.items()}
+        
         output_dim = num_classes
         
         print(f"\n  Using {num_classes}-class classification")
-        print(f"  Label mapping: {label_map}")
+        print(f"  Training label mapping: {label_map}")
+        print(f"  Prediction label mapping: {self.label_map_reverse}")
         
         y_train_mapped = np.array([label_map[y] for y in y_train])
 
@@ -422,8 +437,9 @@ class NeuralNetworkSMCModel(BaseSMCModel):
             _, predicted = torch.max(outputs.data, 1)
             y_pred_mapped = predicted.cpu().numpy()
 
-        # Convert back to original labels
-        y_pred = np.array([self.label_map_reverse[y] for y in y_pred_mapped])
+        # Convert back to original labels using stored mapping
+        # label_map_reverse maps: model output (0,1) -> original labels
+        y_pred = np.array([self.label_map_reverse[int(y)] for y in y_pred_mapped])
 
         return y_pred
 
