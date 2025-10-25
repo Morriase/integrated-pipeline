@@ -162,16 +162,27 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         # Handle binary vs 3-class classification
         num_classes = len(unique_labels)
         
-        if num_classes == 2:
-            # Binary classification (timeout class removed)
-            print(f"\n  Using BINARY classification (timeout class removed)")
-            label_map = {-1: 0, 1: 1}
+        # Check if timeout class exists and is significant
+        has_timeout = 0.0 in unique_labels or 0 in unique_labels
+        timeout_count = label_counts[list(unique_labels).index(0.0)] if 0.0 in unique_labels else (label_counts[list(unique_labels).index(0)] if 0 in unique_labels else 0)
+        
+        if num_classes == 2 or (has_timeout and timeout_count < 100):
+            # Binary classification (timeout class removed or insignificant)
+            print(f"\n  Using BINARY classification")
+            if has_timeout and timeout_count < 100:
+                print(f"    (Timeout class has only {timeout_count} samples - excluding)")
+                # Remove timeout samples
+                mask = (y_train != 0.0) & (y_train != 0)
+                X_train_scaled = X_train_scaled[mask]
+                y_train = y_train[mask]
+            
+            label_map = {-1.0: 0, -1: 0, 1.0: 1, 1: 1}
             self.label_map_reverse = {0: -1, 1: 1}
             output_dim = 2
         else:
             # 3-class classification
             print(f"\n  Using 3-CLASS classification")
-            label_map = {-1: 0, 0: 1, 1: 2}
+            label_map = {-1.0: 0, -1: 0, 0.0: 1, 0: 1, 1.0: 2, 1: 2}
             self.label_map_reverse = {0: -1, 1: 0, 2: 1}
             output_dim = 3
         
@@ -291,6 +302,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
             # Validation phase and monitoring
             if X_val is not None and y_val is not None:
                 X_val_scaled = self.scaler.transform(X_val)
+                
+                # Filter out timeout class if using binary classification
+                if output_dim == 2 and (0.0 in y_val or 0 in y_val):
+                    mask = (y_val != 0.0) & (y_val != 0)
+                    X_val_scaled = X_val_scaled[mask]
+                    y_val = y_val[mask]
+                
                 y_val_mapped = np.array([label_map[y] for y in y_val])
 
                 self.model.eval()
