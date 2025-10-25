@@ -22,6 +22,10 @@ feature_scaler*.pkl
 
 # Training data (large, should be in Data/ folder)
 training_data.csv
+Data/Data-output/*.csv
+data/Data-output/*.csv
+Data/data-output/*.csv
+data/data-output/*.csv
 
 # Logs
 *.log
