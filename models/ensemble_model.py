@@ -234,11 +234,5 @@ class ConsensusEnsembleSMCModel:
         X_rf = X[required_features].values
         X_rf = np.nan_to_num(X_rf, nan=0.0, posinf=1e10, neginf=-1e10)
         predictions['RandomForest'] = self.models['RandomForest'].predict(X_rf)
-        with torch.no_grad():
-            outputs = self.models['NeuralNetwork'](X_tensor)
-            nn_pred = torch.argmax(outputs, dim=1).cpu().numpy()
-        
-        label_map = {0: -1, 1: 0, 2: 1}
-        predictions['NeuralNetwork'] = np.array([label_map.get(p, p) for p in nn_pred])
         
         return predictions
