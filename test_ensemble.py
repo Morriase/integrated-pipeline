@@ -20,17 +20,19 @@ def load_test_data():
     df = pd.read_csv(data_path)
     print(f"  Loaded {len(df):,} samples")
     
-    # Define feature columns (exclude target and metadata)
-    # Get only numeric columns
-    exclude_cols = ['TBM_Label', 'Symbol', 'Timestamp', 'Entry_Time',
-                    'Exit_Time', 'Entry_Price', 'Exit_Price', 'Date', 'Time']
+    # Load feature names from model metadata to ensure exact match
+    metadata_path = '/kaggle/working/Model-output/UNIFIED_RandomForest_metadata.json'
+    with open(metadata_path, 'r') as f:
+        metadata = json.load(f)
     
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    feature_cols = [col for col in numeric_cols if col not in exclude_cols and col != 'TBM_Label']
+    feature_cols = metadata['feature_names']
+    print(f"  Using {len(feature_cols)} features from training")
     
-    print(f"  Total columns: {len(df.columns)}")
-    print(f"  Numeric columns: {len(numeric_cols)}")
-    print(f"  Feature columns: {len(feature_cols)}")
+    # Check if all features exist in data
+    missing_features = [f for f in feature_cols if f not in df.columns]
+    if missing_features:
+        print(f"  ⚠️ Missing features: {missing_features[:5]}...")
+        raise ValueError(f"Data is missing {len(missing_features)} features used in training")
     
     X = df[feature_cols].values
     y = df['TBM_Label'].values
