@@ -22,6 +22,7 @@ from datetime import datetime
 # Kaggle paths
 KAGGLE_INPUT = '/kaggle/input/ob-ai-model-2-dataset/Data/mt5_exports'
 KAGGLE_DATA_OUTPUT = '/kaggle/working/Data-output'
+KAGGLE_DATA_OUTPUT_CLEAN = '/kaggle/working/Data-output-clean'  # Cleaned data for NN
 KAGGLE_MODEL_OUTPUT = '/kaggle/working/Model-output'
 
 
@@ -103,6 +104,37 @@ def run_data_pipeline():
     return processed_df
 
 
+def clean_data_for_nn():
+    """Clean data for Neural Network training (Step 1.5)"""
+    print("\n" + "=" * 80)
+    print("STEP 1.5: DATA CLEANING FOR NEURAL NETWORK")
+    print("=" * 80)
+    
+    from fix_nn_training import prepare_nn_data
+    
+    start_time = time.time()
+    
+    # Clean the data
+    train_clean, val_clean, test_clean = prepare_nn_data(
+        train_path=f'{KAGGLE_DATA_OUTPUT}/processed_smc_data_train.csv',
+        val_path=f'{KAGGLE_DATA_OUTPUT}/processed_smc_data_val.csv',
+        test_path=f'{KAGGLE_DATA_OUTPUT}/processed_smc_data_test.csv'
+    )
+    
+    # Save cleaned data
+    Path(KAGGLE_DATA_OUTPUT_CLEAN).mkdir(parents=True, exist_ok=True)
+    
+    print(f"\n💾 Saving cleaned data to: {KAGGLE_DATA_OUTPUT_CLEAN}")
+    train_clean.to_csv(f'{KAGGLE_DATA_OUTPUT_CLEAN}/processed_smc_data_train_clean.csv', index=False)
+    val_clean.to_csv(f'{KAGGLE_DATA_OUTPUT_CLEAN}/processed_smc_data_val_clean.csv', index=False)
+    test_clean.to_csv(f'{KAGGLE_DATA_OUTPUT_CLEAN}/processed_smc_data_test_clean.csv', index=False)
+    
+    total_time = time.time() - start_time
+    print(f"\n✓ Data cleaning complete: {total_time:.1f}s")
+    
+    return train_clean, val_clean, test_clean
+
+
 def run_model_training(include_lstm=False):
     """Run model training pipeline"""
     print("\n" + "=" * 80)
@@ -113,9 +145,17 @@ def run_model_training(include_lstm=False):
     
     start_time = time.time()
     
+    # Use cleaned data if available
+    if Path(KAGGLE_DATA_OUTPUT_CLEAN).exists():
+        data_dir = KAGGLE_DATA_OUTPUT_CLEAN
+        print(f"  ✓ Using cleaned data for better NN performance")
+    else:
+        data_dir = KAGGLE_DATA_OUTPUT
+        print(f"  ⚠️ Using raw data (NN may underperform)")
+    
     # Initialize trainer
     trainer = UnifiedModelTrainer(
-        data_dir=KAGGLE_DATA_OUTPUT,
+        data_dir=data_dir,
         output_dir=KAGGLE_MODEL_OUTPUT,
         include_lstm=include_lstm
     )
@@ -160,6 +200,16 @@ def main():
         import traceback
         traceback.print_exc()
         sys.exit(1)
+    
+    # Clean data for Neural Network
+    try:
+        train_clean, val_clean, test_clean = clean_data_for_nn()
+        print(f"\n✅ Data cleaning successful: {len(train_clean):,} clean samples")
+    except Exception as e:
+        print(f"\n⚠️ Data cleaning failed: {e}")
+        print("   Continuing with raw data (NN may underperform)")
+        import traceback
+        traceback.print_exc()
     
     # Run model training
     try:

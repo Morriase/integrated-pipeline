@@ -54,10 +54,17 @@ class UnifiedModelTrainer:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.include_lstm = include_lstm
 
-        # Data paths
-        self.train_path = self.data_dir / 'processed_smc_data_train.csv'
-        self.val_path = self.data_dir / 'processed_smc_data_val.csv'
-        self.test_path = self.data_dir / 'processed_smc_data_test.csv'
+        # Data paths - use cleaned data if available
+        if (self.data_dir / 'processed_smc_data_train_clean.csv').exists():
+            self.train_path = self.data_dir / 'processed_smc_data_train_clean.csv'
+            self.val_path = self.data_dir / 'processed_smc_data_val_clean.csv'
+            self.test_path = self.data_dir / 'processed_smc_data_test_clean.csv'
+            self.using_clean_data = True
+        else:
+            self.train_path = self.data_dir / 'processed_smc_data_train.csv'
+            self.val_path = self.data_dir / 'processed_smc_data_val.csv'
+            self.test_path = self.data_dir / 'processed_smc_data_test.csv'
+            self.using_clean_data = False
 
         # Results storage
         self.results = {}
@@ -531,11 +538,22 @@ if __name__ == "__main__":
     # Detect environment and set paths
     if Path('/kaggle/input').exists():
         print("🔍 Detected Kaggle environment")
-        data_dir = '/kaggle/working/Data-output'
+        # Check for cleaned data first (better for NN)
+        if Path('/kaggle/working/Data-output-clean').exists():
+            data_dir = '/kaggle/working/Data-output-clean'
+            print("  ✓ Using cleaned data (optimized for Neural Network)")
+        else:
+            data_dir = '/kaggle/working/Data-output'
+            print("  ⚠️ Using raw data (run fix_nn_training.py for better NN results)")
         output_dir = '/kaggle/working/Model-output'
     else:
-        # Local paths
-        data_dir = 'Data'
+        # Local paths - check for cleaned data
+        if Path('Data-clean').exists():
+            data_dir = 'Data-clean'
+            print("  ✓ Using cleaned data (optimized for Neural Network)")
+        else:
+            data_dir = 'Data'
+            print("  ⚠️ Using raw data (run fix_nn_training.py for better NN results)")
         output_dir = 'models/trained'
     
     print(f"📂 Data Directory: {data_dir}")
