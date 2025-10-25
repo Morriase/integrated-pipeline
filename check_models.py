@@ -1,20 +1,21 @@
 """
-Check what model files are available
+Check what model and data files are available
 """
 
 from pathlib import Path
 import os
 
 print("=" * 80)
-print("CHECKING MODEL FILES")
+print("CHECKING FILES")
 print("=" * 80)
 
 # Check possible locations
 locations = [
     '/kaggle/working/Model-output',
-    '/kaggle/working/models/trained',
-    'models/trained',
-    '/kaggle/input'
+    '/kaggle/working/data/processed',
+    '/kaggle/working/data',
+    '/kaggle/input',
+    'data/processed',
 ]
 
 for loc in locations:
@@ -27,7 +28,7 @@ for loc in locations:
             files = list(path.glob('*'))
             if files:
                 print(f"  Files found: {len(files)}")
-                for f in sorted(files)[:10]:  # Show first 10
+                for f in sorted(files)[:15]:  # Show first 15
                     print(f"    - {f.name}")
             else:
                 print(f"  (empty directory)")
@@ -36,8 +37,16 @@ for loc in locations:
     else:
         print(f"  ❌ NOT FOUND")
 
-# Check current directory
-print(f"\n📂 Current directory: {os.getcwd()}")
-print(f"  Contents:")
-for item in sorted(os.listdir('.')):
-    print(f"    - {item}")
+# Check /kaggle/input subdirectories
+print(f"\n📂 Checking /kaggle/input subdirectories:")
+input_path = Path('/kaggle/input')
+if input_path.exists():
+    for subdir in input_path.iterdir():
+        if subdir.is_dir():
+            print(f"  📁 {subdir.name}:")
+            try:
+                files = list(subdir.glob('*.csv'))[:5]
+                for f in files:
+                    print(f"      - {f.name}")
+            except:
+                pass
