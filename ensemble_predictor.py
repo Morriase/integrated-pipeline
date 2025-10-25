@@ -108,12 +108,20 @@ class EnsemblePredictor:
 
         # Get predictions from each model
         for model_name, model in self.models.items():
-            pred = model.predict(X)
-            predictions[model_name] = pred
-
-            # Get probabilities if available
-            if hasattr(model, 'predict_proba'):
-                probabilities[model_name] = model.predict_proba(X)
+            # Handle NeuralNetwork (PyTorch model) separately
+            if model_name == 'NeuralNetwork':
+                # NN model is PyTorch MLPClassifier, need to wrap prediction
+                pred = self._predict_nn(X, model)
+                predictions[model_name] = pred
+                # Get probabilities
+                proba = self._predict_proba_nn(X, model)
+                probabilities[model_name] = proba
+            else:
+                # sklearn models
+                pred = model.predict(X)
+                predictions[model_name] = pred
+                if hasattr(model, 'predict_proba'):
+                    probabilities[model_name] = model.predict_proba(X)
 
         if strategy == 'weighted':
             return self._weighted_vote(predictions)
@@ -177,6 +185,54 @@ class EnsemblePredictor:
         # Get mode (most common prediction) for each sample
         from scipy import stats
         return stats.mode(pred_array, axis=0)[0].flatten()
+    
+    def _predict_nn(self, X: np.ndarray, nn_model) -> np.ndarray:
+        """Predict with PyTorch NN model"""
+        if not TORCH_AVAILABLE:
+            raise ImportError("PyTorch not available for NN predictions")
+        
+        # Load scaler
+        scaler_path = self.models_dir / 'UNIFIED_NeuralNetwork_scaler.pkl'
+        with open(scaler_path, 'rb') as f:
+            scaler = pickle.load(f)
+        
+        # Scale features
+        X_scaled = scaler.transform(X)
+        
+        # Convert to tensor
+        X_tensor = torch.FloatTensor(X_scaled)
+        
+        # Predict
+        nn_model.eval()
+        with torch.no_grad():
+            outputs = nn_model(X_tensor)
+            _, predicted = torch.max(outputs, 1)
+        
+        return predicted.numpy()
+    
+    def _predict_proba_nn(self, X: np.ndarray, nn_model) -> np.ndarray:
+        """Get probabilities from PyTorch NN model"""
+        if not TORCH_AVAILABLE:
+            raise ImportError("PyTorch not available for NN predictions")
+        
+        # Load scaler
+        scaler_path = self.models_dir / 'UNIFIED_NeuralNetwork_scaler.pkl'
+        with open(scaler_path, 'rb') as f:
+            scaler = pickle.load(f)
+        
+        # Scale features
+        X_scaled = scaler.transform(X)
+        
+        # Convert to tensor
+        X_tensor = torch.FloatTensor(X_scaled)
+        
+        # Get probabilities
+        nn_model.eval()
+        with torch.no_grad():
+            outputs = nn_model(X_tensor)
+            probabilities = torch.softmax(outputs, dim=1)
+        
+        return probabilities.numpy()
 
     def evaluate(self, X: np.ndarray, y: np.ndarray, strategy: str = 'weighted') -> Dict:
         """
