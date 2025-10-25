@@ -1299,12 +1299,16 @@ class SMCDataPipeline:
         """
         base_df = base_df.copy()
 
-        # Initialize HTF TREND/REGIME features ONLY
+        # Initialize ALL HTF features that model expects
         base_df['HTF_H1_Trend_Bias'] = 0.0
         base_df['HTF_H4_Trend_Bias'] = 0.0
         base_df['HTF_H1_RSI'] = 50.0
         base_df['HTF_H4_RSI'] = 50.0
         base_df['HTF_Regime_Aligned'] = 0
+        base_df['HTF_OB_Confluence'] = 0
+        base_df['HTF_FVG_Confluence'] = 0
+        base_df['HTF_Trend_Alignment'] = 0
+        base_df['HTF_Structure_Alignment'] = 0
 
         # Process each higher timeframe
         for htf in self.higher_tfs:
@@ -1359,11 +1363,18 @@ class SMCDataPipeline:
             # Check if all timeframes are bullish (> 1.0)
             if base_trend > 1.0 and h1_trend > 1.0 and h4_trend > 1.0:
                 base_df.at[i, 'HTF_Regime_Aligned'] = 1  # Bullish alignment
+                base_df.at[i, 'HTF_Trend_Alignment'] = 1
             # Check if all timeframes are bearish (< -1.0)
             elif base_trend < -1.0 and h1_trend < -1.0 and h4_trend < -1.0:
                 base_df.at[i, 'HTF_Regime_Aligned'] = -1  # Bearish alignment
+                base_df.at[i, 'HTF_Trend_Alignment'] = -1
             else:
                 base_df.at[i, 'HTF_Regime_Aligned'] = 0  # Mixed/no alignment
+                base_df.at[i, 'HTF_Trend_Alignment'] = 0
+            
+            # HTF_Structure_Alignment: Check if BOS confirmed on HTF
+            # Simple: if trend aligned, structure is aligned
+            base_df.at[i, 'HTF_Structure_Alignment'] = base_df.at[i, 'HTF_Trend_Alignment']
 
         return base_df
 
