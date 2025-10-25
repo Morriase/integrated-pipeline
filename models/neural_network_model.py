@@ -90,13 +90,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              hidden_dims: List[int] = [128, 64, 32],  # AGGRESSIVE: Smaller network
-              dropout: float = 0.5,  # AGGRESSIVE: Increased from 0.4
-              learning_rate: float = 0.0001,  # REDUCED: Lower LR to prevent exploding gradients
-              batch_size: int = 64,  # INCREASED from 32 for better generalization
+              hidden_dims: List[int] = [64, 32],  # SIMPLIFIED: Even smaller network
+              dropout: float = 0.3,  # REDUCED: Less aggressive dropout
+              learning_rate: float = 0.001,  # INCREASED: Higher LR for better learning
+              batch_size: int = 32,  # REDUCED: Smaller batches for better gradient estimates
               epochs: int = 200,  # Maximum epochs
               patience: int = 20,  # INCREASED from 15 for better convergence
-              weight_decay: float = 0.01,  # AGGRESSIVE: Increased from 0.001 (10x more L2)
+              weight_decay: float = 0.001,  # REDUCED: Less aggressive L2 regularization
               **kwargs) -> Dict:
         """
         Train Neural Network model
@@ -169,9 +169,12 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         class_weights = len(y_train_mapped) / (len(unique_labels) * counts)
         class_weights_tensor = torch.FloatTensor(class_weights).to(self.device)
         
-        # Loss with AGGRESSIVE label smoothing (reduces overconfidence) + class weights
+        print(f"  Class distribution: {dict(zip(unique_labels, counts))}")
+        print(f"  Class weights: {dict(zip(unique_labels, class_weights))}")
+        
+        # Loss with MODERATE label smoothing + class weights
         criterion = nn.CrossEntropyLoss(
-            label_smoothing=0.2,  # Strong regularization
+            label_smoothing=0.1,  # Moderate regularization (reduced from 0.2)
             weight=class_weights_tensor  # Handle class imbalance
         )
         optimizer = optim.AdamW(self.model.parameters(
@@ -220,10 +223,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 loss = criterion(outputs, batch_y)
                 loss.backward()
                 
-                # Check for exploding gradients before clipping
+                # Gradient clipping to prevent exploding gradients
                 grad_norm = torch.nn.utils.clip_grad_norm_(
-                    self.model.parameters(), max_norm=1.0)
-                training_monitor.check_exploding_gradients(grad_norm.item(), threshold=10.0, epoch=epoch + 1)
+                    self.model.parameters(), max_norm=5.0)  # Increased from 1.0 for better learning
+                
+                # Only warn if gradient norm is extremely high (reduced noise)
+                if grad_norm > 50.0:  # Much higher threshold
+                    training_monitor.check_exploding_gradients(grad_norm.item(), threshold=50.0, epoch=epoch + 1)
                 
                 optimizer.step()
 
