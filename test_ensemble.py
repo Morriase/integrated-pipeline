@@ -25,7 +25,7 @@ def load_test_data():
     with open(metadata_path, 'r') as f:
         metadata = json.load(f)
     
-    feature_cols = metadata['feature_names']
+    feature_cols = metadata['feature_cols']
     print(f"  Using {len(feature_cols)} features from training")
     
     # Check if all features exist in data
