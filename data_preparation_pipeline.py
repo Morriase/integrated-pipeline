@@ -490,12 +490,7 @@ class SMCDataPipeline:
                 is_bullish = df['OB_Bullish'].iloc[i] == 1
                 atr = df['atr'].iloc[i]
 
-                # Check if OB has FVG immediately after (institutional signature)
-                if i + 3 < len(df):
-                    if is_bullish and df['FVG_Bullish'].iloc[i+1:i+4].sum() > 0:
-                        df.at[ob_index, 'OB_Has_FVG'] = 1
-                    elif not is_bullish and df['FVG_Bearish'].iloc[i+1:i+4].sum() > 0:
-                        df.at[ob_index, 'OB_Has_FVG'] = 1
+                # FVG check will be done after FVG detection (separate method)
 
                 # Check clean formation (low wick-to-body ratio)
                 body_size = abs(df['close'].iloc[i] - df['open'].iloc[i])
@@ -785,6 +780,24 @@ class SMCDataPipeline:
                 i = j
             else:
                 i += 1
+
+        return df
+
+    def validate_ob_fvg_relationship(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Check if OBs have FVGs immediately after (institutional signature)
+        Must be called AFTER both OB and FVG detection
+        """
+        for i in range(len(df)):
+            if df['OB_Bullish'].iloc[i] == 1 or df['OB_Bearish'].iloc[i] == 1:
+                is_bullish = df['OB_Bullish'].iloc[i] == 1
+
+                # Check if OB has FVG immediately after (institutional signature)
+                if i + 3 < len(df):
+                    if is_bullish and df['FVG_Bullish'].iloc[i+1:i+4].sum() > 0:
+                        df.at[i, 'OB_Has_FVG'] = 1
+                    elif not is_bullish and df['FVG_Bearish'].iloc[i+1:i+4].sum() > 0:
+                        df.at[i, 'OB_Has_FVG'] = 1
 
         return df
 
@@ -1374,6 +1387,8 @@ class SMCDataPipeline:
         # Detect SMC structures
         symbol_df = self.detect_order_blocks(symbol_df)
         symbol_df = self.detect_fair_value_gaps(symbol_df)
+        symbol_df = self.validate_ob_fvg_relationship(
+            symbol_df)  # Check OB-FVG relationship
         symbol_df = self.detect_market_structure(symbol_df)
 
         # Add regime features
