@@ -57,29 +57,34 @@ class EnsemblePredictor:
 
         # Load each model
         for model_name in ['RandomForest', 'XGBoost']:
-            model_path = self.models_dir / f'UNIFIED_{model_name}.pkl'
-            metadata_path = self.models_dir / \
-                f'UNIFIED_{model_name}_metadata.json'
+            try:
+                model_path = self.models_dir / f'UNIFIED_{model_name}.pkl'
+                metadata_path = self.models_dir / \
+                    f'UNIFIED_{model_name}_metadata.json'
 
-            # Check if files exist
-            if not model_path.exists():
-                raise FileNotFoundError(f"Model not found: {model_path}")
-            if not metadata_path.exists():
-                raise FileNotFoundError(f"Metadata not found: {metadata_path}")
+                # Check if files exist
+                if not model_path.exists():
+                    print(f"  ⚠️ {model_name}: Model file not found")
+                    continue
+                if not metadata_path.exists():
+                    print(f"  ⚠️ {model_name}: Metadata not found")
+                    continue
 
-            # Load model
-            with open(model_path, 'rb') as f:
-                self.models[model_name] = pickle.load(f)
+                # Load model
+                with open(model_path, 'rb') as f:
+                    self.models[model_name] = pickle.load(f)
 
-            # Load metadata
-            with open(metadata_path, 'r') as f:
-                self.metadata[model_name] = json.load(f)
+                # Load metadata
+                with open(metadata_path, 'r') as f:
+                    self.metadata[model_name] = json.load(f)
 
-            # Set weight based on test accuracy
-            test_acc = model_results[model_name]['test_metrics']['accuracy']
-            self.weights[model_name] = test_acc
+                # Set weight based on test accuracy
+                test_acc = model_results[model_name]['test_metrics']['accuracy']
+                self.weights[model_name] = test_acc
 
-            print(f"  ✅ {model_name}: Test Acc = {test_acc:.4f}")
+                print(f"  ✅ {model_name}: Test Acc = {test_acc:.4f}")
+            except Exception as e:
+                print(f"  ❌ {model_name}: Failed to load - {e}")
 
         # Normalize weights
         total_weight = sum(self.weights.values())
