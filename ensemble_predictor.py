@@ -185,54 +185,60 @@ class EnsemblePredictor:
         # Get mode (most common prediction) for each sample
         from scipy import stats
         return stats.mode(pred_array, axis=0)[0].flatten()
-    
+
     def _predict_nn(self, X: np.ndarray, nn_model) -> np.ndarray:
         """Predict with PyTorch NN model"""
         if not TORCH_AVAILABLE:
             raise ImportError("PyTorch not available for NN predictions")
-        
+
         # Load scaler
         scaler_path = self.models_dir / 'UNIFIED_NeuralNetwork_scaler.pkl'
         with open(scaler_path, 'rb') as f:
             scaler = pickle.load(f)
-        
+
         # Scale features
         X_scaled = scaler.transform(X)
-        
-        # Convert to tensor
-        X_tensor = torch.FloatTensor(X_scaled)
-        
+
+        # Get device from model
+        device = next(nn_model.parameters()).device
+
+        # Convert to tensor and move to same device as model
+        X_tensor = torch.FloatTensor(X_scaled).to(device)
+
         # Predict
         nn_model.eval()
         with torch.no_grad():
             outputs = nn_model(X_tensor)
             _, predicted = torch.max(outputs, 1)
-        
-        return predicted.numpy()
-    
+
+        return predicted.cpu().numpy()
+
     def _predict_proba_nn(self, X: np.ndarray, nn_model) -> np.ndarray:
         """Get probabilities from PyTorch NN model"""
         if not TORCH_AVAILABLE:
             raise ImportError("PyTorch not available for NN predictions")
-        
+
         # Load scaler
         scaler_path = self.models_dir / 'UNIFIED_NeuralNetwork_scaler.pkl'
         with open(scaler_path, 'rb') as f:
             scaler = pickle.load(f)
-        
+
         # Scale features
         X_scaled = scaler.transform(X)
-        
-        # Convert to tensor
-        X_tensor = torch.FloatTensor(X_scaled)
-        
+
+        # Get device from model
+        device = next(nn_model.parameters()).device
+
+        # Convert to tensor and move to same device as model
+        X_tensor = torch.FloatTensor(X_scaled).to(device)
+
         # Get probabilities
         nn_model.eval()
         with torch.no_grad():
             outputs = nn_model(X_tensor)
             probabilities = torch.softmax(outputs, dim=1)
-        
-        return probabilities.numpy()
+
+        return probabilities.cpu().numpy()
 
     def evaluate(self, X: np.ndarray, y: np.ndarray, strategy: str = 'weighted') -> Dict:
         """
