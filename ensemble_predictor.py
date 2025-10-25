@@ -267,7 +267,10 @@ class EnsemblePredictor:
         # Individual model predictions for comparison
         individual_accs = {}
         for model_name, model in self.models.items():
-            pred = model.predict(X)
+            if model_name == 'NeuralNetwork':
+                pred = self._predict_nn(X, model)
+            else:
+                pred = model.predict(X)
             individual_accs[model_name] = accuracy_score(y, pred)
 
         results = {
