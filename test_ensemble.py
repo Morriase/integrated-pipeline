@@ -21,9 +21,16 @@ def load_test_data():
     print(f"  Loaded {len(df):,} samples")
     
     # Define feature columns (exclude target and metadata)
-    exclude_cols = ['TBM_Label', 'Symbol', 'Timestamp', 'Entry_Time', 
-                    'Exit_Time', 'Entry_Price', 'Exit_Price']
-    feature_cols = [col for col in df.columns if col not in exclude_cols]
+    # Get only numeric columns
+    exclude_cols = ['TBM_Label', 'Symbol', 'Timestamp', 'Entry_Time',
+                    'Exit_Time', 'Entry_Price', 'Exit_Price', 'Date', 'Time']
+    
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    feature_cols = [col for col in numeric_cols if col not in exclude_cols and col != 'TBM_Label']
+    
+    print(f"  Total columns: {len(df.columns)}")
+    print(f"  Numeric columns: {len(numeric_cols)}")
+    print(f"  Feature columns: {len(feature_cols)}")
     
     X = df[feature_cols].values
     y = df['TBM_Label'].values
