@@ -28,23 +28,8 @@ class EnsemblePredictor:
     - 'hard': Majority vote
     """
 
-    def __init__(self, models_dir: Optional[str] = None):
-        # Auto-detect Kaggle vs local environment
-        if models_dir is None:
-            kaggle_path = Path('/kaggle/working/Model-output')
-            local_path = Path('models/trained')
-            
-            if kaggle_path.exists():
-                models_dir = str(kaggle_path)
-                print(f"🔍 Detected Kaggle environment")
-            elif local_path.exists():
-                models_dir = str(local_path)
-                print(f"🔍 Detected local environment")
-            else:
-                # Default to local
-                models_dir = 'models/trained'
-                print(f"⚠️ No models directory found, using default: {models_dir}")
-
+    def __init__(self, models_dir: str = '/kaggle/working/Model-output'):
+        # Hardcoded for Kaggle
         self.models_dir = Path(models_dir)
         self.models = {}
         self.weights = {}

@@ -13,12 +13,8 @@ def load_test_data():
     """Load and prepare test data"""
     print("📂 Loading test data...")
 
-    # Auto-detect Kaggle vs local
-    from pathlib import Path
-    if Path('/kaggle/working/data/processed').exists():
-        data_path = '/kaggle/working/data/processed/UNIFIED_processed.csv'
-    else:
-        data_path = 'data/processed/UNIFIED_processed.csv'
+    # Hardcoded for Kaggle
+    data_path = '/kaggle/working/data/processed/UNIFIED_processed.csv'
 
     # Load unified dataset
     df = pd.read_csv(data_path)
@@ -126,12 +122,8 @@ def evaluate_ensemble():
         'recommendation': 'weighted'  # Best strategy
     }
 
-    # Auto-detect save path
-    from pathlib import Path
-    if Path('/kaggle/working/Model-output').exists():
-        save_path = '/kaggle/working/Model-output/ensemble_evaluation.json'
-    else:
-        save_path = 'models/trained/ensemble_evaluation.json'
+    # Hardcoded for Kaggle
+    save_path = '/kaggle/working/Model-output/ensemble_evaluation.json'
 
     with open(save_path, 'w') as f:
         json.dump(output, f, indent=2)
