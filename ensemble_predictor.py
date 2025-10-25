@@ -299,7 +299,10 @@ class EnsemblePredictor:
         """
         predictions = {}
         for model_name, model in self.models.items():
-            predictions[model_name] = model.predict(X)
+            if model_name == 'NeuralNetwork':
+                predictions[model_name] = self._predict_nn(X, model)
+            else:
+                predictions[model_name] = model.predict(X)
 
         pred_array = np.array([pred for pred in predictions.values()])
 
