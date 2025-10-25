@@ -1,0 +1,105 @@
+{
+  "strategies": {
+    "weighted": {
+      "ensemble_accuracy": 0.6425035657353805,
+      "ensemble_precision": 0.43427788700685693,
+      "ensemble_recall": 0.4735651760969844,
+      "ensemble_f1": 0.41228250414005196,
+      "confusion_matrix": [
+        [
+          2298,
+          15,
+          435
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          3783,
+          28,
+          5360
+        ]
+      ],
+      "strategy": "weighted",
+      "individual_accuracies": {
+        "RandomForest": 0.6425035657353805
+      },
+      "improvement": 0.0
+    },
+    "soft": {
+      "ensemble_accuracy": 0.00234919036831949,
+      "ensemble_precision": 0.16279069767441862,
+      "ensemble_recall": 0.0007632755424708319,
+      "ensemble_f1": 0.001519426958975472,
+      "confusion_matrix": [
+        [
+          0,
+          2298,
+          15,
+          435
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3783,
+          28,
+          5360
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "strategy": "soft",
+      "individual_accuracies": {
+        "RandomForest": 0.6425035657353805
+      },
+      "improvement": -0.640154375367061
+    },
+    "hard": {
+      "ensemble_accuracy": 0.6425035657353805,
+      "ensemble_precision": 0.43427788700685693,
+      "ensemble_recall": 0.4735651760969844,
+      "ensemble_f1": 0.41228250414005196,
+      "confusion_matrix": [
+        [
+          2298,
+          15,
+          435
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          3783,
+          28,
+          5360
+        ]
+      ],
+      "strategy": "hard",
+      "individual_accuracies": {
+        "RandomForest": 0.6425035657353805
+      },
+      "improvement": 0.0
+    }
+  },
+  "agreement_analysis": {
+    "average_agreement": 1.0,
+    "unanimous_count": 11919,
+    "unanimous_percentage": 1.0,
+    "unanimous_accuracy": 0.6425035657353805,
+    "non_unanimous_accuracy": NaN
+  },
+  "recommendation": "weighted"
+}
