@@ -1064,30 +1064,29 @@ class SMCDataPipeline:
         df['TBM_Bars_to_Hit'] = np.nan
 
         for i in range(len(df) - self.lookforward):
-            # CRITICAL RULE: Only trade mitigated+bounced OBs with full SMC validation
-            # Check if this is a valid entry point with ALL requirements:
-            # 1. OB must be mitigated and bounced
-            # 2. OB must have FVG (institutional signature)
-            # 3. OB must align with EMA trend
-            # 4. RSI must not be in extreme zone
-            # 5. HTF regime must be aligned (checked later in HTF confluence)
+            # SMC Entry Requirements (relaxed for training - models will learn optimal combinations)
+            # Core requirements:
+            # 1. OB must be mitigated (price entered the zone)
+            # 2. OB must have good quality (displacement + fuzzy score)
+            # Optional features (models learn their importance):
+            # - Bounce after mitigation
+            # - FVG presence
+            # - EMA alignment
+            # - RSI validity
+            # - Clean formation
 
             is_bullish_entry = (
                 df['OB_Bullish'].iloc[i] == 1 and
-                df['OB_Mitigated_And_Bounced'].iloc[i] == 1 and
-                df['OB_Has_FVG'].iloc[i] == 1 and
-                df['OB_EMA_Aligned'].iloc[i] == 1 and
-                df['OB_RSI_Valid'].iloc[i] == 1 and
-                df['OB_Clean_Formation'].iloc[i] > 0.3  # Fuzzy threshold
+                df['OB_Mitigated'].iloc[i] == 1 and  # Must be mitigated
+                df['OB_Quality_Fuzzy'].iloc[i] > 0.2 and  # Minimum quality
+                df['OB_Displacement_ATR'].iloc[i] > 1.0  # Minimum displacement
             )
 
             is_bearish_entry = (
                 df['OB_Bearish'].iloc[i] == 1 and
-                df['OB_Mitigated_And_Bounced'].iloc[i] == 1 and
-                df['OB_Has_FVG'].iloc[i] == 1 and
-                df['OB_EMA_Aligned'].iloc[i] == 1 and
-                df['OB_RSI_Valid'].iloc[i] == 1 and
-                df['OB_Clean_Formation'].iloc[i] > 0.3
+                df['OB_Mitigated'].iloc[i] == 1 and
+                df['OB_Quality_Fuzzy'].iloc[i] > 0.2 and
+                df['OB_Displacement_ATR'].iloc[i] > 1.0
             )
 
             if not (is_bullish_entry or is_bearish_entry):
