@@ -96,8 +96,14 @@ class ConsensusEnsembleSMCModel:
         
         n_samples = len(X)
         
+        # Add missing features with zeros
+        required_features = self.feature_cols['RandomForest']
+        for feature in required_features:
+            if feature not in X.columns:
+                X[feature] = 0.0
+        
         # Random Forest prediction
-        X_rf = X[self.feature_cols['RandomForest']].values
+        X_rf = X[required_features].values
         X_rf = np.nan_to_num(X_rf, nan=0.0, posinf=1e10, neginf=-1e10)
         predictions = self.models['RandomForest'].predict(X_rf)
         probabilities = self.models['RandomForest'].predict_proba(X_rf)

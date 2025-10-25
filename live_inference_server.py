@@ -836,8 +836,10 @@ class PredictionResponse(BaseModel):
     models: Dict[str, int] = Field(...,
                                    description="Individual model predictions")
     smc_context: Dict = Field(..., description="SMC context features")
-    explanation: str = Field(..., description="Human-readable explanation of decision")
-    narrative: str = Field(..., description="Comprehensive trading narrative for display panel")
+    explanation: str = Field(...,
+                             description="Human-readable explanation of decision")
+    narrative: str = Field(...,
+                           description="Comprehensive trading narrative for display panel")
     timestamp: str = Field(..., description="Prediction timestamp")
     processing_time_ms: float = Field(...,
                                       description="Processing time in milliseconds")
@@ -912,22 +914,22 @@ def process_live_data(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
 
     logger.debug(
         f"✓ Processing complete: {len(base_df)} rows, {len(base_df.columns)} features")
-    
+
     # 🔍 SMC DETECTION DIAGNOSTIC LOGGING
     logger.info("=" * 80)
     logger.info("🔍 SMC STRUCTURE DETECTION DIAGNOSTIC")
     logger.info("=" * 80)
-    
+
     # Check Order Block detection
     ob_bullish_count = (base_df['OB_Bullish'] == 1).sum()
     ob_bearish_count = (base_df['OB_Bearish'] == 1).sum()
     ob_total = ob_bullish_count + ob_bearish_count
-    
+
     logger.info(f"📦 ORDER BLOCKS DETECTED:")
     logger.info(f"   Bullish OBs: {ob_bullish_count}")
     logger.info(f"   Bearish OBs: {ob_bearish_count}")
     logger.info(f"   Total OBs: {ob_total}")
-    
+
     if ob_total == 0:
         logger.warning("   🚨 NO ORDER BLOCKS DETECTED!")
         logger.warning("   Possible reasons:")
@@ -936,71 +938,77 @@ def process_live_data(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
         logger.warning("      - No clear price structure")
     else:
         # Show OB quality distribution
-        ob_rows = base_df[(base_df['OB_Bullish'] == 1) | (base_df['OB_Bearish'] == 1)]
+        ob_rows = base_df[(base_df['OB_Bullish'] == 1) |
+                          (base_df['OB_Bearish'] == 1)]
         if not ob_rows.empty:
             avg_quality = ob_rows['OB_Quality_Fuzzy'].mean()
             avg_displacement = ob_rows['OB_Displacement_ATR'].mean()
             logger.info(f"   ✅ OB Quality (avg): {avg_quality:.3f}")
-            logger.info(f"   ✅ OB Displacement (avg): {avg_displacement:.3f} ATR")
-    
+            logger.info(
+                f"   ✅ OB Displacement (avg): {avg_displacement:.3f} ATR")
+
     # Check Fair Value Gap detection
     fvg_bullish_count = (base_df['FVG_Bullish'] == 1).sum()
     fvg_bearish_count = (base_df['FVG_Bearish'] == 1).sum()
     fvg_total = fvg_bullish_count + fvg_bearish_count
-    
+
     logger.info(f"\n📊 FAIR VALUE GAPS DETECTED:")
     logger.info(f"   Bullish FVGs: {fvg_bullish_count}")
     logger.info(f"   Bearish FVGs: {fvg_bearish_count}")
     logger.info(f"   Total FVGs: {fvg_total}")
-    
+
     if fvg_total == 0:
         logger.warning("   🚨 NO FVGs DETECTED!")
     else:
-        fvg_rows = base_df[(base_df['FVG_Bullish'] == 1) | (base_df['FVG_Bearish'] == 1)]
+        fvg_rows = base_df[(base_df['FVG_Bullish'] == 1) |
+                           (base_df['FVG_Bearish'] == 1)]
         if not fvg_rows.empty:
             avg_fvg_depth = fvg_rows['FVG_Depth_ATR'].mean()
             logger.info(f"   ✅ FVG Depth (avg): {avg_fvg_depth:.3f} ATR")
-    
+
     # Check Break of Structure detection
     bos_wick_count = (base_df['BOS_Wick_Confirm'] != 0).sum()
     bos_close_count = (base_df['BOS_Close_Confirm'] != 0).sum()
     choch_count = (base_df['ChoCH_Detected'] != 0).sum()
-    
+
     logger.info(f"\n🏗️ MARKET STRUCTURE BREAKS:")
     logger.info(f"   BOS (Wick): {bos_wick_count}")
     logger.info(f"   BOS (Close): {bos_close_count}")
     logger.info(f"   ChoCH: {choch_count}")
-    
+
     if bos_wick_count == 0 and bos_close_count == 0:
         logger.warning("   🚨 NO STRUCTURE BREAKS DETECTED!")
-    
+
     # Check data quality
     logger.info(f"\n📈 DATA QUALITY:")
     logger.info(f"   Total rows: {len(base_df)}")
     logger.info(f"   ATR mean: {base_df['atr'].mean():.6f}")
     logger.info(f"   ATR std: {base_df['atr'].std():.6f}")
-    logger.info(f"   Price range: {base_df['close'].min():.5f} - {base_df['close'].max():.5f}")
+    logger.info(
+        f"   Price range: {base_df['close'].min():.5f} - {base_df['close'].max():.5f}")
     logger.info(f"   NaN values: {base_df.isna().sum().sum()}")
-    
+
     # Check feature engineering completeness
-    critical_features = ['OB_Bullish', 'OB_Bearish', 'FVG_Bullish', 'FVG_Bearish', 
-                        'BOS_Wick_Confirm', 'BOS_Close_Confirm', 'Displacement_Mag_ZScore']
-    missing_features = [f for f in critical_features if f not in base_df.columns]
-    
+    critical_features = ['OB_Bullish', 'OB_Bearish', 'FVG_Bullish', 'FVG_Bearish',
+                         'BOS_Wick_Confirm', 'BOS_Close_Confirm', 'Displacement_Mag_ZScore']
+    missing_features = [
+        f for f in critical_features if f not in base_df.columns]
+
     if missing_features:
         logger.error(f"   🚨 MISSING CRITICAL FEATURES: {missing_features}")
     else:
         logger.info(f"   ✅ All critical SMC features present")
-    
+
     # Calculate non-zero feature percentage
     numeric_cols = base_df.select_dtypes(include=[np.number]).columns
     non_zero_pct = (base_df[numeric_cols].iloc[-1] != 0).mean() * 100
     logger.info(f"   📊 Non-zero features (latest row): {non_zero_pct:.1f}%")
-    
+
     if non_zero_pct < 40:
-        logger.warning(f"   🚨 LOW FEATURE DENSITY: Only {non_zero_pct:.1f}% features are non-zero!")
+        logger.warning(
+            f"   🚨 LOW FEATURE DENSITY: Only {non_zero_pct:.1f}% features are non-zero!")
         logger.warning("   This indicates poor SMC structure detection")
-    
+
     logger.info("=" * 80)
 
     return base_df
@@ -1009,7 +1017,7 @@ def process_live_data(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
 def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
     """
     Extract features from the latest M15 candle for prediction
-    
+
     CRITICAL FIX: OB/FVG features are only set on detection bars, but we need
     to find the most recent ACTIVE (unmitigated) structures and use those features.
 
@@ -1025,11 +1033,11 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
 
     latest_row = processed_df.iloc[[-1]].copy()
     latest_idx = len(processed_df) - 1
-    
+
     # CRITICAL FIX: Find most recent ACTIVE OB/FVG in the lookback window
     lookback = min(50, len(processed_df))  # Look back up to 50 bars
     recent_data = processed_df.iloc[-lookback:].copy()
-    
+
     # Initialize separate OB feature columns to avoid conflicts
     latest_row['OB_Bullish_Quality'] = 0.0
     latest_row['OB_Bearish_Quality'] = 0.0
@@ -1037,34 +1045,36 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
     latest_row['OB_Bearish_Age'] = 0
     latest_row['OB_Mitigation_Time'] = ''
     latest_row['OB_Mitigation_Price'] = 0.0
-    
+
     # Find most recent unmitigated bullish OB
     bullish_obs = recent_data[
-        (recent_data['OB_Bullish'] == 1) & 
+        (recent_data['OB_Bullish'] == 1) &
         (recent_data['OB_Mitigated'] == 0)
     ]
-    
+
     # Find most recent unmitigated bearish OB
     bearish_obs = recent_data[
-        (recent_data['OB_Bearish'] == 1) & 
+        (recent_data['OB_Bearish'] == 1) &
         (recent_data['OB_Mitigated'] == 0)
     ]
-    
+
     # Process bullish OB if found
     if not bullish_obs.empty:
         latest_bull_ob = bullish_obs.iloc[-1]
         ob_pandas_idx = bullish_obs.index[-1]  # Pandas index
-        ob_array_pos = recent_data.index.get_loc(ob_pandas_idx)  # Position in recent_data array
+        ob_array_pos = recent_data.index.get_loc(
+            ob_pandas_idx)  # Position in recent_data array
         ob_low = latest_bull_ob.get('OB_Low', 0.0)
-        
+
         # Check if OB has been mitigated by recent price action
         # Bullish OB is mitigated when price trades below OB low
         is_mitigated = False
         mitigation_time = None
         mitigation_price = None
-        
-        logger.info(f"   🔍 Checking bullish OB mitigation: pandas_idx={ob_pandas_idx}, array_pos={ob_array_pos}, ob_low={ob_low:.5f}")
-        
+
+        logger.info(
+            f"   🔍 Checking bullish OB mitigation: pandas_idx={ob_pandas_idx}, array_pos={ob_array_pos}, ob_low={ob_low:.5f}")
+
         # Check bars after OB formation (use array positions)
         for j in range(ob_array_pos + 1, len(recent_data)):
             bar_low = recent_data['low'].iloc[j]
@@ -1072,13 +1082,15 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
                 is_mitigated = True
                 mitigation_time = recent_data.index[j]
                 mitigation_price = bar_low
-                logger.info(f"   ✓ Bullish OB mitigated at array pos {j} (low: {mitigation_price:.5f} <= OB low: {ob_low:.5f})")
+                logger.info(
+                    f"   ✓ Bullish OB mitigated at array pos {j} (low: {mitigation_price:.5f} <= OB low: {ob_low:.5f})")
                 break
-        
+
         if not is_mitigated:
             # Copy OB features to latest row (use separate columns)
             latest_row['OB_Bullish'] = 1
-            latest_row['OB_Bullish_Quality'] = latest_bull_ob.get('OB_Quality_Fuzzy', 0)
+            latest_row['OB_Bullish_Quality'] = latest_bull_ob.get(
+                'OB_Quality_Fuzzy', 0)
             latest_row['OB_Bullish_Age'] = latest_idx - ob_pandas_idx
             # Copy price levels for drawing
             latest_row['OB_High'] = latest_bull_ob.get('OB_High', 0.0)
@@ -1087,31 +1099,37 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
             if bearish_obs.empty:
                 latest_row['OB_Size_ATR'] = latest_bull_ob['OB_Size_ATR']
                 latest_row['OB_Displacement_ATR'] = latest_bull_ob['OB_Displacement_ATR']
-                latest_row['OB_Quality_Fuzzy'] = latest_bull_ob.get('OB_Quality_Fuzzy', 0)
+                latest_row['OB_Quality_Fuzzy'] = latest_bull_ob.get(
+                    'OB_Quality_Fuzzy', 0)
                 latest_row['OB_Age'] = latest_idx - ob_pandas_idx
-            logger.debug(f"   Found active bullish OB (quality: {latest_row['OB_Bullish_Quality'].iloc[0]:.3f}, age: {latest_row['OB_Bullish_Age'].iloc[0]} bars, high: {latest_row['OB_High'].iloc[0]:.5f}, low: {latest_row['OB_Low'].iloc[0]:.5f})")
+            logger.debug(
+                f"   Found active bullish OB (quality: {latest_row['OB_Bullish_Quality'].iloc[0]:.3f}, age: {latest_row['OB_Bullish_Age'].iloc[0]} bars, high: {latest_row['OB_High'].iloc[0]:.5f}, low: {latest_row['OB_Low'].iloc[0]:.5f})")
         else:
             # Store mitigation info for visual marker
             latest_row['OB_Mitigation_Time'] = str(mitigation_time)
             latest_row['OB_Mitigation_Price'] = mitigation_price
-            logger.info(f"   ❌ Bullish OB was mitigated by recent price action at {mitigation_time}")
-    
+            logger.info(
+                f"   ❌ Bullish OB was mitigated by recent price action at {mitigation_time}")
+
     # Process bearish OB if found
     if not bearish_obs.empty:
         latest_bear_ob = bearish_obs.iloc[-1]
         ob_pandas_idx = bearish_obs.index[-1]  # Pandas index
-        ob_array_pos = recent_data.index.get_loc(ob_pandas_idx)  # Position in recent_data array
+        ob_array_pos = recent_data.index.get_loc(
+            ob_pandas_idx)  # Position in recent_data array
         ob_high = latest_bear_ob.get('OB_High', 0.0)
-        
+
         # Check if OB has been mitigated by recent price action
         # Bearish OB is mitigated when price trades above OB high
         is_mitigated = False
         mitigation_time = None
         mitigation_price = None
-        
-        logger.info(f"   🔍 Checking bearish OB mitigation: pandas_idx={ob_pandas_idx}, array_pos={ob_array_pos}, ob_high={ob_high:.5f}")
-        logger.info(f"      Checking {len(recent_data) - ob_array_pos - 1} bars after OB formation")
-        
+
+        logger.info(
+            f"   🔍 Checking bearish OB mitigation: pandas_idx={ob_pandas_idx}, array_pos={ob_array_pos}, ob_high={ob_high:.5f}")
+        logger.info(
+            f"      Checking {len(recent_data) - ob_array_pos - 1} bars after OB formation")
+
         # Check bars after OB formation (use array positions)
         max_high_seen = 0.0
         for j in range(ob_array_pos + 1, len(recent_data)):
@@ -1121,16 +1139,19 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
                 is_mitigated = True
                 mitigation_time = recent_data.index[j]
                 mitigation_price = bar_high
-                logger.info(f"   ✓ Bearish OB mitigated at array pos {j} (high: {mitigation_price:.5f} >= OB high: {ob_high:.5f})")
+                logger.info(
+                    f"   ✓ Bearish OB mitigated at array pos {j} (high: {mitigation_price:.5f} >= OB high: {ob_high:.5f})")
                 break
-        
+
         if not is_mitigated:
-            logger.info(f"      Max high seen after OB: {max_high_seen:.5f} (OB high: {ob_high:.5f})")
-        
+            logger.info(
+                f"      Max high seen after OB: {max_high_seen:.5f} (OB high: {ob_high:.5f})")
+
         if not is_mitigated:
             # Copy OB features to latest row (use separate columns)
             latest_row['OB_Bearish'] = 1
-            latest_row['OB_Bearish_Quality'] = latest_bear_ob.get('OB_Quality_Fuzzy', 0)
+            latest_row['OB_Bearish_Quality'] = latest_bear_ob.get(
+                'OB_Quality_Fuzzy', 0)
             latest_row['OB_Bearish_Age'] = latest_idx - ob_pandas_idx
             # Copy price levels for drawing (overwrite if bullish also present)
             latest_row['OB_High'] = ob_high
@@ -1139,62 +1160,72 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
             if bullish_obs.empty:
                 latest_row['OB_Size_ATR'] = latest_bear_ob['OB_Size_ATR']
                 latest_row['OB_Displacement_ATR'] = latest_bear_ob['OB_Displacement_ATR']
-                latest_row['OB_Quality_Fuzzy'] = latest_bear_ob.get('OB_Quality_Fuzzy', 0)
+                latest_row['OB_Quality_Fuzzy'] = latest_bear_ob.get(
+                    'OB_Quality_Fuzzy', 0)
                 latest_row['OB_Age'] = latest_idx - ob_pandas_idx
-            logger.debug(f"   Found active bearish OB (quality: {latest_row['OB_Bearish_Quality'].iloc[0]:.3f}, age: {latest_row['OB_Bearish_Age'].iloc[0]} bars, high: {latest_row['OB_High'].iloc[0]:.5f}, low: {latest_row['OB_Low'].iloc[0]:.5f})")
+            logger.debug(
+                f"   Found active bearish OB (quality: {latest_row['OB_Bearish_Quality'].iloc[0]:.3f}, age: {latest_row['OB_Bearish_Age'].iloc[0]} bars, high: {latest_row['OB_High'].iloc[0]:.5f}, low: {latest_row['OB_Low'].iloc[0]:.5f})")
         else:
             # Store mitigation info for visual marker
             latest_row['OB_Mitigation_Time'] = str(mitigation_time)
             latest_row['OB_Mitigation_Price'] = mitigation_price
-            logger.info(f"   ❌ Bearish OB was mitigated by recent price action at {mitigation_time}")
-    
+            logger.info(
+                f"   ❌ Bearish OB was mitigated by recent price action at {mitigation_time}")
+
     # Log conflict if both OBs present
     if not bullish_obs.empty and not bearish_obs.empty:
         logger.warning(f"   ⚠️ CONFLICT: Both bullish and bearish OBs active!")
-        logger.warning(f"      Bullish OB: Q={latest_row['OB_Bullish_Quality'].iloc[0]:.3f}, Age={latest_row['OB_Bullish_Age'].iloc[0]}")
-        logger.warning(f"      Bearish OB: Q={latest_row['OB_Bearish_Quality'].iloc[0]:.3f}, Age={latest_row['OB_Bearish_Age'].iloc[0]}")
-    
+        logger.warning(
+            f"      Bullish OB: Q={latest_row['OB_Bullish_Quality'].iloc[0]:.3f}, Age={latest_row['OB_Bullish_Age'].iloc[0]}")
+        logger.warning(
+            f"      Bearish OB: Q={latest_row['OB_Bearish_Quality'].iloc[0]:.3f}, Age={latest_row['OB_Bearish_Age'].iloc[0]}")
+
     # Find most recent unmitigated bullish FVG
     bullish_fvgs = recent_data[
-        (recent_data['FVG_Bullish'] == 1) & 
+        (recent_data['FVG_Bullish'] == 1) &
         (recent_data['FVG_Mitigated'] == 0)
     ]
     if not bullish_fvgs.empty:
         latest_bull_fvg = bullish_fvgs.iloc[-1]
         latest_row['FVG_Bullish'] = 1
         latest_row['FVG_Depth_ATR'] = latest_bull_fvg['FVG_Depth_ATR']
-        latest_row['FVG_Quality_Fuzzy'] = latest_bull_fvg.get('FVG_Quality_Fuzzy', 0)
+        latest_row['FVG_Quality_Fuzzy'] = latest_bull_fvg.get(
+            'FVG_Quality_Fuzzy', 0)
         logger.debug(f"   Found active bullish FVG")
-    
+
     # Find most recent unmitigated bearish FVG
     bearish_fvgs = recent_data[
-        (recent_data['FVG_Bearish'] == 1) & 
+        (recent_data['FVG_Bearish'] == 1) &
         (recent_data['FVG_Mitigated'] == 0)
     ]
     if not bearish_fvgs.empty:
         latest_bear_fvg = bearish_fvgs.iloc[-1]
         latest_row['FVG_Bearish'] = 1
         latest_row['FVG_Depth_ATR'] = latest_bear_fvg['FVG_Depth_ATR']
-        latest_row['FVG_Quality_Fuzzy'] = latest_bear_fvg.get('FVG_Quality_Fuzzy', 0)
+        latest_row['FVG_Quality_Fuzzy'] = latest_bear_fvg.get(
+            'FVG_Quality_Fuzzy', 0)
         logger.debug(f"   Found active bearish FVG")
 
     # Find most recent BOS (Break of Structure)
     # Look for recent structure breaks in the historical data
     recent_bos_wick = recent_data[recent_data['BOS_Wick_Confirm'] != 0]
     recent_bos_close = recent_data[recent_data['BOS_Close_Confirm'] != 0]
-    
+
     if not recent_bos_wick.empty:
         latest_bos = recent_bos_wick.iloc[-1]
         latest_row['BOS_Wick_Confirm'] = latest_bos['BOS_Wick_Confirm']
         latest_row['BOS_Dist_ATR'] = latest_bos.get('BOS_Dist_ATR', 0.0)
-        logger.debug(f"   Found recent BOS (wick): direction={latest_bos['BOS_Wick_Confirm']}, dist={latest_bos.get('BOS_Dist_ATR', 0):.3f} ATR")
-    
+        logger.debug(
+            f"   Found recent BOS (wick): direction={latest_bos['BOS_Wick_Confirm']}, dist={latest_bos.get('BOS_Dist_ATR', 0):.3f} ATR")
+
     if not recent_bos_close.empty:
         latest_bos_close_bar = recent_bos_close.iloc[-1]
         latest_row['BOS_Close_Confirm'] = latest_bos_close_bar['BOS_Close_Confirm']
-        latest_row['BOS_Commitment_Flag'] = latest_bos_close_bar.get('BOS_Commitment_Flag', 0)
-        logger.debug(f"   Found recent BOS (close): direction={latest_bos_close_bar['BOS_Close_Confirm']}, commitment={latest_bos_close_bar.get('BOS_Commitment_Flag', 0)}")
-    
+        latest_row['BOS_Commitment_Flag'] = latest_bos_close_bar.get(
+            'BOS_Commitment_Flag', 0)
+        logger.debug(
+            f"   Found recent BOS (close): direction={latest_bos_close_bar['BOS_Close_Confirm']}, commitment={latest_bos_close_bar.get('BOS_Commitment_Flag', 0)}")
+
     # Find most recent ChoCH (Change of Character)
     recent_choch = recent_data[recent_data['ChoCH_Detected'] == 1]
     if not recent_choch.empty:
@@ -1202,7 +1233,8 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
         latest_row['ChoCH_Detected'] = 1
         latest_row['ChoCH_Direction'] = latest_choch.get('ChoCH_Direction', 0)
         latest_row['ChoCH_Level'] = latest_choch.get('ChoCH_Level', 0.0)
-        logger.debug(f"   Found recent ChoCH: direction={latest_choch.get('ChoCH_Direction', 0)}, level={latest_choch.get('ChoCH_Level', 0):.5f}")
+        logger.debug(
+            f"   Found recent ChoCH: direction={latest_choch.get('ChoCH_Direction', 0)}, level={latest_choch.get('ChoCH_Level', 0):.5f}")
 
     # CORRECT LOGIC: Determine direction from SMC context (how models were trained)
     # Training logic:
@@ -1211,18 +1243,19 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
     # - No clear structure → HOLD (TBM_Entry = 0)
     #
     # Models predict: "Will THIS setup WIN?" not "Which direction?"
-    
+
     bullish_ob = bool(latest_row.get('OB_Bullish', 0).iloc[0] == 1)
     bearish_ob = bool(latest_row.get('OB_Bearish', 0).iloc[0] == 1)
     bullish_fvg = bool(latest_row.get('FVG_Bullish', 0).iloc[0] == 1)
     bearish_fvg = bool(latest_row.get('FVG_Bearish', 0).iloc[0] == 1)
-    
+
     # Determine direction based on structure (EXACTLY how training worked)
     if bullish_ob or bullish_fvg:
         # Bullish structure → BUY setup
         latest_row['TBM_Entry'] = 1.0
         setup_direction = "BUY"
-        logger.info(f"   📈 Bullish structure detected → BUY setup (TBM_Entry=1)")
+        logger.info(
+            f"   📈 Bullish structure detected → BUY setup (TBM_Entry=1)")
         if bullish_ob:
             logger.info(f"      Bullish OB present")
         if bullish_fvg:
@@ -1231,7 +1264,8 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
         # Bearish structure → SELL setup
         latest_row['TBM_Entry'] = -1.0
         setup_direction = "SELL"
-        logger.info(f"   📉 Bearish structure detected → SELL setup (TBM_Entry=-1)")
+        logger.info(
+            f"   📉 Bearish structure detected → SELL setup (TBM_Entry=-1)")
         if bearish_ob:
             logger.info(f"      Bearish OB present")
         if bearish_fvg:
@@ -1240,57 +1274,63 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
         # No clear structure → HOLD
         latest_row['TBM_Entry'] = 0.0
         setup_direction = "HOLD"
-        logger.info(f"   ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)")
-    
+        logger.info(
+            f"   ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)")
+
     # SESSION FILTER: Only trade during high-probability hours
     # Based on training data: Some hours have 67% WR, others have 28% WR
     if latest_row['TBM_Entry'].iloc[0] != 0:
         from datetime import datetime
         current_hour_utc = datetime.utcnow().hour
-        
+
         # Best performing hours from training data analysis:
         # 07:00 UTC (67.9% WR) - London Open
         # 14:00 UTC (60.8% WR) - London/NY Overlap
         # 19:00-20:00 UTC (56-61% WR) - NY Session
         # Worst: 00:00-01:00 (28-30% WR), 17:00 (44% WR)
-        
+
         OPTIMAL_HOURS = [7, 9, 10, 13, 14, 19, 20]  # Best hours (>55% WR)
         AVOID_HOURS = [0, 1, 8, 15, 17]  # Worst hours (<45% WR)
-        
+
         if current_hour_utc in AVOID_HOURS:
-            logger.info(f"   ⏰ FILTERED: Hour {current_hour_utc}:00 UTC is low-probability")
+            logger.info(
+                f"   ⏰ FILTERED: Hour {current_hour_utc}:00 UTC is low-probability")
             logger.info(f"      Historical WR at this hour: <45%")
             latest_row['TBM_Entry'] = 0.0
             setup_direction = "HOLD"
         elif current_hour_utc in OPTIMAL_HOURS:
-            logger.info(f"   ⏰ OPTIMAL HOUR: {current_hour_utc}:00 UTC (>55% historical WR)")
-    
+            logger.info(
+                f"   ⏰ OPTIMAL HOUR: {current_hour_utc}:00 UTC (>55% historical WR)")
+
     # QUALITY FILTER: Only trade high-quality setups
     # Based on training data analysis: OB_Displacement_ATR > 1.5 increases win rate from 51% to 63%
     if latest_row['TBM_Entry'].iloc[0] != 0:
         ob_displacement = float(latest_row['OB_Displacement_ATR'].iloc[0])
         ob_quality = float(latest_row['OB_Quality_Fuzzy'].iloc[0])
-        
+
         # Minimum quality thresholds
         MIN_DISPLACEMENT = 1.5  # ATR - strong institutional move
         MIN_QUALITY = 0.3       # Fuzzy quality score
-        
+
         if ob_displacement < MIN_DISPLACEMENT:
-            logger.info(f"   ⛔ FILTERED: OB_Displacement={ob_displacement:.2f} < {MIN_DISPLACEMENT} ATR")
+            logger.info(
+                f"   ⛔ FILTERED: OB_Displacement={ob_displacement:.2f} < {MIN_DISPLACEMENT} ATR")
             logger.info(f"      Weak displacement = low probability setup")
             latest_row['TBM_Entry'] = 0.0
             setup_direction = "HOLD"
         elif ob_quality < MIN_QUALITY:
-            logger.info(f"   ⛔ FILTERED: OB_Quality={ob_quality:.3f} < {MIN_QUALITY}")
+            logger.info(
+                f"   ⛔ FILTERED: OB_Quality={ob_quality:.3f} < {MIN_QUALITY}")
             logger.info(f"      Low quality OB = unreliable zone")
             latest_row['TBM_Entry'] = 0.0
             setup_direction = "HOLD"
         else:
             logger.info(f"   ✅ QUALITY CHECK PASSED:")
-            logger.info(f"      OB_Displacement: {ob_displacement:.2f} ATR (>{MIN_DISPLACEMENT})")
+            logger.info(
+                f"      OB_Displacement: {ob_displacement:.2f} ATR (>{MIN_DISPLACEMENT})")
             logger.info(f"      OB_Quality: {ob_quality:.3f} (>{MIN_QUALITY})")
             logger.info(f"      Expected win rate: ~63% (vs 51% unfiltered)")
-    
+
     # Remove non-feature columns
     columns_to_drop = ['time', 'symbol',
                        'timeframe', 'open', 'high', 'low', 'close']
@@ -1314,7 +1354,7 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
     total_features = len(latest_features.columns)
     logger.info(
         f"   📊 Non-zero features: {non_zero_count}/{total_features} ({non_zero_count/total_features*100:.1f}%)")
-    
+
     # 🔍 CRITICAL SMC FEATURE CHECK
     smc_features_check = {
         'OB_Bullish': latest_features['OB_Bullish'].iloc[0] if 'OB_Bullish' in latest_features.columns else 0,
@@ -1324,11 +1364,12 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
         'BOS_Close_Confirm': latest_features['BOS_Close_Confirm'].iloc[0] if 'BOS_Close_Confirm' in latest_features.columns else 0,
     }
     logger.info(f"   🎯 SMC Features: {smc_features_check}")
-    
+
     if all(v == 0 for v in smc_features_check.values()):
         logger.warning("   🚨 ALL SMC FEATURES ARE ZERO!")
         logger.warning("   Models will likely predict TIMEOUT/HOLD")
-        logger.warning("   Check SMC detection diagnostic above for root cause")
+        logger.warning(
+            "   Check SMC detection diagnostic above for root cause")
 
     # Check feature alignment with models
     ensemble = server_state.model_manager.get_ensemble()
@@ -1368,13 +1409,14 @@ def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
     # Extract single prediction (features is single row)
     prediction = int(consensus_pred[0])
     has_consensus = bool(confidence_flags[0])
-    
+
     # Get features for logging
     row = features.iloc[0]
     tbm_entry = float(row.get('TBM_Entry', 0.0))
     setup_direction = "BUY" if tbm_entry > 0 else "SELL" if tbm_entry < 0 else "NEUTRAL"
-    
-    logger.info(f"   🤖 Models predict for {setup_direction} setup: {prediction} (1=WIN, 0=TIMEOUT, -1=LOSS)")
+
+    logger.info(
+        f"   🤖 Models predict for {setup_direction} setup: {prediction} (1=WIN, 0=TIMEOUT, -1=LOSS)")
 
     # Convert model predictions (WIN/LOSS/TIMEOUT) to trading signals (BUY/SELL/HOLD)
     rf_pred = int(individual_preds['RandomForest'][0])
@@ -1392,28 +1434,28 @@ def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
         X_rf = features[ensemble.feature_cols['RandomForest']].values
         X_rf = np.nan_to_num(X_rf, nan=0.0, posinf=1e10, neginf=-1e10)
         rf_proba = ensemble.models['RandomForest'].predict_proba(X_rf)[0]
-        
+
         # XGBoost probabilities
         X_xgb = features[ensemble.feature_cols['XGBoost']].values
         X_xgb = np.nan_to_num(X_xgb, nan=0.0, posinf=1e10, neginf=-1e10)
         xgb_proba = ensemble.models['XGBoost'].predict_proba(X_xgb)[0]
-        
+
         # Neural Network probabilities
         X_nn = features[ensemble.feature_cols['NeuralNetwork']].values
         X_nn = np.nan_to_num(X_nn, nan=0.0, posinf=1e10, neginf=-1e10)
         if 'NeuralNetwork' in ensemble.scalers:
             X_nn = ensemble.scalers['NeuralNetwork'].transform(X_nn)
-        
+
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         X_tensor = torch.FloatTensor(X_nn).to(device)
         ensemble.models['NeuralNetwork'].eval()
         with torch.no_grad():
             outputs = ensemble.models['NeuralNetwork'](X_tensor)
             nn_proba = torch.softmax(outputs, dim=1).cpu().numpy()[0]
-        
+
         # CORRECT INTERPRETATION: Models predict WIN/LOSS/TIMEOUT, not BUY/SELL/HOLD
         # avg_proba indices: [0=LOSS, 1=TIMEOUT, 2=WIN]
-        
+
         # Calculate confidence from MAJORITY models only (not all 3)
         # This prevents one dissenting model from dragging down confidence
         models_voting_for_prediction = []
@@ -1423,53 +1465,60 @@ def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
             models_voting_for_prediction.append(xgb_proba)
         if nn_pred == prediction:
             models_voting_for_prediction.append(nn_proba)
-        
+
         # Average only the models that agree with the majority
         if len(models_voting_for_prediction) > 0:
             avg_proba = np.mean(models_voting_for_prediction, axis=0)
         else:
             # Fallback: use all models (shouldn't happen with majority voting)
             avg_proba = (rf_proba + xgb_proba + nn_proba) / 3.0
-        
+
         # Model outcome probabilities
         outcome_probabilities = {
             "LOSS": float(avg_proba[0]),     # Index 0 = LOSS (-1)
             "TIMEOUT": float(avg_proba[1]),  # Index 1 = TIMEOUT (0)
             "WIN": float(avg_proba[2])       # Index 2 = WIN (1)
         }
-        
+
         logger.info(f"   📊 Model probabilities (LOSS/TIMEOUT/WIN):")
-        logger.info(f"      RF: {rf_proba} {'✓ MAJORITY' if rf_pred == prediction else ''}")
-        logger.info(f"      XGB: {xgb_proba} {'✓ MAJORITY' if xgb_pred == prediction else ''}")
-        logger.info(f"      NN: {nn_proba} {'✓ MAJORITY' if nn_pred == prediction else ''}")
+        logger.info(
+            f"      RF: {rf_proba} {'✓ MAJORITY' if rf_pred == prediction else ''}")
+        logger.info(
+            f"      XGB: {xgb_proba} {'✓ MAJORITY' if xgb_pred == prediction else ''}")
+        logger.info(
+            f"      NN: {nn_proba} {'✓ MAJORITY' if nn_pred == prediction else ''}")
         logger.info(f"   📊 Majority outcome probabilities ({len(models_voting_for_prediction)}/3 models) - "
-                   f"LOSS: {outcome_probabilities['LOSS']:.3f}, "
-                   f"TIMEOUT: {outcome_probabilities['TIMEOUT']:.3f}, WIN: {outcome_probabilities['WIN']:.3f}")
-        
+                    f"LOSS: {outcome_probabilities['LOSS']:.3f}, "
+                    f"TIMEOUT: {outcome_probabilities['TIMEOUT']:.3f}, WIN: {outcome_probabilities['WIN']:.3f}")
+
         # CORRECT LOGIC: Convert model prediction to trading signal
         # Models predict WIN/LOSS/TIMEOUT for the setup direction
         # If they predict WIN → Trade the direction
         # If they predict LOSS/TIMEOUT → HOLD
-        
+
         if prediction == 1:  # Models predict WIN
             if setup_direction == "BUY":
                 signal = "BUY"
                 final_prediction = 1
-                logger.info(f"   ✅ Models predict WIN for BUY setup → BUY signal")
+                logger.info(
+                    f"   ✅ Models predict WIN for BUY setup → BUY signal")
             elif setup_direction == "SELL":
                 signal = "SELL"
                 final_prediction = -1
-                logger.info(f"   ✅ Models predict WIN for SELL setup → SELL signal")
+                logger.info(
+                    f"   ✅ Models predict WIN for SELL setup → SELL signal")
             else:
                 signal = "HOLD"
                 final_prediction = 0
-                logger.info(f"   ⚠️ Models predict WIN but no structure → HOLD")
+                logger.info(
+                    f"   ⚠️ Models predict WIN but no structure → HOLD")
         else:  # Models predict LOSS or TIMEOUT
             signal = "HOLD"
             final_prediction = 0
             outcome = "LOSS" if prediction == -1 else "TIMEOUT"
-            logger.info(f"   ❌ Models predict {outcome} for {setup_direction} setup → HOLD (don't trade)")
-        
+            logger.info(
+                f"   ❌ Models predict {outcome} for {setup_direction} setup → HOLD (don't trade)")
+
         # Trading signal probabilities based on setup direction
         # avg_proba indices: [0=LOSS, 1=TIMEOUT, 2=WIN]
         if setup_direction == "BUY":
@@ -1490,14 +1539,14 @@ def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
                 "HOLD": 1.0,
                 "BUY": 0.0
             }
-        
+
         logger.info(f"   📊 Trading signal probabilities - SELL: {probabilities['SELL']:.3f}, "
-                   f"HOLD: {probabilities['HOLD']:.3f}, BUY: {probabilities['BUY']:.3f}")
-        
+                    f"HOLD: {probabilities['HOLD']:.3f}, BUY: {probabilities['BUY']:.3f}")
+
         # Confidence is the probability of the predicted signal
         confidence = probabilities[signal]
         prediction = final_prediction
-        
+
         # REMOVED: All confidence adjustments
         # The models already learned optimal patterns from training data:
         # - Unmitigated OB = 92.9% win rate
@@ -1506,13 +1555,14 @@ def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
         #
         # Hand-coded adjustments override what models learned.
         # Trust the models - they know better than simple rules!
-        
-        logger.info(f"   ✅ Final confidence (pure model output): {confidence:.3f}")
-        
+
+        logger.info(
+            f"   ✅ Final confidence (pure model output): {confidence:.3f}")
+
     except Exception as e:
         logger.warning(f"   ⚠️ Failed to get probability distributions: {e}")
         logger.warning(f"   ⚠️ Falling back to vote-based probabilities")
-        
+
         # Fallback: use simple vote counting
         probabilities = {
             "SELL": 0.0,
@@ -1522,7 +1572,7 @@ def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
         for pred in predictions_list:
             pred_signal = signal_map.get(pred, "HOLD")
             probabilities[pred_signal] += 1.0 / 3.0
-        
+
         # Confidence based on agreement
         confidence = max_agreement / 3.0
 
@@ -1559,14 +1609,14 @@ def extract_smc_context(features: pd.DataFrame) -> Dict:
     # Order Blocks context (with separate qualities to avoid conflicts)
     bullish_present = bool(row.get('OB_Bullish', 0) == 1)
     bearish_present = bool(row.get('OB_Bearish', 0) == 1)
-    
+
     order_blocks = {
         "bullish_present": bullish_present,
         "bearish_present": bearish_present,
         "bullish_quality": float(row.get('OB_Bullish_Quality', 0.0)),
         "bearish_quality": float(row.get('OB_Bearish_Quality', 0.0)),
         # Use appropriate quality based on which OB is present
-        "quality": float(row.get('OB_Bullish_Quality' if bullish_present and not bearish_present 
+        "quality": float(row.get('OB_Bullish_Quality' if bullish_present and not bearish_present
                                  else 'OB_Bearish_Quality' if bearish_present and not bullish_present
                                  else 'OB_Quality_Fuzzy', 0.0)),
         "size_atr": float(row.get('OB_Size_ATR', 0.0)),
@@ -1656,7 +1706,7 @@ def extract_smc_context(features: pd.DataFrame) -> Dict:
         "momentum": float(row.get('Momentum', 0.0)),
         "volume_ma_ratio": float(row.get('Volume_MA_Ratio', 1.0))
     }
-    
+
     # Combine all context
     smc_context = {
         "order_blocks": order_blocks,
@@ -1689,12 +1739,12 @@ async def root():
 def generate_narrative(prediction_result: Dict, smc_context: Dict, features: pd.DataFrame) -> str:
     """
     Generate comprehensive trading narrative for display panel
-    
+
     Args:
         prediction_result: Dictionary with prediction, signal, confidence, etc.
         smc_context: Dictionary with SMC context features
         features: Feature DataFrame (single row)
-    
+
     Returns:
         Multi-paragraph narrative explaining the trading decision
     """
@@ -1702,59 +1752,65 @@ def generate_narrative(prediction_result: Dict, smc_context: Dict, features: pd.
     confidence = prediction_result['confidence']
     consensus = prediction_result['consensus']
     models = prediction_result['models']
-    
+
     # Extract context
     ob = smc_context['order_blocks']
     regime = smc_context['regime']
     indicators = smc_context['indicators']
     structure = smc_context['structure']
-    
+
     # Count model agreement
-    agreement_count = sum(1 for pred in models.values() if pred == prediction_result['prediction'])
-    
+    agreement_count = sum(1 for pred in models.values()
+                          if pred == prediction_result['prediction'])
+
     # Build narrative paragraphs
     paragraphs = []
-    
+
     # Paragraph 1: Main recommendation
     if signal == "HOLD":
         paragraphs.append(f"The AI ensemble recommends HOLDING with {confidence*100:.1f}% confidence. "
-                         f"Models do not see a high-probability setup at this time.")
+                          f"Models do not see a high-probability setup at this time.")
     else:
-        setup_type = "bearish order block" if ob['bearish_present'] else "bullish order block" if ob['bullish_present'] else "price action"
+        setup_type = "bearish order block" if ob[
+            'bearish_present'] else "bullish order block" if ob['bullish_present'] else "price action"
         structure_conf = ""
         if structure['bos_close_confirmed']:
             structure_conf = " confirmed by break of structure"
         elif structure['choch_detected']:
             structure_conf = " with change of character detected"
-        
+
         paragraphs.append(f"The AI ensemble recommends a {signal} with {confidence*100:.1f}% confidence "
-                         f"based on a {setup_type} setup{structure_conf}. "
-                         f"{agreement_count} of 3 models predict this trade will be profitable.")
-    
+                          f"based on a {setup_type} setup{structure_conf}. "
+                          f"{agreement_count} of 3 models predict this trade will be profitable.")
+
     # Paragraph 2: Model consensus details
     model_details = []
     for name, pred in models.items():
         outcome = "WIN" if pred == 1 else "LOSS" if pred == -1 else "TIMEOUT"
         model_details.append(f"{name}: {outcome}")
-    
+
     if consensus:
         if agreement_count == 3:
-            paragraphs.append(f"All three models agree on the outcome. {', '.join(model_details)}.")
+            paragraphs.append(
+                f"All three models agree on the outcome. {', '.join(model_details)}.")
         else:
-            majority = [name for name, pred in models.items() if pred == prediction_result['prediction']]
-            minority = [name for name, pred in models.items() if pred != prediction_result['prediction']]
+            majority = [name for name, pred in models.items(
+            ) if pred == prediction_result['prediction']]
+            minority = [name for name, pred in models.items(
+            ) if pred != prediction_result['prediction']]
             paragraphs.append(f"Majority consensus: {' and '.join(majority)} predict profitability, "
-                             f"while {' and '.join(minority)} suggest{'s' if len(minority)==1 else ''} caution.")
+                              f"while {' and '.join(minority)} suggest{'s' if len(minority) == 1 else ''} caution.")
     else:
-        paragraphs.append(f"Models are split: {', '.join(model_details)}. No clear consensus.")
-    
+        paragraphs.append(
+            f"Models are split: {', '.join(model_details)}. No clear consensus.")
+
     # Paragraph 3: Market conditions
     regime_desc = regime['regime_label']
     rsi = indicators['rsi']
     macd_hist = indicators['macd_hist']
     momentum = indicators['momentum']
     vol_ratio = indicators['volume_ma_ratio']
-    
+
     # RSI interpretation
     if rsi > 70:
         rsi_desc = "overbought"
@@ -1764,7 +1820,7 @@ def generate_narrative(prediction_result: Dict, smc_context: Dict, features: pd.
         rsi_desc = "neutral"
     else:
         rsi_desc = "moderate"
-    
+
     # Momentum interpretation
     if abs(momentum) < 0.01:
         mom_desc = "flat momentum"
@@ -1772,7 +1828,7 @@ def generate_narrative(prediction_result: Dict, smc_context: Dict, features: pd.
         mom_desc = "bullish momentum"
     else:
         mom_desc = "bearish momentum"
-    
+
     # Volume interpretation
     if vol_ratio > 1.5:
         vol_desc = "significantly above average volume"
@@ -1782,27 +1838,28 @@ def generate_narrative(prediction_result: Dict, smc_context: Dict, features: pd.
         vol_desc = "below average volume"
     else:
         vol_desc = "normal volume"
-    
+
+
 def generate_explanation(prediction_result: Dict, smc_context: Dict, features: pd.DataFrame) -> str:
     """
     Generate human-readable explanation of the prediction
-    
+
     Args:
         prediction_result: Dictionary with prediction, signal, confidence, etc.
         smc_context: Dictionary with SMC context features
         features: Feature DataFrame (single row)
-    
+
     Returns:
         Human-readable explanation string
     """
     signal = prediction_result['signal']
     confidence = prediction_result['confidence']
     probabilities = prediction_result['probabilities']
-    
+
     # Get feature values
     row = features.iloc[0]
     tbm_entry = float(row.get('TBM_Entry', 0.0))
-    
+
     # Determine setup direction
     if tbm_entry > 0.5:
         setup_direction = "BUY"
@@ -1810,20 +1867,21 @@ def generate_explanation(prediction_result: Dict, smc_context: Dict, features: p
         setup_direction = "SELL"
     else:
         setup_direction = "HOLD"
-    
+
     # Get SMC context
     ob = smc_context.get('order_blocks', {})
     fvg = smc_context.get('fair_value_gaps', {})
     structure = smc_context.get('structure', {})
     regime = smc_context.get('regime', {})
-    
+
     # Build explanation parts
     parts = []
-    
+
     # 1. Signal and confidence
     if signal == "HOLD":
-        parts.append(f"HOLD - No trade recommended (confidence: {confidence:.1%})")
-        
+        parts.append(
+            f"HOLD - No trade recommended (confidence: {confidence:.1%})")
+
         if setup_direction == "HOLD":
             parts.append("No clear market structure detected.")
         else:
@@ -1831,59 +1889,65 @@ def generate_explanation(prediction_result: Dict, smc_context: Dict, features: p
                 "WIN": probabilities.get(setup_direction, 0.0),
                 "HOLD": probabilities.get("HOLD", 0.0)
             }
-            parts.append(f"Models predict {setup_direction} setup has low win probability ({outcome_probs['WIN']:.1%}).")
+            parts.append(
+                f"Models predict {setup_direction} setup has low win probability ({outcome_probs['WIN']:.1%}).")
     else:
         parts.append(f"{signal} signal with {confidence:.1%} confidence")
-        parts.append(f"Models predict WIN probability: {probabilities[signal]:.1%}")
-    
+        parts.append(
+            f"Models predict WIN probability: {probabilities[signal]:.1%}")
+
     # 2. Structure context
     structure_parts = []
     if ob.get('bullish_present') and setup_direction == "BUY":
         quality = ob.get('bullish_quality', 0.0)
         age = ob.get('age', 0)
         mitigated = ob.get('mitigated', False)
-        structure_parts.append(f"Bullish OB (quality: {quality:.1%}, age: {age} bars, {'mitigated' if mitigated else 'unmitigated'})")
+        structure_parts.append(
+            f"Bullish OB (quality: {quality:.1%}, age: {age} bars, {'mitigated' if mitigated else 'unmitigated'})")
     elif ob.get('bearish_present') and setup_direction == "SELL":
         quality = ob.get('bearish_quality', 0.0)
         age = ob.get('age', 0)
         mitigated = ob.get('mitigated', False)
-        structure_parts.append(f"Bearish OB (quality: {quality:.1%}, age: {age} bars, {'mitigated' if mitigated else 'unmitigated'})")
-    
+        structure_parts.append(
+            f"Bearish OB (quality: {quality:.1%}, age: {age} bars, {'mitigated' if mitigated else 'unmitigated'})")
+
     if fvg.get('bullish_present') and setup_direction == "BUY":
         quality = fvg.get('quality', 0.0)
         structure_parts.append(f"Bullish FVG (quality: {quality:.1%})")
     elif fvg.get('bearish_present') and setup_direction == "SELL":
         quality = fvg.get('quality', 0.0)
         structure_parts.append(f"Bearish FVG (quality: {quality:.1%})")
-    
+
     if structure.get('bos_close_confirmed'):
-        bos_dir = "Bullish" if structure.get('bos_direction', 0) > 0 else "Bearish"
+        bos_dir = "Bullish" if structure.get(
+            'bos_direction', 0) > 0 else "Bearish"
         structure_parts.append(f"{bos_dir} BOS confirmed")
-    
+
     if structure.get('choch_detected'):
-        choch_dir = "Bullish" if structure.get('choch_direction', 0) > 0 else "Bearish"
+        choch_dir = "Bullish" if structure.get(
+            'choch_direction', 0) > 0 else "Bearish"
         structure_parts.append(f"{choch_dir} ChoCH detected")
-    
+
     if structure_parts:
         parts.append("Structure: " + ", ".join(structure_parts))
-    
+
     # 3. Regime context
     regime_label = regime.get('regime_label', 'Unknown')
     trend_bias = regime.get('trend_bias', 0.0)
     volatility = regime.get('volatility', 'Unknown')
-    
+
     regime_desc = f"{regime_label} regime (bias: {trend_bias:.2f}, volatility: {volatility})"
     parts.append(regime_desc)
-    
+
     # 4. Model consensus
     models = prediction_result.get('models', {})
     consensus = prediction_result.get('consensus', False)
-    
+
     # Count how many models agree with the final prediction
     final_pred = prediction_result.get('prediction', 0)
     agreement_count = sum(1 for pred in models.values() if pred == final_pred)
     total_models = len(models)
-    
+
     if agreement_count == total_models:
         parts.append(f"All {total_models} models agree")
     elif agreement_count >= 2:
@@ -1898,10 +1962,10 @@ def generate_explanation(prediction_result: Dict, smc_context: Dict, features: p
             else:
                 model_votes.append(f"{model_name}: TIMEOUT")
         parts.append("Models: " + ", ".join(model_votes))
-    
+
     # Join all parts
     explanation = " | ".join(parts)
-    
+
     return explanation
 
 
@@ -2037,7 +2101,7 @@ async def predict(request: PredictionRequest):
         explanation = generate_explanation(
             prediction_result, smc_context, latest_features
         )
-        
+
         # Generate comprehensive trading narrative
         narrative = generate_trading_narrative(
             prediction_result, smc_context, latest_features

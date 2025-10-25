@@ -1299,7 +1299,7 @@ class SMCDataPipeline:
         """
         base_df = base_df.copy()
 
-        # Initialize HTF regime features only (SMC confluence removed - unreliable)
+        # Initialize HTF TREND/REGIME features ONLY
         base_df['HTF_H1_Trend_Bias'] = 0.0
         base_df['HTF_H4_Trend_Bias'] = 0.0
         base_df['HTF_H1_RSI'] = 50.0
