@@ -55,8 +55,8 @@ class EnsemblePredictor:
 
         model_results = results['training_results']['UNIFIED']
 
-        # Load each model (only RF works with current label encoding)
-        for model_name in ['RandomForest']:
+        # Load each model
+        for model_name in ['RandomForest', 'XGBoost']:
             model_path = self.models_dir / f'UNIFIED_{model_name}.pkl'
             metadata_path = self.models_dir / \
                 f'UNIFIED_{model_name}_metadata.json'
