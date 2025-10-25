@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                         BlackIce_REST_EA_V2.mq5  |
-//|                          Optimized for 60% Institutional Models  |
-//|                                  SMC Features, Weighted Ensemble |
+//|                          Optimized for 64% RandomForest Model    |
+//|                          Single Model (RF Only) - Stable & Profitable |
 //+------------------------------------------------------------------+
 #property copyright "Auron Automations" 
 #property link "https://www.auronautomations.app"
