@@ -152,40 +152,67 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         # Scale features
         X_train_scaled = self.scaler.fit_transform(X_train)
 
-        # Check class distribution
+        # Check class distribution BEFORE filtering
         unique_labels, label_counts = np.unique(y_train, return_counts=True)
-        print(f"\n  Class distribution:")
+        print(f"\n  Class distribution (before filtering):")
         for label, count in zip(unique_labels, label_counts):
             pct = count / len(y_train) * 100
             print(f"    {label:>4}: {count:>6} ({pct:>5.1f}%)")
         
-        # Handle binary vs 3-class classification
+        # Check if timeout class exists
+        has_timeout = any(label == 0 or label == 0.0 for label in unique_labels)
+        
+        if has_timeout:
+            timeout_idx = np.where((unique_labels == 0) | (unique_labels == 0.0))[0]
+            if len(timeout_idx) > 0:
+                timeout_count = label_counts[timeout_idx[0]]
+                print(f"\n  ⚠️ Timeout class detected: {timeout_count} samples")
+                
+                if timeout_count < 100:
+                    print(f"     Removing timeout class (< 100 samples)")
+                    # Remove timeout samples BEFORE scaling
+                    mask = (y_train != 0) & (y_train != 0.0)
+                    X_train = X_train[mask]
+                    y_train = y_train[mask]
+                    
+                    # Re-scale after filtering
+                    X_train_scaled = self.scaler.fit_transform(X_train)
+                    
+                    print(f"     Remaining samples: {len(y_train):,}")
+        
+        # Determine classification type
+        unique_labels = np.unique(y_train)
         num_classes = len(unique_labels)
         
-        # Check if timeout class exists and is significant
-        has_timeout = 0.0 in unique_labels or 0 in unique_labels
-        timeout_count = label_counts[list(unique_labels).index(0.0)] if 0.0 in unique_labels else (label_counts[list(unique_labels).index(0)] if 0 in unique_labels else 0)
+        print(f"\n  Final class distribution:")
+        for label in unique_labels:
+            count = np.sum(y_train == label)
+            pct = count / len(y_train) * 100
+            print(f"    {label:>4}: {count:>6} ({pct:>5.1f}%)")
         
-        if num_classes == 2 or (has_timeout and timeout_count < 100):
-            # Binary classification (timeout class removed or insignificant)
+        if num_classes == 2:
+            # Binary classification
             print(f"\n  Using BINARY classification")
-            if has_timeout and timeout_count < 100:
-                print(f"    (Timeout class has only {timeout_count} samples - excluding)")
-                # Remove timeout samples
-                mask = (y_train != 0.0) & (y_train != 0)
-                X_train_scaled = X_train_scaled[mask]
-                y_train = y_train[mask]
-            
-            label_map = {-1.0: 0, -1: 0, 1.0: 1, 1: 1}
+            # Map -1 -> 0, 1 -> 1
+            label_map = {}
+            for label in unique_labels:
+                if label < 0:
+                    label_map[label] = 0
+                else:
+                    label_map[label] = 1
             self.label_map_reverse = {0: -1, 1: 1}
             output_dim = 2
         else:
             # 3-class classification
             print(f"\n  Using 3-CLASS classification")
-            label_map = {-1.0: 0, -1: 0, 0.0: 1, 0: 1, 1.0: 2, 1: 2}
-            self.label_map_reverse = {0: -1, 1: 0, 2: 1}
+            label_map = {}
+            sorted_labels = sorted(unique_labels)
+            for i, label in enumerate(sorted_labels):
+                label_map[label] = i
+            self.label_map_reverse = {i: label for label, i in label_map.items()}
             output_dim = 3
         
+        print(f"  Label mapping: {label_map}")
         y_train_mapped = np.array([label_map[y] for y in y_train])
 
         # Create data loaders
@@ -301,15 +328,17 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
             # Validation phase and monitoring
             if X_val is not None and y_val is not None:
-                X_val_scaled = self.scaler.transform(X_val)
+                # Filter validation data to match training classes
+                mask = np.isin(y_val, list(label_map.keys()))
+                X_val_filtered = X_val[mask]
+                y_val_filtered = y_val[mask]
                 
-                # Filter out timeout class if using binary classification
-                if output_dim == 2 and (0.0 in y_val or 0 in y_val):
-                    mask = (y_val != 0.0) & (y_val != 0)
-                    X_val_scaled = X_val_scaled[mask]
-                    y_val = y_val[mask]
+                if len(y_val_filtered) < len(y_val):
+                    removed = len(y_val) - len(y_val_filtered)
+                    print(f"  Filtered {removed} validation samples not in training classes")
                 
-                y_val_mapped = np.array([label_map[y] for y in y_val])
+                X_val_scaled = self.scaler.transform(X_val_filtered)
+                y_val_mapped = np.array([label_map[y] for y in y_val_filtered])
 
                 self.model.eval()
                 with torch.no_grad():
