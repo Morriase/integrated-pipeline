@@ -40,7 +40,7 @@ class UnifiedModelTrainer:
     """
 
     def __init__(self, data_dir: str = 'Data', output_dir: str = 'models/trained',
-                 include_lstm: bool = False):
+                 include_lstm: bool = False, include_nn: bool = False):
         """
         Initialize unified trainer
 
@@ -48,11 +48,13 @@ class UnifiedModelTrainer:
             data_dir: Directory containing processed data splits
             output_dir: Directory to save trained models
             include_lstm: Whether to train LSTM (experimental, may be unstable)
+            include_nn: Whether to train Neural Network (unstable, not recommended)
         """
         self.data_dir = Path(data_dir)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.include_lstm = include_lstm
+        self.include_nn = include_nn
 
         # Data paths - use cleaned data if available
         if (self.data_dir / 'processed_smc_data_train_clean.csv').exists():
@@ -343,13 +345,22 @@ class UnifiedModelTrainer:
 
     def train_all_models(self) -> Dict:
         """Train all models on the full dataset"""
-        total_models = 4 if self.include_lstm else 3
+        core_models = 2  # RF + XGBoost
+        total_models = core_models
+        if self.include_nn:
+            total_models += 1
+        if self.include_lstm:
+            total_models += 1
 
         print(f"\n{'#'*80}")
         print(f"# Training All Models on UNIFIED DATASET")
         print(f"{'#'*80}")
         print(f"\n🎯 Strategy: Train on ALL data for maximum generalization")
-        print(f"   Core Models: RandomForest, XGBoost, NeuralNetwork")
+        print(f"   Core Models: RandomForest, XGBoost")
+        if self.include_nn:
+            print(f"   Optional: NeuralNetwork (unstable)")
+        else:
+            print(f"   NeuralNetwork: Disabled (use --include-nn to enable)")
         if self.include_lstm:
             print(f"   Experimental: LSTM (may be unstable)")
         else:
@@ -389,21 +400,24 @@ class UnifiedModelTrainer:
             results['XGBoost'] = {'error': str(
                 e), 'error_type': type(e).__name__}
 
-        # Neural Network
-        try:
-            print(f"\n🧠 Starting Neural Network training...")
-            model_start = datetime.now()
-            results['NeuralNetwork'] = self.train_neural_network()
-            if 'error' not in results['NeuralNetwork']:
-                model_duration = (datetime.now() - model_start).total_seconds()
-                results['NeuralNetwork']['training_duration_seconds'] = model_duration
-                print(f"✅ Neural Network completed in {model_duration:.1f}s")
-        except Exception as e:
-            print(f"\n❌ Neural Network training failed: {e}")
-            import traceback
-            print(traceback.format_exc())
-            results['NeuralNetwork'] = {'error': str(
-                e), 'error_type': type(e).__name__}
+        # Neural Network (optional - unstable)
+        if self.include_nn:
+            try:
+                print(f"\n🧠 Starting Neural Network training...")
+                model_start = datetime.now()
+                results['NeuralNetwork'] = self.train_neural_network()
+                if 'error' not in results['NeuralNetwork']:
+                    model_duration = (datetime.now() - model_start).total_seconds()
+                    results['NeuralNetwork']['training_duration_seconds'] = model_duration
+                    print(f"✅ Neural Network completed in {model_duration:.1f}s")
+            except Exception as e:
+                print(f"\n❌ Neural Network training failed: {e}")
+                import traceback
+                print(traceback.format_exc())
+                results['NeuralNetwork'] = {'error': str(
+                    e), 'error_type': type(e).__name__}
+        else:
+            print(f"\n⏭️  Skipping Neural Network (disabled)")
 
         # LSTM (optional/experimental)
         if self.include_lstm:
@@ -495,7 +509,8 @@ class UnifiedModelTrainer:
             'training_results': self.results,
             'timestamp': datetime.now().isoformat(),
             'approach': 'unified_dataset',
-            'total_models': 4 if self.include_lstm else 3,
+            'total_models': total_models,
+            'nn_included': self.include_nn,
             'lstm_included': self.include_lstm
         }
 
@@ -512,11 +527,13 @@ if __name__ == "__main__":
     Train models on FULL UNIFIED DATASET
 
     Usage:
-        python train_all_models.py              # Train 3 core models (RF, XGB, NN)
-        python train_all_models.py --include-lstm  # Train 4 models (includes LSTM)
+        python train_all_models.py                    # Train 2 core models (RF, XGB)
+        python train_all_models.py --include-nn       # Include Neural Network (unstable)
+        python train_all_models.py --include-lstm     # Include LSTM (experimental)
     """
 
     # Parse command line arguments
+    include_nn = '--include-nn' in sys.argv or '-nn' in sys.argv
     include_lstm = '--include-lstm' in sys.argv or '-lstm' in sys.argv
 
     print("="*80)
@@ -562,6 +579,7 @@ if __name__ == "__main__":
     trainer = UnifiedModelTrainer(
         data_dir=data_dir,
         output_dir=output_dir,
+        include_nn=include_nn,
         include_lstm=include_lstm
     )
 

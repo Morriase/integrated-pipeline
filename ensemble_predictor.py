@@ -55,8 +55,8 @@ class EnsemblePredictor:
 
         model_results = results['training_results']['UNIFIED']
 
-        # Load each model
-        for model_name in ['RandomForest', 'XGBoost', 'NeuralNetwork']:
+        # Load each model (skip NeuralNetwork - too unstable)
+        for model_name in ['RandomForest', 'XGBoost']:
             model_path = self.models_dir / f'UNIFIED_{model_name}.pkl'
             metadata_path = self.models_dir / \
                 f'UNIFIED_{model_name}_metadata.json'
@@ -106,22 +106,12 @@ class EnsemblePredictor:
         predictions = {}
         probabilities = {}
 
-        # Get predictions from each model
+        # Get predictions from each model (sklearn only)
         for model_name, model in self.models.items():
-            # Handle NeuralNetwork (PyTorch model) separately
-            if model_name == 'NeuralNetwork':
-                # NN model is PyTorch MLPClassifier, need to wrap prediction
-                pred = self._predict_nn(X, model)
-                predictions[model_name] = pred
-                # Get probabilities
-                proba = self._predict_proba_nn(X, model)
-                probabilities[model_name] = proba
-            else:
-                # sklearn models
-                pred = model.predict(X)
-                predictions[model_name] = pred
-                if hasattr(model, 'predict_proba'):
-                    probabilities[model_name] = model.predict_proba(X)
+            pred = model.predict(X)
+            predictions[model_name] = pred
+            if hasattr(model, 'predict_proba'):
+                probabilities[model_name] = model.predict_proba(X)
 
         if strategy == 'weighted':
             return self._weighted_vote(predictions)
@@ -275,10 +265,7 @@ class EnsemblePredictor:
         # Individual model predictions for comparison
         individual_accs = {}
         for model_name, model in self.models.items():
-            if model_name == 'NeuralNetwork':
-                pred = self._predict_nn(X, model)
-            else:
-                pred = model.predict(X)
+            pred = model.predict(X)
             individual_accs[model_name] = accuracy_score(y, pred)
 
         results = {
@@ -307,10 +294,7 @@ class EnsemblePredictor:
         """
         predictions = {}
         for model_name, model in self.models.items():
-            if model_name == 'NeuralNetwork':
-                predictions[model_name] = self._predict_nn(X, model)
-            else:
-                predictions[model_name] = model.predict(X)
+            predictions[model_name] = model.predict(X)
 
         pred_array = np.array([pred for pred in predictions.values()])
 
