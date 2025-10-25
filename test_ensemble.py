@@ -5,7 +5,6 @@ Test Ensemble Predictor on validation/test data
 import numpy as np
 import pandas as pd
 from ensemble_predictor import EnsemblePredictor
-from data_preparation_pipeline import DataPreparationPipeline
 from sklearn.metrics import classification_report, confusion_matrix
 import json
 
@@ -14,15 +13,17 @@ def load_test_data():
     """Load and prepare test data"""
     print("📂 Loading test data...")
     
-    # Initialize pipeline
-    pipeline = DataPreparationPipeline()
-    
     # Load unified dataset
     df = pd.read_csv('data/processed/UNIFIED_processed.csv')
     print(f"  Loaded {len(df):,} samples")
     
-    # Prepare features
-    X, y, feature_names = pipeline.prepare_features(df, target_col='TBM_Label')
+    # Define feature columns (exclude target and metadata)
+    exclude_cols = ['TBM_Label', 'Symbol', 'Timestamp', 'Entry_Time', 
+                    'Exit_Time', 'Entry_Price', 'Exit_Price']
+    feature_cols = [col for col in df.columns if col not in exclude_cols]
+    
+    X = df[feature_cols].values
+    y = df['TBM_Label'].values
     
     # Use last 30% as test set (same as training)
     test_size = int(len(X) * 0.3)
@@ -30,9 +31,9 @@ def load_test_data():
     y_test = y[-test_size:]
     
     print(f"  Test set: {len(X_test):,} samples")
-    print(f"  Features: {len(feature_names)}")
+    print(f"  Features: {len(feature_cols)}")
     
-    return X_test, y_test, feature_names
+    return X_test, y_test, feature_cols
 
 
 def evaluate_ensemble():
