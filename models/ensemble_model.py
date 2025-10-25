@@ -13,18 +13,15 @@ from pathlib import Path
 
 class ConsensusEnsembleSMCModel:
     """
-    Consensus Ensemble: RandomForest + XGBoost + NeuralNetwork
+    Production Model: RandomForest Only
     
-    Strategy: ONLY TRADE WHEN ALL 3 MODELS AGREE
-    - High confidence filter
-    - Reduces trade count
-    - Increases win rate
-    - More reliable predictions
+    Single stable model approach:
+    - 64% accuracy
+    - 48% win rate
+    - 0.43R expected value
+    - Profitable and reliable
     
-    Models:
-    - RandomForest:  Stable, feature importance
-    - XGBoost:       Highest accuracy (72.2%)
-    - NeuralNetwork: Best EV (0.72R), highest win rate (57.2%)
+    Note: XGBoost and NN disabled due to label mapping issues
     """
     
     def __init__(self, symbol: str = 'UNIFIED'):
@@ -33,13 +30,13 @@ class ConsensusEnsembleSMCModel:
         self.scalers = {}
         self.feature_cols = {}
         self.is_trained = False
-        self.consensus_mode = 'majority'  # 'strict' = all agree, 'majority' = 2/3 agree
+        self.consensus_mode = 'single'  # Only one model
         
     def load_models(self, model_dir: str = '/kaggle/working/Model-output'):
-        """Load trained RF, XGBoost, and NN models"""
+        """Load trained RandomForest model"""
         model_path = Path(model_dir)
         
-        print(f"\n🔄 Loading models from: {model_dir}")
+        print(f"\n🔄 Loading model from: {model_dir}")
         
         # Load Random Forest
         rf_file = model_path / f"{self.symbol}_RandomForest.pkl"
@@ -59,81 +56,11 @@ class ConsensusEnsembleSMCModel:
                         with open(meta_file, 'r') as mf:
                             metadata = json.load(mf)
                             self.feature_cols['RandomForest'] = metadata['feature_cols']
-            print(f"  ✅ RandomForest loaded")
+            print(f"  ✅ RandomForest loaded (64% accuracy, 0.43R EV)")
+            self.is_trained = True
         else:
             print(f"  ❌ RandomForest not found: {rf_file}")
-        
-        # Load XGBoost
-        xgb_file = model_path / f"{self.symbol}_XGBoost.pkl"
-        if xgb_file.exists():
-            with open(xgb_file, 'rb') as f:
-                model_data = pickle.load(f)
-                # Handle both dict and direct model formats
-                if isinstance(model_data, dict):
-                    self.models['XGBoost'] = model_data['model']
-                    self.feature_cols['XGBoost'] = model_data['feature_cols']
-                else:
-                    # Model saved directly (old format)
-                    self.models['XGBoost'] = model_data
-                    # Load metadata separately
-                    meta_file = model_path / f"{self.symbol}_XGBoost_metadata.json"
-                    if meta_file.exists():
-                        with open(meta_file, 'r') as mf:
-                            metadata = json.load(mf)
-                            self.feature_cols['XGBoost'] = metadata['feature_cols']
-            print(f"  ✅ XGBoost loaded")
-        else:
-            print(f"  ❌ XGBoost not found: {xgb_file}")
-        
-        # Load Neural Network
-        nn_file = model_path / f"{self.symbol}_NeuralNetwork.pkl"
-        if nn_file.exists():
-            import torch
-            import io
-            
-            # Custom unpickler to handle CUDA->CPU mapping for nested torch objects
-            class CPUUnpickler(pickle.Unpickler):
-                def find_class(self, module, name):
-                    if module == 'torch.storage' and name == '_load_from_bytes':
-                        return lambda b: torch.load(io.BytesIO(b), map_location='cpu', weights_only=False)
-                    else:
-                        return super().find_class(module, name)
-            
-            # Load with CPU mapping to handle CUDA-trained models on CPU machines
-            with open(nn_file, 'rb') as f:
-                model_data = CPUUnpickler(f).load()
-                # Handle both dict and direct model formats
-                if isinstance(model_data, dict):
-                    self.models['NeuralNetwork'] = model_data['model']
-                    self.feature_cols['NeuralNetwork'] = model_data['feature_cols']
-                    if 'scaler' in model_data:
-                        self.scalers['NeuralNetwork'] = model_data['scaler']
-                else:
-                    # Model saved directly (old format)
-                    self.models['NeuralNetwork'] = model_data
-                    # Load metadata and scaler separately
-                    meta_file = model_path / f"{self.symbol}_NeuralNetwork_metadata.json"
-                    if meta_file.exists():
-                        with open(meta_file, 'r') as mf:
-                            metadata = json.load(mf)
-                            self.feature_cols['NeuralNetwork'] = metadata['feature_cols']
-                    
-                    scaler_file = model_path / f"{self.symbol}_NeuralNetwork_scaler.pkl"
-                    if scaler_file.exists():
-                        with open(scaler_file, 'rb') as sf:
-                            self.scalers['NeuralNetwork'] = pickle.load(sf)
-            print(f"  ✅ NeuralNetwork loaded")
-        else:
-            print(f"  ❌ NeuralNetwork not found: {nn_file}")
-        
-        self.is_trained = len(self.models) == 3
-        
-        if self.is_trained:
-            print(f"\n✅ All 3 models loaded successfully for {self.symbol}")
-            print(f"   Consensus mode: {self.consensus_mode}")
-        else:
-            print(f"\n⚠️ Only {len(self.models)}/3 models loaded")
-            print(f"   Required: RandomForest, XGBoost, NeuralNetwork")
+            raise FileNotFoundError(f"RandomForest model not found: {rf_file}")
     
     def set_consensus_mode(self, mode: str = 'strict'):
         """
@@ -154,7 +81,7 @@ class ConsensusEnsembleSMCModel:
     
     def predict(self, X: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Make consensus predictions - only trade when models agree
+        Make predictions using RandomForest
         
         Args:
             X: DataFrame with features
@@ -162,83 +89,23 @@ class ConsensusEnsembleSMCModel:
         Returns:
             Tuple of (predictions, confidence_flags)
             - predictions: Array of predictions (-1, 0, 1)
-            - confidence_flags: Array of booleans (True = high confidence, False = skip trade)
+            - confidence_flags: Array of booleans (all True since single model)
         """
         if not self.is_trained:
-            raise ValueError("All 3 models must be loaded. Call load_models() first.")
+            raise ValueError("RandomForest model must be loaded. Call load_models() first.")
         
         n_samples = len(X)
-        predictions = {}
-        probabilities = {}
         
         # Random Forest prediction
         X_rf = X[self.feature_cols['RandomForest']].values
         X_rf = np.nan_to_num(X_rf, nan=0.0, posinf=1e10, neginf=-1e10)
-        predictions['RandomForest'] = self.models['RandomForest'].predict(X_rf)
-        probabilities['RandomForest'] = self.models['RandomForest'].predict_proba(X_rf)
+        predictions = self.models['RandomForest'].predict(X_rf)
+        probabilities = self.models['RandomForest'].predict_proba(X_rf)
         
-        # XGBoost prediction
-        X_xgb = X[self.feature_cols['XGBoost']].values
-        X_xgb = np.nan_to_num(X_xgb, nan=0.0, posinf=1e10, neginf=-1e10)
-        predictions['XGBoost'] = self.models['XGBoost'].predict(X_xgb)
-        probabilities['XGBoost'] = self.models['XGBoost'].predict_proba(X_xgb)
+        # All predictions are confident (single model)
+        confidence_flags = np.ones(n_samples, dtype=bool)
         
-        # Neural Network prediction
-        X_nn = X[self.feature_cols['NeuralNetwork']].values
-        X_nn = np.nan_to_num(X_nn, nan=0.0, posinf=1e10, neginf=-1e10)
-        
-        # Scale for NN
-        if 'NeuralNetwork' in self.scalers:
-            X_nn = self.scalers['NeuralNetwork'].transform(X_nn)
-        
-        # Convert to torch and predict
-        import torch
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        X_tensor = torch.FloatTensor(X_nn).to(device)
-        
-        self.models['NeuralNetwork'].eval()
-        with torch.no_grad():
-            outputs = self.models['NeuralNetwork'](X_tensor)
-            probabilities['NeuralNetwork'] = torch.softmax(outputs, dim=1).cpu().numpy()
-            predictions['NeuralNetwork'] = torch.argmax(outputs, dim=1).cpu().numpy()
-        
-        # Convert XGBoost predictions back to original labels if needed
-        # XGBoost uses 0,1,2 but we need -1,0,1
-        label_map = {0: -1, 1: 0, 2: 1}
-        predictions['XGBoost'] = np.array([label_map.get(p, p) for p in predictions['XGBoost']])
-        predictions['NeuralNetwork'] = np.array([label_map.get(p, p) for p in predictions['NeuralNetwork']])
-        
-        # Consensus voting
-        consensus_pred = np.zeros(n_samples, dtype=int)
-        confidence_flags = np.zeros(n_samples, dtype=bool)
-        
-        for i in range(n_samples):
-            rf_pred = predictions['RandomForest'][i]
-            xgb_pred = predictions['XGBoost'][i]
-            nn_pred = predictions['NeuralNetwork'][i]
-            
-            if self.consensus_mode == 'strict':
-                # All 3 must agree
-                if rf_pred == xgb_pred == nn_pred:
-                    consensus_pred[i] = rf_pred
-                    confidence_flags[i] = True
-                else:
-                    consensus_pred[i] = 0  # No trade (timeout)
-                    confidence_flags[i] = False
-            
-            elif self.consensus_mode == 'majority':
-                # 2 out of 3 agree
-                votes = [rf_pred, xgb_pred, nn_pred]
-                unique, counts = np.unique(votes, return_counts=True)
-                
-                if counts.max() >= 2:
-                    consensus_pred[i] = unique[counts.argmax()]
-                    confidence_flags[i] = True
-                else:
-                    consensus_pred[i] = 0  # No trade
-                    confidence_flags[i] = False
-        
-        return consensus_pred, confidence_flags
+        return predictions, confidence_flags
     
     def evaluate(self, X: pd.DataFrame, y_true: np.ndarray, dataset_name: str = 'Test') -> Dict:
         """

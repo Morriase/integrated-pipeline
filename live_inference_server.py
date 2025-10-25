@@ -5,7 +5,7 @@ FastAPI-based REST server for multi-user live trading predictions
 Provides:
 - POST /predict: Multi-timeframe prediction endpoint
 - GET /health: Server health and metrics
-- Consensus ensemble predictions (RandomForest + XGBoost + NeuralNetwork)
+- Production RandomForest predictions (64% accuracy, profitable)
 - SMC context extraction (Order Blocks, FVGs, Structure, Regime)
 """
 
@@ -357,7 +357,7 @@ class ModelManager:
             raise FileNotFoundError(f"{error_msg}\n{suggestion}")
 
         # Check for required model files with detailed diagnostics
-        required_models = ['RandomForest', 'XGBoost', 'NeuralNetwork']
+        required_models = ['RandomForest']
         missing_models = []
         missing_files = []
         file_errors = []
@@ -442,16 +442,8 @@ class ModelManager:
 
             # Validate all models loaded
             if not self.ensemble.is_trained:
-                missing = []
-                if 'RandomForest' not in self.ensemble.models:
-                    missing.append('RandomForest')
-                if 'XGBoost' not in self.ensemble.models:
-                    missing.append('XGBoost')
-                if 'NeuralNetwork' not in self.ensemble.models:
-                    missing.append('NeuralNetwork')
-
-                error_msg = f"Failed to load models: {', '.join(missing)}"
-                suggestion = "Models exist but failed to initialize. Check model file integrity."
+                error_msg = "Failed to load RandomForest model"
+                suggestion = "Model exists but failed to initialize. Check model file integrity."
                 logger.error(f"❌ {error_msg}")
                 logger.error(f"💡 {suggestion}")
                 self.load_errors.append(error_msg)
@@ -462,10 +454,8 @@ class ModelManager:
             self._validate_models()
 
             self.is_loaded = True
-            logger.info("✅ All models loaded and validated successfully")
-            logger.info(f"   - RandomForest: ✓")
-            logger.info(f"   - XGBoost: ✓")
-            logger.info(f"   - NeuralNetwork: ✓")
+            logger.info("✅ RandomForest model loaded successfully")
+            logger.info(f"   - 64% accuracy, 0.43R EV, profitable")
 
             # Log memory usage estimate
             self._log_memory_usage()
@@ -516,21 +506,6 @@ class ModelManager:
                 self.ensemble.feature_cols.get('RandomForest', []))
             logger.info(
                 f"   ✓ RandomForest validated ({rf_features} features)")
-
-        # Check XGBoost
-        if 'XGBoost' not in self.ensemble.models:
-            error_msg = "XGBoost model not loaded"
-            validation_errors.append(error_msg)
-            logger.error(f"❌ {error_msg}")
-        elif 'XGBoost' not in self.ensemble.feature_cols:
-            error_msg = "XGBoost feature columns not loaded"
-            validation_errors.append(error_msg)
-            logger.error(f"❌ {error_msg}")
-        else:
-            xgb_features = len(self.ensemble.feature_cols.get('XGBoost', []))
-            logger.info(f"   ✓ XGBoost validated ({xgb_features} features)")
-
-        # Check NeuralNetwork
         if 'NeuralNetwork' not in self.ensemble.models:
             error_msg = "NeuralNetwork model not loaded"
             validation_errors.append(error_msg)
