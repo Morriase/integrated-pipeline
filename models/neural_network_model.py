@@ -32,7 +32,7 @@ class MLPClassifier(nn.Module):
     """Multi-Layer Perceptron for classification with Batch Normalization"""
 
     def __init__(self, input_dim: int, hidden_dims: List[int], output_dim: int = 3,
-                 dropout: float = 0.3):
+                 dropout: float = 0.2):
         super(MLPClassifier, self).__init__()
 
         layers = []
@@ -40,9 +40,13 @@ class MLPClassifier(nn.Module):
 
         for hidden_dim in hidden_dims:
             layers.append(nn.Linear(prev_dim, hidden_dim))
-            # Add BatchNorm1d after each Linear layer for better training stability
-            # track_running_stats=True ensures it works with small batches
-            layers.append(nn.BatchNorm1d(hidden_dim, track_running_stats=True))
+            # BatchNorm with higher momentum for smoother training
+            layers.append(nn.BatchNorm1d(
+                hidden_dim, 
+                momentum=0.1,  # Smoother running stats updates
+                eps=1e-5,
+                track_running_stats=True
+            ))
             layers.append(nn.ReLU())
             layers.append(nn.Dropout(dropout))
             prev_dim = hidden_dim
@@ -51,7 +55,7 @@ class MLPClassifier(nn.Module):
 
         self.network = nn.Sequential(*layers)
         
-        # Xavier/Glorot initialization for better gradient flow
+        # He initialization for ReLU networks
         self._initialize_weights()
     
     def _initialize_weights(self):
@@ -90,13 +94,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None, y_val: Optional[np.ndarray] = None,
-              hidden_dims: List[int] = [64, 32],  # SIMPLIFIED: Even smaller network
-              dropout: float = 0.3,  # REDUCED: Less aggressive dropout
-              learning_rate: float = 0.001,  # INCREASED: Higher LR for better learning
-              batch_size: int = 32,  # REDUCED: Smaller batches for better gradient estimates
+              hidden_dims: List[int] = [128, 64, 32],  # Deeper network for better learning
+              dropout: float = 0.2,  # Lower dropout for smoother training
+              learning_rate: float = 0.003,  # Higher initial LR with scheduler
+              batch_size: int = 64,  # Larger batches for stable gradients
               epochs: int = 200,  # Maximum epochs
-              patience: int = 20,  # INCREASED from 15 for better convergence
-              weight_decay: float = 0.001,  # REDUCED: Less aggressive L2 regularization
+              patience: int = 25,  # More patience for convergence
+              weight_decay: float = 0.0005,  # Light L2 regularization
               **kwargs) -> Dict:
         """
         Train Neural Network model
@@ -221,21 +225,27 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         print(f"  Class distribution: {dict(zip(unique_labels, counts))}")
         print(f"  Class weights: {dict(zip(unique_labels, class_weights))}")
         
-        # Loss with MODERATE label smoothing + class weights
+        # Loss with light label smoothing + class weights
         criterion = nn.CrossEntropyLoss(
-            label_smoothing=0.1,  # Moderate regularization (reduced from 0.2)
+            label_smoothing=0.05,  # Light smoothing for better convergence
             weight=class_weights_tensor  # Handle class imbalance
         )
-        optimizer = optim.AdamW(self.model.parameters(
-        ), lr=learning_rate, weight_decay=weight_decay)
+        
+        # AdamW with gradient clipping for stable training
+        optimizer = optim.AdamW(
+            self.model.parameters(),
+            lr=learning_rate,
+            weight_decay=weight_decay,
+            betas=(0.9, 0.999),  # Standard Adam betas
+            eps=1e-8
+        )
 
-        # ReduceLROnPlateau - reduces LR when validation loss plateaus
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        # Cosine annealing with warm restarts for smooth convergence
+        scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(
             optimizer,
-            mode='min',
-            factor=0.5,  # Reduce LR by half
-            patience=5,  # Wait 5 epochs before reducing
-            min_lr=1e-6
+            T_0=10,  # Restart every 10 epochs
+            T_mult=2,  # Double the period after each restart
+            eta_min=1e-6  # Minimum learning rate
         )
 
         # label_map_reverse already set earlier - don't overwrite it!
@@ -271,13 +281,13 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                 loss = criterion(outputs, batch_y)
                 loss.backward()
                 
-                # Gradient clipping to prevent exploding gradients
+                # Gradient clipping for stable training
                 grad_norm = torch.nn.utils.clip_grad_norm_(
-                    self.model.parameters(), max_norm=5.0)  # Increased from 1.0 for better learning
+                    self.model.parameters(), max_norm=1.0)
                 
-                # Only warn if gradient norm is extremely high (reduced noise)
-                if grad_norm > 50.0:  # Much higher threshold
-                    training_monitor.check_exploding_gradients(grad_norm.item(), threshold=50.0, epoch=epoch + 1)
+                # Warn on high gradients
+                if grad_norm > 10.0:
+                    training_monitor.check_exploding_gradients(grad_norm.item(), threshold=10.0, epoch=epoch + 1)
                 
                 optimizer.step()
 
@@ -355,8 +365,8 @@ class NeuralNetworkSMCModel(BaseSMCModel):
                     print(f"\n  ❌ Training stopped due to critical warnings at epoch {epoch+1}")
                     break
 
-                # Step scheduler based on validation loss
-                scheduler.step(val_loss)
+                # Step scheduler (CosineAnnealingWarmRestarts steps every epoch)
+                scheduler.step()
 
                 # Early stopping based on validation loss
                 if val_loss < best_val_loss:
