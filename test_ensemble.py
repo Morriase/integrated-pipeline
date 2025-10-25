@@ -12,9 +12,16 @@ import json
 def load_test_data():
     """Load and prepare test data"""
     print("📂 Loading test data...")
-    
+
+    # Auto-detect Kaggle vs local
+    from pathlib import Path
+    if Path('/kaggle/working/data/processed').exists():
+        data_path = '/kaggle/working/data/processed/UNIFIED_processed.csv'
+    else:
+        data_path = 'data/processed/UNIFIED_processed.csv'
+
     # Load unified dataset
-    df = pd.read_csv('data/processed/UNIFIED_processed.csv')
+    df = pd.read_csv(data_path)
     print(f"  Loaded {len(df):,} samples")
     
     # Define feature columns (exclude target and metadata)
@@ -106,7 +113,7 @@ def evaluate_ensemble():
     print("\n" + "=" * 80)
     print("SAVING RESULTS")
     print("=" * 80)
-    
+
     output = {
         'strategies': results,
         'agreement_analysis': {
@@ -118,11 +125,18 @@ def evaluate_ensemble():
         },
         'recommendation': 'weighted'  # Best strategy
     }
-    
-    with open('models/trained/ensemble_evaluation.json', 'w') as f:
+
+    # Auto-detect save path
+    from pathlib import Path
+    if Path('/kaggle/working/Model-output').exists():
+        save_path = '/kaggle/working/Model-output/ensemble_evaluation.json'
+    else:
+        save_path = 'models/trained/ensemble_evaluation.json'
+
+    with open(save_path, 'w') as f:
         json.dump(output, f, indent=2)
-    
-    print("  ✅ Saved: models/trained/ensemble_evaluation.json")
+
+    print(f"  ✅ Saved: {save_path}")
     
     # Print recommendation
     print("\n" + "=" * 80)
