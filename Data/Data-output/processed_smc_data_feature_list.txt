@@ -1,0 +1,77 @@
+# ML Feature Columns
+# Target: TBM_Label (-1=Loss, 0=Timeout, 1=Win)
+
+# Total Features: 58
+
+
+## Order Block Features (16):
+HTF_OB_Confluence
+HTF_OB_Proximity_Fuzzy
+OB_Age
+OB_Bearish
+OB_Body_Fuzzy_Score
+OB_Bullish
+OB_Displacement_ATR
+OB_Displacement_ATR_ZScore
+OB_Displacement_Fuzzy_Score
+OB_Displacement_Mag_ZScore
+OB_High
+OB_Low
+OB_Mitigated
+OB_Quality_Fuzzy
+OB_Size_ATR
+OB_Size_ATR_ZScore
+
+## Fair Value Gap Features (11):
+FVG_Bearish
+FVG_Bullish
+FVG_Depth_ATR
+FVG_Depth_ATR_ZScore
+FVG_Distance_to_Price_ATR
+FVG_Distance_to_Price_ATR_ZScore
+FVG_Mitigated
+FVG_Quality_Fuzzy
+FVG_Size_Fuzzy_Score
+HTF_FVG_Confluence
+HTF_FVG_Proximity_Fuzzy
+
+## Market Structure Features (7):
+BOS_Close_Confirm
+BOS_Commitment_Flag
+BOS_Dist_ATR
+BOS_Dist_ATR_ZScore
+BOS_Wick_Confirm
+ChoCH_Detected
+ChoCH_Direction
+
+## Multi-Timeframe Features (3):
+HTF_Confluence_Quality
+HTF_Structure_Alignment
+HTF_Trend_Alignment
+
+## Regime Features (10):
+Bearish_Trend_Fuzzy
+Bullish_Trend_Fuzzy
+EMA_200
+EMA_50
+RSI
+RSI_Normalized
+Trend_Bias_Indicator
+Trend_Bias_Indicator_ZScore
+Trend_Strength
+Trend_Strength_Fuzzy
+
+## Technical Features (1):
+atr
+
+## Other Features (10):
+ATR_MA
+ATR_ZScore
+Displacement_Mag_ZScore
+Distance_to_Entry_ATR
+Overbought_Fuzzy
+Oversold_Fuzzy
+TBM_Bars_to_Hit
+TBM_Entry
+TBM_Reward_Per_Trade_ATR
+TBM_Risk_Per_Trade_ATR

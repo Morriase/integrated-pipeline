@@ -382,14 +382,14 @@ class BaseSMCModel(ABC):
     - predict_proba(): Get probability distributions
     """
     
-    def __init__(self, model_name: str, symbol: str, target_col: str = 'TBM_Label'):
+    def __init__(self, model_name: str, symbol: str, target_col: str = 'TBM_Entry'):
         """
         Initialize base model
         
         Args:
             model_name: Name of the model (e.g., 'RandomForest', 'XGBoost')
             symbol: Trading symbol (e.g., 'EURUSD')
-            target_col: Target column name (default: 'TBM_Label')
+            target_col: Target column name (default: 'TBM_Entry' - predicts BUY/SELL/HOLD directly)
         """
         self.model_name = model_name
         self.symbol = symbol
@@ -449,12 +449,11 @@ class BaseSMCModel(ABC):
         val_df = val_df[val_df[self.target_col].notna()].copy()
         test_df = test_df[test_df[self.target_col].notna()].copy()
         
-        # Exclude timeout samples if requested
+        # NEW: Train on ALL data (no filtering)
+        # Models learn to predict BUY/SELL/HOLD from full market context
+        # exclude_timeout parameter is now ignored - we want models to learn when to HOLD
         if exclude_timeout:
-            train_df = train_df[train_df[self.target_col] != 0].copy()
-            val_df = val_df[val_df[self.target_col] != 0].copy()
-            test_df = test_df[test_df[self.target_col] != 0].copy()
-            print(f"  Excluding timeout samples (TBM_Label == 0)")
+            print(f"  ⚠️ exclude_timeout=True ignored - training on ALL data for better context learning")
         
         print(f"  Train: {len(train_df):,} samples")
         print(f"  Val:   {len(val_df):,} samples")

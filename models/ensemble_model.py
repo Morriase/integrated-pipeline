@@ -33,7 +33,7 @@ class ConsensusEnsembleSMCModel:
         self.scalers = {}
         self.feature_cols = {}
         self.is_trained = False
-        self.consensus_mode = 'strict'  # 'strict' = all agree, 'majority' = 2/3 agree
+        self.consensus_mode = 'majority'  # 'strict' = all agree, 'majority' = 2/3 agree
         
     def load_models(self, model_dir: str = '/kaggle/working/Model-output'):
         """Load trained RF, XGBoost, and NN models"""
@@ -88,8 +88,20 @@ class ConsensusEnsembleSMCModel:
         # Load Neural Network
         nn_file = model_path / f"{self.symbol}_NeuralNetwork.pkl"
         if nn_file.exists():
+            import torch
+            import io
+            
+            # Custom unpickler to handle CUDA->CPU mapping for nested torch objects
+            class CPUUnpickler(pickle.Unpickler):
+                def find_class(self, module, name):
+                    if module == 'torch.storage' and name == '_load_from_bytes':
+                        return lambda b: torch.load(io.BytesIO(b), map_location='cpu', weights_only=False)
+                    else:
+                        return super().find_class(module, name)
+            
+            # Load with CPU mapping to handle CUDA-trained models on CPU machines
             with open(nn_file, 'rb') as f:
-                model_data = pickle.load(f)
+                model_data = CPUUnpickler(f).load()
                 # Handle both dict and direct model formats
                 if isinstance(model_data, dict):
                     self.models['NeuralNetwork'] = model_data['model']

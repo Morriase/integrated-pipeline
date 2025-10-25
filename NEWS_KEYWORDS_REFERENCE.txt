@@ -1,0 +1,188 @@
+═══════════════════════════════════════════════════════════════════════════════
+                        NEWS FILTER KEYWORDS REFERENCE
+                          For BlackIce MT5 EA
+═══════════════════════════════════════════════════════════════════════════════
+
+INSTRUCTIONS:
+1. Copy the keyword string for your trading pairs
+2. Paste into EA Settings → "keyNews" parameter
+3. Set "NewsCurrencied" to match the currencies you're trading
+4. Enable "NewsFilterOn = true"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌍 ALL MAJOR PAIRS (Comprehensive - Recommended for Multi-Pair Trading)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+NFP,Non-Farm,Payroll,Employment,Unemployment,Jobs,ADP,Interest Rate,FOMC,Fed,Federal Reserve,CPI,Inflation,PPI,PCE,GDP,Retail Sales,Consumer,PMI,ISM,Manufacturing,Services,Central Bank,ECB,BoE,BoJ,RBA,RBNZ,BoC,SNB,Draghi,Powell,Yellen,Lagarde,Bailey
+
+NewsCurrencied:
+USD,EUR,GBP,JPY,AUD,CAD,CHF,NZD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💵 USD PAIRS (EURUSD, GBPUSD, USDJPY, USDCAD, USDCHF, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+NFP,Non-Farm,Payroll,Employment,Unemployment,Jobs,ADP,Interest Rate,FOMC,Fed,Federal Reserve,Powell,Yellen,CPI,Inflation,PPI,PCE,GDP,Retail Sales,Consumer Confidence,Consumer Spending,PMI,ISM,Manufacturing,Services,Durable Goods,Trade Balance,Housing,Building Permits,Existing Home Sales,New Home Sales,Jobless Claims,Initial Claims
+
+NewsCurrencied:
+USD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💶 EUR PAIRS (EURUSD, EURJPY, EURGBP, EURAUD, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+Interest Rate,ECB,European Central Bank,Lagarde,Draghi,CPI,Inflation,HICP,GDP,PMI,Manufacturing,Services,ZEW,IFO,Retail Sales,Trade Balance,Unemployment,Consumer Confidence,Industrial Production
+
+NewsCurrencied:
+EUR
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💷 GBP PAIRS (GBPUSD, GBPJPY, EURGBP, GBPAUD, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+Interest Rate,BoE,Bank of England,Bailey,Carney,CPI,Inflation,RPI,GDP,PMI,Manufacturing,Services,Retail Sales,Employment,Unemployment,Claimant Count,Average Earnings,Trade Balance,Consumer Confidence,Industrial Production,MPC
+
+NewsCurrencied:
+GBP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💴 JPY PAIRS (USDJPY, EURJPY, GBPJPY, AUDJPY, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+Interest Rate,BoJ,Bank of Japan,Kuroda,Ueda,CPI,Inflation,GDP,Tankan,PMI,Manufacturing,Industrial Production,Retail Sales,Trade Balance,Unemployment,Consumer Confidence,Monetary Policy
+
+NewsCurrencied:
+JPY
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🦘 AUD PAIRS (AUDUSD, EURAUD, GBPAUD, AUDJPY, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+Interest Rate,RBA,Reserve Bank of Australia,Lowe,CPI,Inflation,GDP,Employment,Unemployment,Retail Sales,Trade Balance,PMI,Manufacturing,Services,Consumer Confidence,Building Approvals,NAB Business Confidence
+
+NewsCurrencied:
+AUD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🍁 CAD PAIRS (USDCAD, EURCAD, GBPCAD, AUDCAD, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+Interest Rate,BoC,Bank of Canada,Macklem,Poloz,CPI,Inflation,GDP,Employment,Unemployment,Retail Sales,Trade Balance,PMI,Manufacturing,Ivey PMI,Building Permits,Housing Starts,Crude Oil Inventories
+
+NewsCurrencied:
+CAD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🇨🇭 CHF PAIRS (USDCHF, EURCHF, GBPCHF, CHFJPY, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+Interest Rate,SNB,Swiss National Bank,Jordan,CPI,Inflation,GDP,PMI,Manufacturing,Retail Sales,Trade Balance,Unemployment,Consumer Confidence,ZEW
+
+NewsCurrencied:
+CHF
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🥝 NZD PAIRS (NZDUSD, EURNZD, GBPNZD, AUDNZD, etc.)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+keyNews:
+Interest Rate,RBNZ,Reserve Bank of New Zealand,Orr,CPI,Inflation,GDP,Employment,Unemployment,Retail Sales,Trade Balance,PMI,Manufacturing,Services,Consumer Confidence,Building Consents
+
+NewsCurrencied:
+NZD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ AGGRESSIVE (Fewer Keywords - Only Tier 1 Events)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use this if you want to trade through most news and only avoid the biggest market movers.
+
+keyNews:
+NFP,Non-Farm,Interest Rate,FOMC,Fed,ECB,BoE,BoJ,CPI,GDP
+
+NewsCurrencied:
+USD,EUR,GBP,JPY,AUD,CAD,CHF,NZD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛡️ CONSERVATIVE (Maximum Keywords - Avoid All Major News)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use this if you want maximum protection from news volatility.
+
+keyNews:
+NFP,Non-Farm,Payroll,Employment,Unemployment,Jobs,ADP,Interest Rate,FOMC,Fed,Federal Reserve,Powell,Yellen,Bernanke,CPI,Inflation,PPI,PCE,Core,GDP,Retail Sales,Consumer,PMI,ISM,Manufacturing,Services,Durable Goods,Trade Balance,Housing,Building,Home Sales,Jobless Claims,Initial Claims,Continuing Claims,Central Bank,ECB,BoE,BoJ,RBA,RBNZ,BoC,SNB,Draghi,Lagarde,Bailey,Carney,Kuroda,Ueda,Lowe,Orr,Macklem,Jordan,Industrial Production,Factory Orders,Business Inventories,Wholesale,Import,Export,Current Account,Budget,Deficit,Debt,Treasury,Bond,Auction,Speech,Minutes,Statement,Press Conference,Testimony,Beige Book
+
+NewsCurrencied:
+USD,EUR,GBP,JPY,AUD,CAD,CHF,NZD
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 QUICK COPY TEMPLATES
+
+BALANCED (Recommended):
+keyNews = "NFP,Non-Farm,Payroll,Employment,Unemployment,Jobs,ADP,Interest Rate,FOMC,Fed,Federal Reserve,CPI,Inflation,PPI,PCE,GDP,Retail Sales,Consumer,PMI,ISM,Manufacturing,Services,Central Bank,ECB,BoE,BoJ,RBA,RBNZ,BoC,SNB,Draghi,Powell,Yellen,Lagarde,Bailey"
+
+AGGRESSIVE (Trade More):
+keyNews = "NFP,Non-Farm,Interest Rate,FOMC,Fed,ECB,BoE,BoJ,CPI,GDP"
+
+CONSERVATIVE (Trade Less):
+keyNews = "NFP,Non-Farm,Payroll,Employment,Unemployment,Jobs,ADP,Interest Rate,FOMC,Fed,Federal Reserve,Powell,Yellen,CPI,Inflation,PPI,PCE,GDP,Retail Sales,Consumer,PMI,ISM,Manufacturing,Services,Durable Goods,Trade Balance,Housing,Building,Jobless Claims,Central Bank,ECB,BoE,BoJ,RBA,RBNZ,BoC,SNB,Draghi,Lagarde,Bailey,Carney,Kuroda,Lowe,Orr,Macklem,Jordan,Industrial Production,Speech,Minutes,Statement,Press Conference"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 TIPS:
+
+1. Keywords are case-insensitive and use partial matching
+   - "Interest" will match "Interest Rate Decision", "Interest Rate Statement", etc.
+   - "Powell" will match "Powell Speech", "Powell Testimony", etc.
+
+2. Separate keywords with commas (no spaces after commas)
+   - Correct: "NFP,CPI,GDP"
+   - Wrong: "NFP, CPI, GDP"
+
+3. Use semicolons if your broker's calendar uses commas in event names
+   - Set separator = 1 in EA settings
+   - Then use: "NFP;CPI;GDP"
+
+4. Monitor multiple currencies by listing them in NewsCurrencied
+   - Example: "USD,EUR,GBP" for major pairs
+   - Example: "USD" for USD pairs only
+
+5. Adjust timing parameters:
+   - StopBeforeMin: Minutes before news to stop trading (default: 30)
+   - StartTradingMin: Minutes after news to resume trading (default: 30)
+   - DaysNewsLookup: Days ahead to scan calendar (default: 2)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 RECOMMENDED SETTINGS BY TRADING STYLE:
+
+SCALPER (1-5 min trades):
+- Use CONSERVATIVE keywords
+- StopBeforeMin = 60
+- StartTradingMin = 60
+- Avoid all major news
+
+DAY TRADER (15min-4H trades):
+- Use BALANCED keywords
+- StopBeforeMin = 30
+- StartTradingMin = 30
+- Avoid tier 1 & 2 news
+
+SWING TRADER (Daily+ trades):
+- Use AGGRESSIVE keywords
+- StopBeforeMin = 15
+- StartTradingMin = 15
+- Only avoid tier 1 news
+
+═══════════════════════════════════════════════════════════════════════════════

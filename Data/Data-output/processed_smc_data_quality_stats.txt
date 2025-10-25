@@ -1,0 +1,102 @@
+# Fuzzy Quality Distribution Statistics
+# Validates balanced distribution across train/val/test splits
+
+
+TRAIN Split:
+------------------------------------------------------------
+
+OB_Quality_Fuzzy:
+  mean: 0.0716003282152219
+  std: 0.19686976745500376
+  min: 0.0
+  max: 1.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 76982
+
+FVG_Quality_Fuzzy:
+  mean: 0.04928092295455387
+  std: 0.1783386203446932
+  min: 0.0
+  max: 1.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 76982
+
+HTF_Confluence_Quality:
+  mean: 0.0
+  std: 0.0
+  min: 0.0
+  max: 0.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 76982
+
+VAL Split:
+------------------------------------------------------------
+
+OB_Quality_Fuzzy:
+  mean: 0.07193429867708336
+  std: 0.1977727901049441
+  min: 0.0
+  max: 1.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 16500
+
+FVG_Quality_Fuzzy:
+  mean: 0.050719753653262784
+  std: 0.18088192208297493
+  min: 0.0
+  max: 1.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 16500
+
+HTF_Confluence_Quality:
+  mean: 0.0
+  std: 0.0
+  min: 0.0
+  max: 0.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 16500
+
+TEST Split:
+------------------------------------------------------------
+
+OB_Quality_Fuzzy:
+  mean: 0.07190220577596525
+  std: 0.1974638534292021
+  min: 0.0
+  max: 0.9978331527628121
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 16518
+
+FVG_Quality_Fuzzy:
+  mean: 0.05184996200810145
+  std: 0.18204198650261486
+  min: 0.0
+  max: 1.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 16518
+
+HTF_Confluence_Quality:
+  mean: 0.0
+  std: 0.0
+  min: 0.0
+  max: 0.0
+  q25: 0.0
+  q50: 0.0
+  q75: 0.0
+  n_samples: 16518
