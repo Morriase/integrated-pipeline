@@ -120,8 +120,27 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         print(f"  Device: {self.device}")
         print(f"  Training samples: {len(X_train):,}")
         print(f"  Features: {X_train.shape[1]}")
-        print(
-            f"  Architecture: {X_train.shape[1]} -> {' -> '.join(map(str, hidden_dims))} -> 3")
+        
+        # Check for problematic features
+        constant_features = []
+        for i in range(X_train.shape[1]):
+            if np.std(X_train[:, i]) == 0:
+                constant_features.append(i)
+        
+        if constant_features:
+            print(f"  ⚠️ WARNING: {len(constant_features)} constant features detected!")
+            print(f"     These features will not help learning.")
+        
+        # Check for NaN or inf
+        if np.isnan(X_train).any():
+            nan_count = np.isnan(X_train).sum()
+            print(f"  ⚠️ WARNING: {nan_count} NaN values in training data!")
+        
+        if np.isinf(X_train).any():
+            inf_count = np.isinf(X_train).sum()
+            print(f"  ⚠️ WARNING: {inf_count} infinite values in training data!")
+        
+        print(f"  Architecture: {X_train.shape[1]} -> {' -> '.join(map(str, hidden_dims))} -> 3")
 
         # Data augmentation for small datasets
         if len(X_train) < 300:
@@ -133,9 +152,29 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         # Scale features
         X_train_scaled = self.scaler.fit_transform(X_train)
 
-        # Convert labels to 0, 1, 2
-        label_map = {-1: 0, 0: 1, 1: 2}
-        self.label_map_reverse = {0: -1, 1: 0, 2: 1}  # Store for predictions
+        # Check class distribution
+        unique_labels, label_counts = np.unique(y_train, return_counts=True)
+        print(f"\n  Class distribution:")
+        for label, count in zip(unique_labels, label_counts):
+            pct = count / len(y_train) * 100
+            print(f"    {label:>4}: {count:>6} ({pct:>5.1f}%)")
+        
+        # Handle binary vs 3-class classification
+        num_classes = len(unique_labels)
+        
+        if num_classes == 2:
+            # Binary classification (timeout class removed)
+            print(f"\n  Using BINARY classification (timeout class removed)")
+            label_map = {-1: 0, 1: 1}
+            self.label_map_reverse = {0: -1, 1: 1}
+            output_dim = 2
+        else:
+            # 3-class classification
+            print(f"\n  Using 3-CLASS classification")
+            label_map = {-1: 0, 0: 1, 1: 2}
+            self.label_map_reverse = {0: -1, 1: 0, 2: 1}
+            output_dim = 3
+        
         y_train_mapped = np.array([label_map[y] for y in y_train])
 
         # Create data loaders
@@ -150,7 +189,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         self.model = MLPClassifier(
             input_dim=X_train.shape[1],
             hidden_dims=hidden_dims,
-            output_dim=3,
+            output_dim=output_dim,  # Use detected number of classes
             dropout=dropout
         ).to(self.device)
 
