@@ -152,67 +152,24 @@ class NeuralNetworkSMCModel(BaseSMCModel):
         # Scale features
         X_train_scaled = self.scaler.fit_transform(X_train)
 
-        # Check class distribution BEFORE filtering
-        unique_labels, label_counts = np.unique(y_train, return_counts=True)
-        print(f"\n  Class distribution (before filtering):")
-        for label, count in zip(unique_labels, label_counts):
-            pct = count / len(y_train) * 100
-            print(f"    {label:>4}: {count:>6} ({pct:>5.1f}%)")
-        
-        # Check if timeout class exists
-        has_timeout = any(label == 0 or label == 0.0 for label in unique_labels)
-        
-        if has_timeout:
-            timeout_idx = np.where((unique_labels == 0) | (unique_labels == 0.0))[0]
-            if len(timeout_idx) > 0:
-                timeout_count = label_counts[timeout_idx[0]]
-                print(f"\n  ⚠️ Timeout class detected: {timeout_count} samples")
-                
-                if timeout_count < 100:
-                    print(f"     Removing timeout class (< 100 samples)")
-                    # Remove timeout samples BEFORE scaling
-                    mask = (y_train != 0) & (y_train != 0.0)
-                    X_train = X_train[mask]
-                    y_train = y_train[mask]
-                    
-                    # Re-scale after filtering
-                    X_train_scaled = self.scaler.fit_transform(X_train)
-                    
-                    print(f"     Remaining samples: {len(y_train):,}")
-        
-        # Determine classification type
+        # Check class distribution
         unique_labels = np.unique(y_train)
-        num_classes = len(unique_labels)
-        
-        print(f"\n  Final class distribution:")
+        print(f"\n  Class distribution:")
         for label in unique_labels:
             count = np.sum(y_train == label)
             pct = count / len(y_train) * 100
             print(f"    {label:>4}: {count:>6} ({pct:>5.1f}%)")
         
-        if num_classes == 2:
-            # Binary classification
-            print(f"\n  Using BINARY classification")
-            # Map -1 -> 0, 1 -> 1
-            label_map = {}
-            for label in unique_labels:
-                if label < 0:
-                    label_map[label] = 0
-                else:
-                    label_map[label] = 1
-            self.label_map_reverse = {0: -1, 1: 1}
-            output_dim = 2
-        else:
-            # 3-class classification
-            print(f"\n  Using 3-CLASS classification")
-            label_map = {}
-            sorted_labels = sorted(unique_labels)
-            for i, label in enumerate(sorted_labels):
-                label_map[label] = i
-            self.label_map_reverse = {i: label for label, i in label_map.items()}
-            output_dim = 3
+        # Simple mapping: just map to 0, 1, 2... in sorted order
+        num_classes = len(unique_labels)
+        sorted_labels = sorted(unique_labels)
+        label_map = {label: i for i, label in enumerate(sorted_labels)}
+        self.label_map_reverse = {i: label for label, i in label_map.items()}
+        output_dim = num_classes
         
+        print(f"\n  Using {num_classes}-class classification")
         print(f"  Label mapping: {label_map}")
+        
         y_train_mapped = np.array([label_map[y] for y in y_train])
 
         # Create data loaders
