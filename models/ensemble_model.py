@@ -214,7 +214,7 @@ class ConsensusEnsembleSMCModel:
     
     def get_individual_predictions(self, X: pd.DataFrame) -> Dict[str, np.ndarray]:
         """
-        Get predictions from each individual model (for debugging)
+        Get predictions from RandomForest (single model)
         
         Args:
             X: Feature DataFrame
@@ -224,30 +224,16 @@ class ConsensusEnsembleSMCModel:
         """
         predictions = {}
         
+        # Add missing features with zeros
+        required_features = self.feature_cols['RandomForest']
+        for feature in required_features:
+            if feature not in X.columns:
+                X[feature] = 0.0
+        
         # Random Forest
-        X_rf = X[self.feature_cols['RandomForest']].values
+        X_rf = X[required_features].values
         X_rf = np.nan_to_num(X_rf, nan=0.0, posinf=1e10, neginf=-1e10)
         predictions['RandomForest'] = self.models['RandomForest'].predict(X_rf)
-        
-        # XGBoost
-        X_xgb = X[self.feature_cols['XGBoost']].values
-        X_xgb = np.nan_to_num(X_xgb, nan=0.0, posinf=1e10, neginf=-1e10)
-        xgb_pred = self.models['XGBoost'].predict(X_xgb)
-        label_map = {0: -1, 1: 0, 2: 1}
-        predictions['XGBoost'] = np.array([label_map.get(p, p) for p in xgb_pred])
-        
-        # Neural Network
-        X_nn = X[self.feature_cols['NeuralNetwork']].values
-        X_nn = np.nan_to_num(X_nn, nan=0.0, posinf=1e10, neginf=-1e10)
-        
-        if 'NeuralNetwork' in self.scalers:
-            X_nn = self.scalers['NeuralNetwork'].transform(X_nn)
-        
-        import torch
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        X_tensor = torch.FloatTensor(X_nn).to(device)
-        
-        self.models['NeuralNetwork'].eval()
         with torch.no_grad():
             outputs = self.models['NeuralNetwork'](X_tensor)
             nn_pred = torch.argmax(outputs, dim=1).cpu().numpy()
