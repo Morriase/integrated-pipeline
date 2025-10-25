@@ -280,7 +280,7 @@ Training Random Forest on FULL UNIFIED DATASET
 💾 Metadata saved to /kaggle/working/Model-output/UNIFIED_RandomForest_metadata.json
 
 ✅ Model save complete: /kaggle/working/Model-output
-✅ RandomForest completed in 15.8s
+✅ RandomForest completed in 16.3s
 
 🚀 Starting XGBoost training...
 
@@ -398,21 +398,22 @@ Training Neural Network on FULL UNIFIED DATASET
        0:   2028 ( 20.2%)
        1:   8022 ( 79.8%)
 
+  Detected cleaned binary data (0, 1)
+  Will map predictions back to original labels (-1, 1)
+
   Using 2-class classification
-  Label mapping: {0: 0, 1: 1}
+  Training label mapping: {0: 0, 1: 1}
+  Prediction label mapping: {0: -1, 1: 1}
   Class distribution: {0: 2028, 1: 8022}
   Class weights: {0: 2.477810650887574, 1: 0.6264023934181002}
-  Epoch 10/200 - LR: 0.001000 - Train Loss: 0.6171, Train Acc: 0.699 | Val Loss: 0.6075, Val Acc: 0.736
-  Epoch 20/200 - LR: 0.001000 - Train Loss: 0.6022, Train Acc: 0.704 | Val Loss: 0.6141, Val Acc: 0.771
-  Epoch 30/200 - LR: 0.000500 - Train Loss: 0.5943, Train Acc: 0.699 | Val Loss: 0.5926, Val Acc: 0.721
-  Epoch 40/200 - LR: 0.000125 - Train Loss: 0.5872, Train Acc: 0.713 | Val Loss: 0.5893, Val Acc: 0.720
-  Epoch 50/200 - LR: 0.000125 - Train Loss: 0.5888, Train Acc: 0.712 | Val Loss: 0.6023, Val Acc: 0.759
-  Epoch 60/200 - LR: 0.000031 - Train Loss: 0.5928, Train Acc: 0.713 | Val Loss: 0.5894, Val Acc: 0.717
-  Epoch 70/200 - LR: 0.000016 - Train Loss: 0.5884, Train Acc: 0.714 | Val Loss: 0.5891, Val Acc: 0.714
-⚠️ Epoch 77: Exploding gradient detected (norm=2876.51 > 50.0)
-  Epoch 80/200 - LR: 0.000004 - Train Loss: 0.5874, Train Acc: 0.714 | Val Loss: 0.6124, Val Acc: 0.565
+  Epoch 10/200 - LR: 0.001000 - Train Loss: 0.6160, Train Acc: 0.694 | Val Loss: 0.6133, Val Acc: 0.753
+⚠️ Epoch 20: Exploding gradient detected (norm=1154.85 > 50.0)
+  Epoch 20/200 - LR: 0.001000 - Train Loss: 0.6003, Train Acc: 0.700 | Val Loss: 0.5961, Val Acc: 0.713
+⚠️ Epoch 22: Exploding gradient detected (norm=747.81 > 50.0)
+  Epoch 30/200 - LR: 0.001000 - Train Loss: 0.5924, Train Acc: 0.707 | Val Loss: 0.6033, Val Acc: 0.753
+  Epoch 40/200 - LR: 0.000250 - Train Loss: 0.5881, Train Acc: 0.715 | Val Loss: 0.5947, Val Acc: 0.736
 
-  Early stopping at epoch 81 (patience=20)
+  Early stopping at epoch 46 (patience=20)
 Learning curves saved to: /kaggle/working/Training_Images/UNIFIED_NN_learning_curves.png
 Overfitting metrics saved to: /kaggle/working/Training_Images/UNIFIED_NN_overfitting_metrics.json
 
@@ -420,92 +421,93 @@ Overfitting metrics saved to: /kaggle/working/Training_Images/UNIFIED_NN_overfit
 OVERFITTING MONITOR SUMMARY
 ============================================================
 Status: ✓ HEALTHY
-Train-Val Gap: 0.09% (Threshold: 15%)
-Total Epochs: 81
-Training Duration: 0:01:19.903360
+Train-Val Gap: -1.95% (Threshold: 15%)
+Total Epochs: 46
+Training Duration: 0:00:47.210069
 
 Final Metrics:
-  Train Accuracy: 0.7123
-  Val Accuracy:   0.7114
-  Train Loss:     0.5915
-  Val Loss:       0.5901
+  Train Accuracy: 0.7073
+  Val Accuracy:   0.7267
+  Train Loss:     0.5880
+  Val Loss:       0.5902
 
 Best Epoch (Highest Val Accuracy):
-  Epoch:          55
-  Train Accuracy: 0.7093
-  Val Accuracy:   0.8045
-  Train Loss:     0.5933
-  Val Loss:       0.6330
+  Epoch:          30
+  Train Accuracy: 0.6973
+  Val Accuracy:   0.7772
+  Train Loss:     0.5960
+  Val Loss:       0.6162
 ============================================================
 
 
-  ⚠️ Training Warnings (1):
-    - Epoch 77: Exploding gradient detected (norm=2876.51 > 50.0)
+  ⚠️ Training Warnings (2):
+    - Epoch 20: Exploding gradient detected (norm=1154.85 > 50.0)
+    - Epoch 22: Exploding gradient detected (norm=747.81 > 50.0)
 
-  Final Train Accuracy: 0.712
-  Final Val Accuracy:   0.711
-  Train-Val Gap:        0.001 (0.1%)
+  Final Train Accuracy: 0.707
+  Final Val Accuracy:   0.727
+  Train-Val Gap:        -0.019 (-1.9%)
 
 📊 Evaluating on Validation set...
 
   Classification Metrics:
-    Accuracy: 0.038
+    Accuracy: 0.039
     Precision (macro): 0.022
-    Recall (macro): 0.060
-    F1-Score (macro): 0.032
+    Recall (macro): 0.063
+    F1-Score (macro): 0.033
 
   Trading Metrics (1:2.0 R:R):
-    Win Rate: 0.0% (0/910 trades)
+    Win Rate: 0.0% (0/869 trades)
     Profit Factor: 0.00
     Expected Value/Trade: -1.00R
     Trade Accuracy: 0.0%
-    Timeouts: 1249 (57.9%)
+    Timeouts: 1290 (59.7%)
     ⚠️ LOSING STRATEGY (EV < 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
   True Loss           0           0         0
-  True Timeout      368          81         0
-  True Win          542        1168         0
+  True Timeout      364          85         0
+  True Win          505        1205         0
 
 📊 Evaluating on Test set...
 
   Classification Metrics:
-    Accuracy: 0.036
-    Precision (macro): 0.022
-    Recall (macro): 0.051
-    F1-Score (macro): 0.030
+    Accuracy: 0.039
+    Precision (macro): 0.023
+    Recall (macro): 0.056
+    F1-Score (macro): 0.033
 
   Trading Metrics (1:2.0 R:R):
-    Win Rate: 0.0% (0/957 trades)
+    Win Rate: 0.0% (0/936 trades)
     Profit Factor: 0.00
     Expected Value/Trade: -1.00R
     Trade Accuracy: 0.0%
-    Timeouts: 1172 (55.0%)
+    Timeouts: 1193 (56.0%)
     ⚠️ LOSING STRATEGY (EV < 0)
 
   Confusion Matrix:
               Pred Loss  Pred Timeout  Pred Win
   True Loss           0           0         0
-  True Timeout      423          76         0
-  True Win          534        1096         0
+  True Timeout      415          84         0
+  True Win          521        1109         0
 
 💾 Model pickle saved to /kaggle/working/Model-output/UNIFIED_NeuralNetwork.pkl
 💾 Metadata saved to /kaggle/working/Model-output/UNIFIED_NeuralNetwork_metadata.json
 💾 Scaler saved to /kaggle/working/Model-output/UNIFIED_NeuralNetwork_scaler.pkl
 
 ✅ Model save complete: /kaggle/working/Model-output
-✅ Neural Network completed in 81.5s
+✅ Neural Network completed in 49.0s
 
 ================================================================================
 Training Summary:
-  Total Duration: 98.4s (1.6 min)
+  Total Duration: 66.3s (1.1 min)
   Successful Models: 3/3
   Failed Models: 0/3
 ================================================================================
 
 ================================================================================
-All training completed in 98.4s (1.6 minutes)
+All training completed in 66.3s (1.1 minutes)
 ================================================================================
 
 ================================================================================
@@ -517,7 +519,7 @@ TRAINING SUMMARY REPORT - UNIFIED DATASET
   ----------------------------------------------------------------------------------------------------
   RandomForest         0.653        0.661        0.652        -0.82%     ✅ Good              
   XGBoost              0.712        0.693        0.699        1.90%      ✅ Good              
-  NeuralNetwork        0.000        0.038        0.036        -3.75%     ✅ Good              
+  NeuralNetwork        0.000        0.039        0.039        -3.94%     ✅ Good              
 
 💾 Results saved to: /kaggle/working/Model-output/training_results.json
 
@@ -541,7 +543,7 @@ FINAL STATISTICS
   Successful:           3
   Failed:               0
   Success Rate:         100.0%
-  Total Duration:       98.4s (1.6 min)
+  Total Duration:       66.3s (1.1 min)
   Models per Symbol:    1 (unified model works for all)
 ================================================================================
 

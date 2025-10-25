@@ -238,8 +238,7 @@ class NeuralNetworkSMCModel(BaseSMCModel):
             min_lr=1e-6
         )
 
-        # Store reverse label map
-        self.label_map_reverse = {0: -1, 1: 0, 2: 1}
+        # label_map_reverse already set earlier - don't overwrite it!
 
         # Initialize overfitting monitor
         monitor = OverfittingMonitor(warning_threshold=0.15)
@@ -438,8 +437,15 @@ class NeuralNetworkSMCModel(BaseSMCModel):
             y_pred_mapped = predicted.cpu().numpy()
 
         # Convert back to original labels using stored mapping
-        # label_map_reverse maps: model output (0,1) -> original labels
+        # label_map_reverse maps: model output (0,1) -> original labels (-1, 1)
         y_pred = np.array([self.label_map_reverse[int(y)] for y in y_pred_mapped])
+        
+        # Verify predictions are in expected range
+        unique_preds = np.unique(y_pred)
+        if len(unique_preds) > 2 or (0 in unique_preds and len(unique_preds) > 1):
+            print(f"  ⚠️ WARNING: Unexpected predictions: {unique_preds}")
+            print(f"  label_map_reverse: {self.label_map_reverse}")
+            print(f"  Raw model outputs (first 10): {y_pred_mapped[:10]}")
 
         return y_pred
 
