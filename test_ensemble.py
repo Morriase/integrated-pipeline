@@ -14,7 +14,7 @@ def load_test_data():
     print("📂 Loading test data...")
 
     # Hardcoded for Kaggle
-    data_path = '/kaggle/working/data/processed/UNIFIED_processed.csv'
+    data_path = '/kaggle/working/Data-output/processed_smc_data.csv'
 
     # Load unified dataset
     df = pd.read_csv(data_path)
