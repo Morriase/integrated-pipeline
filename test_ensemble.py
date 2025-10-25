@@ -37,6 +37,12 @@ def load_test_data():
     X = df[feature_cols].values
     y = df['TBM_Label'].values
     
+    # Remove NaN labels
+    valid_mask = ~np.isnan(y)
+    X = X[valid_mask]
+    y = y[valid_mask]
+    print(f"  After removing NaN labels: {len(X):,} samples")
+    
     # Use last 30% as test set (same as training)
     test_size = int(len(X) * 0.3)
     X_test = X[-test_size:]
