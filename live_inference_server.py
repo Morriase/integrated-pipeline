@@ -1390,207 +1390,105 @@ def extract_latest_features(processed_df: pd.DataFrame) -> pd.DataFrame:
 
 def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
     """
-    Make prediction using consensus ensemble
-
+    Make prediction using RandomForest only
+    
     Args:
         features: Feature DataFrame (single row)
-
+        
     Returns:
         Dictionary with prediction results
     """
     ensemble = server_state.model_manager.get_ensemble()
-
-    # Get individual model predictions
+    
+    # Get RF prediction
     individual_preds = ensemble.get_individual_predictions(features)
-
-    # Get consensus prediction with CORRECT TBM_Entry (from structure)
+    rf_pred = int(individual_preds['RandomForest'][0])
+    
+    # Get consensus prediction
     consensus_pred, confidence_flags = ensemble.predict(features)
-
-    # Extract single prediction (features is single row)
     prediction = int(consensus_pred[0])
     has_consensus = bool(confidence_flags[0])
-
-    # Get features for logging
+    
+    # Get setup direction
     row = features.iloc[0]
     tbm_entry = float(row.get('TBM_Entry', 0.0))
     setup_direction = "BUY" if tbm_entry > 0 else "SELL" if tbm_entry < 0 else "NEUTRAL"
-
-    logger.info(
-        f"   🤖 Models predict for {setup_direction} setup: {prediction} (1=WIN, 0=TIMEOUT, -1=LOSS)")
-
-    # Convert model predictions (WIN/LOSS/TIMEOUT) to trading signals (BUY/SELL/HOLD)
-    rf_pred = int(individual_preds['RandomForest'][0])
-    xgb_pred = int(individual_preds['XGBoost'][0])
-    nn_pred = int(individual_preds['NeuralNetwork'][0])
-
-    # Count agreements
-    predictions_list = [rf_pred, xgb_pred, nn_pred]
-    unique_preds, counts = np.unique(predictions_list, return_counts=True)
-    max_agreement = counts.max()
-
-    # Get probability distributions from each model
+    
+    logger.info(f"   🤖 RandomForest predicts for {setup_direction} setup: {prediction} (1=WIN, 0=TIMEOUT, -1=LOSS)")
+    
+    # Get RF probabilities
     try:
-        # Random Forest probabilities
         X_rf = features[ensemble.feature_cols['RandomForest']].values
         X_rf = np.nan_to_num(X_rf, nan=0.0, posinf=1e10, neginf=-1e10)
         rf_proba = ensemble.models['RandomForest'].predict_proba(X_rf)[0]
-
-        # XGBoost probabilities
-        X_xgb = features[ensemble.feature_cols['XGBoost']].values
-        X_xgb = np.nan_to_num(X_xgb, nan=0.0, posinf=1e10, neginf=-1e10)
-        xgb_proba = ensemble.models['XGBoost'].predict_proba(X_xgb)[0]
-
-        # Neural Network probabilities
-        X_nn = features[ensemble.feature_cols['NeuralNetwork']].values
-        X_nn = np.nan_to_num(X_nn, nan=0.0, posinf=1e10, neginf=-1e10)
-        if 'NeuralNetwork' in ensemble.scalers:
-            X_nn = ensemble.scalers['NeuralNetwork'].transform(X_nn)
-
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        X_tensor = torch.FloatTensor(X_nn).to(device)
-        ensemble.models['NeuralNetwork'].eval()
-        with torch.no_grad():
-            outputs = ensemble.models['NeuralNetwork'](X_tensor)
-            nn_proba = torch.softmax(outputs, dim=1).cpu().numpy()[0]
-
-        # CORRECT INTERPRETATION: Models predict WIN/LOSS/TIMEOUT, not BUY/SELL/HOLD
-        # avg_proba indices: [0=LOSS, 1=TIMEOUT, 2=WIN]
-
-        # Calculate confidence from MAJORITY models only (not all 3)
-        # This prevents one dissenting model from dragging down confidence
-        models_voting_for_prediction = []
-        if rf_pred == prediction:
-            models_voting_for_prediction.append(rf_proba)
-        if xgb_pred == prediction:
-            models_voting_for_prediction.append(xgb_proba)
-        if nn_pred == prediction:
-            models_voting_for_prediction.append(nn_proba)
-
-        # Average only the models that agree with the majority
-        if len(models_voting_for_prediction) > 0:
-            avg_proba = np.mean(models_voting_for_prediction, axis=0)
+        
+        # Map to outcome probabilities (2 or 3 classes)
+        if len(rf_proba) == 2:
+            # Binary: Loss, Win
+            outcome_probabilities = {
+                "LOSS": float(rf_proba[0]),
+                "TIMEOUT": 0.0,
+                "WIN": float(rf_proba[1])
+            }
         else:
-            # Fallback: use all models (shouldn't happen with majority voting)
-            avg_proba = (rf_proba + xgb_proba + nn_proba) / 3.0
-
-        # Model outcome probabilities
-        outcome_probabilities = {
-            "LOSS": float(avg_proba[0]),     # Index 0 = LOSS (-1)
-            "TIMEOUT": float(avg_proba[1]),  # Index 1 = TIMEOUT (0)
-            "WIN": float(avg_proba[2])       # Index 2 = WIN (1)
-        }
-
-        logger.info(f"   📊 Model probabilities (LOSS/TIMEOUT/WIN):")
-        logger.info(
-            f"      RF: {rf_proba} {'✓ MAJORITY' if rf_pred == prediction else ''}")
-        logger.info(
-            f"      XGB: {xgb_proba} {'✓ MAJORITY' if xgb_pred == prediction else ''}")
-        logger.info(
-            f"      NN: {nn_proba} {'✓ MAJORITY' if nn_pred == prediction else ''}")
-        logger.info(f"   📊 Majority outcome probabilities ({len(models_voting_for_prediction)}/3 models) - "
-                    f"LOSS: {outcome_probabilities['LOSS']:.3f}, "
-                    f"TIMEOUT: {outcome_probabilities['TIMEOUT']:.3f}, WIN: {outcome_probabilities['WIN']:.3f}")
-
-        # CORRECT LOGIC: Convert model prediction to trading signal
-        # Models predict WIN/LOSS/TIMEOUT for the setup direction
-        # If they predict WIN → Trade the direction
-        # If they predict LOSS/TIMEOUT → HOLD
-
-        if prediction == 1:  # Models predict WIN
+            # 3-class: Loss, Timeout, Win
+            outcome_probabilities = {
+                "LOSS": float(rf_proba[0]),
+                "TIMEOUT": float(rf_proba[1]),
+                "WIN": float(rf_proba[2])
+            }
+        
+        logger.info(f"   📊 RF probabilities - LOSS: {outcome_probabilities['LOSS']:.3f}, "
+                   f"TIMEOUT: {outcome_probabilities['TIMEOUT']:.3f}, WIN: {outcome_probabilities['WIN']:.3f}")
+        
+        # Convert to trading signal
+        if prediction == 1:  # WIN
             if setup_direction == "BUY":
                 signal = "BUY"
                 final_prediction = 1
-                logger.info(
-                    f"   ✅ Models predict WIN for BUY setup → BUY signal")
             elif setup_direction == "SELL":
                 signal = "SELL"
                 final_prediction = -1
-                logger.info(
-                    f"   ✅ Models predict WIN for SELL setup → SELL signal")
             else:
                 signal = "HOLD"
                 final_prediction = 0
-                logger.info(
-                    f"   ⚠️ Models predict WIN but no structure → HOLD")
-        else:  # Models predict LOSS or TIMEOUT
+        else:  # LOSS or TIMEOUT
             signal = "HOLD"
             final_prediction = 0
-            outcome = "LOSS" if prediction == -1 else "TIMEOUT"
-            logger.info(
-                f"   ❌ Models predict {outcome} for {setup_direction} setup → HOLD (don't trade)")
-
-        # Trading signal probabilities based on setup direction
-        # avg_proba indices: [0=LOSS, 1=TIMEOUT, 2=WIN]
+        
+        # Trading signal probabilities
         if setup_direction == "BUY":
             probabilities = {
                 "SELL": 0.0,
-                "HOLD": float(avg_proba[0] + avg_proba[1]),  # LOSS + TIMEOUT
-                "BUY": float(avg_proba[2])  # WIN
+                "HOLD": outcome_probabilities["LOSS"] + outcome_probabilities["TIMEOUT"],
+                "BUY": outcome_probabilities["WIN"]
             }
         elif setup_direction == "SELL":
             probabilities = {
-                "SELL": float(avg_proba[2]),  # WIN
-                "HOLD": float(avg_proba[0] + avg_proba[1]),  # LOSS + TIMEOUT
+                "SELL": outcome_probabilities["WIN"],
+                "HOLD": outcome_probabilities["LOSS"] + outcome_probabilities["TIMEOUT"],
                 "BUY": 0.0
             }
-        else:  # HOLD
-            probabilities = {
-                "SELL": 0.0,
-                "HOLD": 1.0,
-                "BUY": 0.0
-            }
-
-        logger.info(f"   📊 Trading signal probabilities - SELL: {probabilities['SELL']:.3f}, "
-                    f"HOLD: {probabilities['HOLD']:.3f}, BUY: {probabilities['BUY']:.3f}")
-
-        # Confidence is the probability of the predicted signal
+        else:
+            probabilities = {"SELL": 0.0, "HOLD": 1.0, "BUY": 0.0}
+        
         confidence = probabilities[signal]
         prediction = final_prediction
-
-        # REMOVED: All confidence adjustments
-        # The models already learned optimal patterns from training data:
-        # - Unmitigated OB = 92.9% win rate
-        # - OB Age, Quality, Mitigation status
-        # - Regime alignment, BOS, FVG, etc.
-        #
-        # Hand-coded adjustments override what models learned.
-        # Trust the models - they know better than simple rules!
-
-        logger.info(
-            f"   ✅ Final confidence (pure model output): {confidence:.3f}")
-
+        
     except Exception as e:
-        logger.warning(f"   ⚠️ Failed to get probability distributions: {e}")
-        logger.warning(f"   ⚠️ Falling back to vote-based probabilities")
-
-        # Fallback: use simple vote counting
-        probabilities = {
-            "SELL": 0.0,
-            "HOLD": 0.0,
-            "BUY": 0.0
-        }
-        for pred in predictions_list:
-            pred_signal = signal_map.get(pred, "HOLD")
-            probabilities[pred_signal] += 1.0 / 3.0
-
-        # Confidence based on agreement
-        confidence = max_agreement / 3.0
-
-    # Build result
-    result = {
+        logger.warning(f"   ⚠️ Failed to get probabilities: {e}")
+        probabilities = {"SELL": 0.0, "HOLD": 1.0, "BUY": 0.0}
+        confidence = 0.5
+        signal = "HOLD"
+    
+    return {
         'prediction': prediction,
         'signal': signal,
         'confidence': confidence,
         'consensus': has_consensus,
         'probabilities': probabilities,
-        'models': {
-            'RandomForest': rf_pred,
-            'XGBoost': xgb_pred,
-            'NeuralNetwork': nn_pred
-        }
+        'models': {'RandomForest': rf_pred}
     }
-
-    return result
 
 
 def extract_smc_context(features: pd.DataFrame) -> Dict:

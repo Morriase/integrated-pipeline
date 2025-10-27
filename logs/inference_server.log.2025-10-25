@@ -1,0 +1,960 @@
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:245] - Logging configured successfully
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:246] - Log file: logs/inference_server.log
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:247] - Log level: INFO
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:248] - Log rotation: Daily, keeping 30 days
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:2144] - Starting server...
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:697] - ================================================================================
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:698] - 🚀 Starting SMC Live Inference Server
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:699] - ================================================================================
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:703] - ⚙️  Validating configuration...
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:705] - ✓ Configuration validated successfully
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:708] - 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        SERVER CONFIGURATION                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Server Settings:
+  • Host:                    0.0.0.0
+  • Port:                    5000
+  • Timeout:                 30s
+  • Max Workers:             4
+
+Model Settings:
+  • Model Directory:         models/trained
+  • Consensus Mode:          majority
+  • Min Confidence:          0.0
+
+Pipeline Settings:
+  • Base Timeframe:          M15
+  • Higher Timeframes:       H1, H4
+  • Min Bars Required:       100
+
+Logging Settings:
+  • Log File:                logs/inference_server.log
+  • Log Level:               INFO
+  • Log Rotation:            30 days
+
+Performance Settings:
+  • Caching Enabled:         False
+
+Security Settings:
+  • API Key Auth:            False
+  • Rate Limiting:           False
+  • Rate Limit:              60/min
+
+╚══════════════════════════════════════════════════════════════════════════════╝
+        
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:711] - 📊 Initializing SMC Data Pipeline...
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:712] -    🔧 Pipeline will detect:
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:713] -       - Order Blocks (OB)
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:714] -       - Fair Value Gaps (FVG)
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:715] -       - Break of Structure (BOS)
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:716] -       - Change of Character (ChoCH)
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:722] - ✓ Pipeline initialized successfully
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:725] - 🤖 Initializing ModelManager...
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:313] - 🔧 ModelManager initialized
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:314] -    Model directory: models\trained
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:315] -    Symbol: UNIFIED
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:335] - 🤖 Loading trained models...
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:381] -    ✓ Found RandomForest model: UNIFIED_RandomForest.pkl (0.25 MB)
+2025-10-25 17:11:13 - __main__ - WARNING - [live_inference_server.py:413] - ⚠️  NeuralNetwork scaler file not found: models\trained\UNIFIED_NeuralNetwork_scaler.pkl
+2025-10-25 17:11:13 - __main__ - WARNING - [live_inference_server.py:414] -    NeuralNetwork predictions may be inaccurate without proper scaling
+2025-10-25 17:11:13 - __main__ - INFO - [live_inference_server.py:420] -    Loading ensemble model for UNIFIED...
+2025-10-25 17:11:33 - __main__ - INFO - [live_inference_server.py:491] - 🔍 Validating loaded models...
+2025-10-25 17:11:33 - __main__ - INFO - [live_inference_server.py:507] -    ✓ RandomForest validated (67 features)
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:512] - ❌ NeuralNetwork model not loaded
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:537] - ❌ Model validation failed:
+  - NeuralNetwork model not loaded
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:538] - 💡 Ensure all models were trained and saved correctly. Check model file integrity.
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:753] - ================================================================================
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:754] - ❌ MODEL LOADING FAILED - RUNTIME ERROR
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:755] - ================================================================================
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:756] - Model validation failed:
+  - NeuralNetwork model not loaded
+Ensure all models were trained and saved correctly. Check model file integrity.
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:757] - ================================================================================
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:758] - 🔧 TROUBLESHOOTING STEPS:
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:759] -    1. Check if model files are corrupted
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:760] -    2. Retrain models using: python train_all_models.py
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:762] -    3. Verify Python environment has all required packages
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:764] -    4. Check logs for detailed error information
+2025-10-25 17:11:33 - __main__ - ERROR - [live_inference_server.py:765] - ================================================================================
+2025-10-25 17:13:09 - __main__ - INFO - [live_inference_server.py:245] - Logging configured successfully
+2025-10-25 17:13:09 - __main__ - INFO - [live_inference_server.py:246] - Log file: logs/inference_server.log
+2025-10-25 17:13:09 - __main__ - INFO - [live_inference_server.py:247] - Log level: INFO
+2025-10-25 17:13:09 - __main__ - INFO - [live_inference_server.py:248] - Log rotation: Daily, keeping 30 days
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:2122] - Starting server...
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:675] - ================================================================================
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:676] - 🚀 Starting SMC Live Inference Server
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:677] - ================================================================================
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:681] - ⚙️  Validating configuration...
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:683] - ✓ Configuration validated successfully
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:686] - 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        SERVER CONFIGURATION                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Server Settings:
+  • Host:                    0.0.0.0
+  • Port:                    5000
+  • Timeout:                 30s
+  • Max Workers:             4
+
+Model Settings:
+  • Model Directory:         models/trained
+  • Consensus Mode:          majority
+  • Min Confidence:          0.0
+
+Pipeline Settings:
+  • Base Timeframe:          M15
+  • Higher Timeframes:       H1, H4
+  • Min Bars Required:       100
+
+Logging Settings:
+  • Log File:                logs/inference_server.log
+  • Log Level:               INFO
+  • Log Rotation:            30 days
+
+Performance Settings:
+  • Caching Enabled:         False
+
+Security Settings:
+  • API Key Auth:            False
+  • Rate Limiting:           False
+  • Rate Limit:              60/min
+
+╚══════════════════════════════════════════════════════════════════════════════╝
+        
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:689] - 📊 Initializing SMC Data Pipeline...
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:690] -    🔧 Pipeline will detect:
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:691] -       - Order Blocks (OB)
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:692] -       - Fair Value Gaps (FVG)
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:693] -       - Break of Structure (BOS)
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:694] -       - Change of Character (ChoCH)
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:700] - ✓ Pipeline initialized successfully
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:703] - 🤖 Initializing ModelManager...
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:313] - 🔧 ModelManager initialized
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:314] -    Model directory: models\trained
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:315] -    Symbol: UNIFIED
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:335] - 🤖 Loading trained models...
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:381] -    ✓ Found RandomForest model: UNIFIED_RandomForest.pkl (0.25 MB)
+2025-10-25 17:13:10 - __main__ - WARNING - [live_inference_server.py:413] - ⚠️  NeuralNetwork scaler file not found: models\trained\UNIFIED_NeuralNetwork_scaler.pkl
+2025-10-25 17:13:10 - __main__ - WARNING - [live_inference_server.py:414] -    NeuralNetwork predictions may be inaccurate without proper scaling
+2025-10-25 17:13:10 - __main__ - INFO - [live_inference_server.py:420] -    Loading ensemble model for UNIFIED...
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:491] - 🔍 Validating loaded models...
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:507] -    ✓ RandomForest validated (67 features)
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:521] - ✅ All models validated successfully
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:457] - ✅ RandomForest model loaded successfully
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:458] -    - 64% accuracy, 0.43R EV, profitable
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:564] - 📊 Estimated memory usage: 0.00 MB
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:602] - 📊 Consensus mode set to: majority
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:753] - ================================================================================
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:754] - ✅ Server ready on http://0.0.0.0:5000
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:756] - 📖 API docs: http://0.0.0.0:5000/docs
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:758] - 📊 Consensus mode: majority
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:759] - 🎯 Min confidence threshold: 0.0
+2025-10-25 17:13:13 - __main__ - INFO - [live_inference_server.py:761] - ================================================================================
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:245] - Logging configured successfully
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:246] - Log file: logs/inference_server.log
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:247] - Log level: INFO
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:248] - Log rotation: Daily, keeping 30 days
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:2186] - Starting server...
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:675] - ================================================================================
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:676] - 🚀 Starting SMC Live Inference Server
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:677] - ================================================================================
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:681] - ⚙️  Validating configuration...
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:683] - ✓ Configuration validated successfully
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:686] - 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        SERVER CONFIGURATION                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Server Settings:
+  • Host:                    0.0.0.0
+  • Port:                    5000
+  • Timeout:                 30s
+  • Max Workers:             4
+
+Model Settings:
+  • Model Directory:         models/trained
+  • Consensus Mode:          majority
+  • Min Confidence:          0.0
+
+Pipeline Settings:
+  • Base Timeframe:          M15
+  • Higher Timeframes:       H1, H4
+  • Min Bars Required:       100
+
+Logging Settings:
+  • Log File:                logs/inference_server.log
+  • Log Level:               INFO
+  • Log Rotation:            30 days
+
+Performance Settings:
+  • Caching Enabled:         False
+
+Security Settings:
+  • API Key Auth:            False
+  • Rate Limiting:           False
+  • Rate Limit:              60/min
+
+╚══════════════════════════════════════════════════════════════════════════════╝
+        
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:689] - 📊 Initializing SMC Data Pipeline...
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:690] -    🔧 Pipeline will detect:
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:691] -       - Order Blocks (OB)
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:692] -       - Fair Value Gaps (FVG)
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:693] -       - Break of Structure (BOS)
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:694] -       - Change of Character (ChoCH)
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:700] - ✓ Pipeline initialized successfully
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:703] - 🤖 Initializing ModelManager...
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:313] - 🔧 ModelManager initialized
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:314] -    Model directory: models\trained
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:315] -    Symbol: UNIFIED
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:335] - 🤖 Loading trained models...
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:381] -    ✓ Found RandomForest model: UNIFIED_RandomForest.pkl (0.25 MB)
+2025-10-25 17:14:44 - __main__ - WARNING - [live_inference_server.py:413] - ⚠️  NeuralNetwork scaler file not found: models\trained\UNIFIED_NeuralNetwork_scaler.pkl
+2025-10-25 17:14:44 - __main__ - WARNING - [live_inference_server.py:414] -    NeuralNetwork predictions may be inaccurate without proper scaling
+2025-10-25 17:14:44 - __main__ - INFO - [live_inference_server.py:420] -    Loading ensemble model for UNIFIED...
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:491] - 🔍 Validating loaded models...
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:507] -    ✓ RandomForest validated (67 features)
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:521] - ✅ All models validated successfully
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:457] - ✅ RandomForest model loaded successfully
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:458] -    - 64% accuracy, 0.43R EV, profitable
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:564] - 📊 Estimated memory usage: 0.00 MB
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:602] - 📊 Consensus mode set to: majority
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:753] - ================================================================================
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:754] - ✅ Server ready on http://0.0.0.0:5000
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:756] - 📖 API docs: http://0.0.0.0:5000/docs
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:758] - 📊 Consensus mode: majority
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:759] - 🎯 Min confidence threshold: 0.0
+2025-10-25 17:14:46 - __main__ - INFO - [live_inference_server.py:761] - ================================================================================
+2025-10-25 17:15:45 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for AUDNZD
+2025-10-25 17:15:45 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: AUDNZD
+2025-10-25 17:15:46 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 16
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 14
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 30
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.435
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.194 ATR
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 4
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 4
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 8
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.030 ATR
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 68
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 31
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 15
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 0.000466
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 0.000117
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 1.12928 - 1.13314
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3758
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 52.5%
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 0.00029285714285709474, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 32/87 (36.8%)
+2025-10-25 17:15:49 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(1)}
+2025-10-25 17:15:49 - __main__ - WARNING - [live_inference_server.py:1382] -    ⚠️  Missing 4 features expected by models: ['HTF_Structure_Alignment', 'HTF_OB_Confluence', 'HTF_Trend_Alignment', 'HTF_FVG_Confluence']...
+2025-10-25 17:15:49 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['ChoCH_BrokenIndex', 'OB_Mitigation_Time', 'ChoCH_Level', 'OB_High', 'OB_Mitigation_Price']...
+2025-10-25 17:15:49 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: "['HTF_OB_Confluence', 'HTF_FVG_Confluence', 'HTF_Trend_Alignment', 'HTF_Structure_Alignment'] not in index"
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1404, in make_ensemble_prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+  File "C:\Users\Morris\Desktop\Python\models\ensemble_model.py", line 222, in get_individual_predictions
+    X_rf = X[self.feature_cols['RandomForest']].values
+           ~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Morris\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\Morris\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6212, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Morris\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 6264, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['HTF_OB_Confluence', 'HTF_FVG_Confluence', 'HTF_Trend_Alignment', 'HTF_Structure_Alignment'] not in index"
+2025-10-25 17:38:22 - __main__ - INFO - [live_inference_server.py:787] - ================================================================================
+2025-10-25 17:38:22 - __main__ - INFO - [live_inference_server.py:788] - 🛑 Shutting down SMC Live Inference Server
+2025-10-25 17:38:22 - __main__ - INFO - [live_inference_server.py:789] - 📊 Total predictions served: 0
+2025-10-25 17:38:22 - __main__ - INFO - [live_inference_server.py:791] - N/A
+2025-10-25 17:38:22 - __main__ - INFO - [live_inference_server.py:793] - ❌ Total errors: 1
+2025-10-25 17:38:22 - __main__ - INFO - [live_inference_server.py:794] - ================================================================================
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:245] - Logging configured successfully
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:246] - Log file: logs/inference_server.log
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:247] - Log level: INFO
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:248] - Log rotation: Daily, keeping 30 days
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:2186] - Starting server...
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:675] - ================================================================================
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:676] - 🚀 Starting SMC Live Inference Server
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:677] - ================================================================================
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:681] - ⚙️  Validating configuration...
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:683] - ✓ Configuration validated successfully
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:686] - 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        SERVER CONFIGURATION                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Server Settings:
+  • Host:                    0.0.0.0
+  • Port:                    5000
+  • Timeout:                 30s
+  • Max Workers:             4
+
+Model Settings:
+  • Model Directory:         models/trained
+  • Consensus Mode:          majority
+  • Min Confidence:          0.0
+
+Pipeline Settings:
+  • Base Timeframe:          M15
+  • Higher Timeframes:       H1, H4
+  • Min Bars Required:       100
+
+Logging Settings:
+  • Log File:                logs/inference_server.log
+  • Log Level:               INFO
+  • Log Rotation:            30 days
+
+Performance Settings:
+  • Caching Enabled:         False
+
+Security Settings:
+  • API Key Auth:            False
+  • Rate Limiting:           False
+  • Rate Limit:              60/min
+
+╚══════════════════════════════════════════════════════════════════════════════╝
+        
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:689] - 📊 Initializing SMC Data Pipeline...
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:690] -    🔧 Pipeline will detect:
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:691] -       - Order Blocks (OB)
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:692] -       - Fair Value Gaps (FVG)
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:693] -       - Break of Structure (BOS)
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:694] -       - Change of Character (ChoCH)
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:700] - ✓ Pipeline initialized successfully
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:703] - 🤖 Initializing ModelManager...
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:313] - 🔧 ModelManager initialized
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:314] -    Model directory: models\trained
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:315] -    Symbol: UNIFIED
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:335] - 🤖 Loading trained models...
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:381] -    ✓ Found RandomForest model: UNIFIED_RandomForest.pkl (0.25 MB)
+2025-10-25 17:38:54 - __main__ - WARNING - [live_inference_server.py:413] - ⚠️  NeuralNetwork scaler file not found: models\trained\UNIFIED_NeuralNetwork_scaler.pkl
+2025-10-25 17:38:54 - __main__ - WARNING - [live_inference_server.py:414] -    NeuralNetwork predictions may be inaccurate without proper scaling
+2025-10-25 17:38:54 - __main__ - INFO - [live_inference_server.py:420] -    Loading ensemble model for UNIFIED...
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:491] - 🔍 Validating loaded models...
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:507] -    ✓ RandomForest validated (67 features)
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:521] - ✅ All models validated successfully
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:457] - ✅ RandomForest model loaded successfully
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:458] -    - 64% accuracy, 0.43R EV, profitable
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:564] - 📊 Estimated memory usage: 0.00 MB
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:602] - 📊 Consensus mode set to: majority
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:753] - ================================================================================
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:754] - ✅ Server ready on http://0.0.0.0:5000
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:756] - 📖 API docs: http://0.0.0.0:5000/docs
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:758] - 📊 Consensus mode: majority
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:759] - 🎯 Min confidence threshold: 0.0
+2025-10-25 17:38:57 - __main__ - INFO - [live_inference_server.py:761] - ================================================================================
+2025-10-25 17:39:19 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for USDJPY
+2025-10-25 17:39:19 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: USDJPY
+2025-10-25 17:39:20 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 16
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 11
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 27
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.498
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.069 ATR
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 11
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 7
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 18
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.055 ATR
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 73
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 38
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 14
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 0.085452
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 0.026690
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 151.61700 - 153.06000
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3736
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 48.8%
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 0.04878571428571986, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 31/91 (34.1%)
+2025-10-25 17:39:29 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(-1)}
+2025-10-25 17:39:30 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['ChoCH_Level', 'EMA_50', 'EMA_200', 'ATR_MA', 'OB_Bullish_Age']...
+2025-10-25 17:39:30 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: 'XGBoost'
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1404, in make_ensemble_prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+  File "C:\Users\Morris\Desktop\Python\models\ensemble_model.py", line 233, in get_individual_predictions
+    X_xgb = X[self.feature_cols['XGBoost']].values
+              ~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'XGBoost'
+2025-10-25 17:39:30 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for XAUUSD
+2025-10-25 17:39:30 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: XAUUSD
+2025-10-25 17:39:31 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 13
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 19
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 32
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.543
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.161 ATR
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 10
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 10
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 20
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.074 ATR
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 67
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 31
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 12
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 12.988903
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 4.802216
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 4015.15000 - 4159.40000
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3696
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 48.8%
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 7.900714285714132, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 31/91 (34.1%)
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(-1)}
+2025-10-25 17:39:41 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['ChoCH_Level', 'EMA_50', 'EMA_200', 'ATR_MA', 'OB_Bullish_Age']...
+2025-10-25 17:39:41 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: 'XGBoost'
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1404, in make_ensemble_prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+  File "C:\Users\Morris\Desktop\Python\models\ensemble_model.py", line 233, in get_individual_predictions
+    X_xgb = X[self.feature_cols['XGBoost']].values
+              ~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'XGBoost'
+2025-10-25 17:39:41 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for AUDNZD
+2025-10-25 17:39:41 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: AUDNZD
+2025-10-25 17:39:43 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 16
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 14
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 30
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.435
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.194 ATR
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 4
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 4
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 8
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.030 ATR
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 68
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 31
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 15
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 0.000466
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 0.000117
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 1.12928 - 1.13314
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3758
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 50.0%
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 0.00029285714285709474, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 32/91 (35.2%)
+2025-10-25 17:39:53 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(1)}
+2025-10-25 17:39:53 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['ChoCH_Level', 'EMA_50', 'EMA_200', 'ATR_MA', 'OB_Bullish_Age']...
+2025-10-25 17:39:53 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: 'XGBoost'
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1404, in make_ensemble_prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+  File "C:\Users\Morris\Desktop\Python\models\ensemble_model.py", line 233, in get_individual_predictions
+    X_xgb = X[self.feature_cols['XGBoost']].values
+              ~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'XGBoost'
+2025-10-25 17:42:50 - __main__ - INFO - [live_inference_server.py:787] - ================================================================================
+2025-10-25 17:42:50 - __main__ - INFO - [live_inference_server.py:788] - 🛑 Shutting down SMC Live Inference Server
+2025-10-25 17:42:50 - __main__ - INFO - [live_inference_server.py:789] - 📊 Total predictions served: 0
+2025-10-25 17:42:50 - __main__ - INFO - [live_inference_server.py:791] - N/A
+2025-10-25 17:42:50 - __main__ - INFO - [live_inference_server.py:793] - ❌ Total errors: 3
+2025-10-25 17:42:50 - __main__ - INFO - [live_inference_server.py:794] - ================================================================================
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:245] - Logging configured successfully
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:246] - Log file: logs/inference_server.log
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:247] - Log level: INFO
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:248] - Log rotation: Daily, keeping 30 days
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:2186] - Starting server...
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:675] - ================================================================================
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:676] - 🚀 Starting SMC Live Inference Server
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:677] - ================================================================================
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:681] - ⚙️  Validating configuration...
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:683] - ✓ Configuration validated successfully
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:686] - 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        SERVER CONFIGURATION                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Server Settings:
+  • Host:                    0.0.0.0
+  • Port:                    5000
+  • Timeout:                 30s
+  • Max Workers:             4
+
+Model Settings:
+  • Model Directory:         models/trained
+  • Consensus Mode:          majority
+  • Min Confidence:          0.0
+
+Pipeline Settings:
+  • Base Timeframe:          M15
+  • Higher Timeframes:       H1, H4
+  • Min Bars Required:       100
+
+Logging Settings:
+  • Log File:                logs/inference_server.log
+  • Log Level:               INFO
+  • Log Rotation:            30 days
+
+Performance Settings:
+  • Caching Enabled:         False
+
+Security Settings:
+  • API Key Auth:            False
+  • Rate Limiting:           False
+  • Rate Limit:              60/min
+
+╚══════════════════════════════════════════════════════════════════════════════╝
+        
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:689] - 📊 Initializing SMC Data Pipeline...
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:690] -    🔧 Pipeline will detect:
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:691] -       - Order Blocks (OB)
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:692] -       - Fair Value Gaps (FVG)
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:693] -       - Break of Structure (BOS)
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:694] -       - Change of Character (ChoCH)
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:700] - ✓ Pipeline initialized successfully
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:703] - 🤖 Initializing ModelManager...
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:313] - 🔧 ModelManager initialized
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:314] -    Model directory: models\trained
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:315] -    Symbol: UNIFIED
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:335] - 🤖 Loading trained models...
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:381] -    ✓ Found RandomForest model: UNIFIED_RandomForest.pkl (0.25 MB)
+2025-10-25 17:43:45 - __main__ - WARNING - [live_inference_server.py:413] - ⚠️  NeuralNetwork scaler file not found: models\trained\UNIFIED_NeuralNetwork_scaler.pkl
+2025-10-25 17:43:45 - __main__ - WARNING - [live_inference_server.py:414] -    NeuralNetwork predictions may be inaccurate without proper scaling
+2025-10-25 17:43:45 - __main__ - INFO - [live_inference_server.py:420] -    Loading ensemble model for UNIFIED...
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:491] - 🔍 Validating loaded models...
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:507] -    ✓ RandomForest validated (67 features)
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:521] - ✅ All models validated successfully
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:457] - ✅ RandomForest model loaded successfully
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:458] -    - 64% accuracy, 0.43R EV, profitable
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:564] - 📊 Estimated memory usage: 0.00 MB
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:602] - 📊 Consensus mode set to: majority
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:753] - ================================================================================
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:754] - ✅ Server ready on http://0.0.0.0:5000
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:756] - 📖 API docs: http://0.0.0.0:5000/docs
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:758] - 📊 Consensus mode: majority
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:759] - 🎯 Min confidence threshold: 0.0
+2025-10-25 17:43:52 - __main__ - INFO - [live_inference_server.py:761] - ================================================================================
+2025-10-25 17:44:42 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for USDJPY
+2025-10-25 17:44:42 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: USDJPY
+2025-10-25 17:44:44 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 16
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 11
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 27
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.498
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.069 ATR
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 11
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 7
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 18
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.055 ATR
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 73
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 38
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 14
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 0.085452
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 0.026690
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 151.61700 - 153.06000
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3736
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 48.8%
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 0.04878571428571986, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 31/91 (34.1%)
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(-1)}
+2025-10-25 17:44:51 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['EMA_50', 'ChoCH_Level', 'EMA_200', 'ATR_MA', 'OB_Low']...
+2025-10-25 17:44:51 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: name 'torch' is not defined
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1404, in make_ensemble_prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+  File "C:\Users\Morris\Desktop\Python\models\ensemble_model.py", line 237, in get_individual_predictions
+    with torch.no_grad():
+         ^^^^^
+NameError: name 'torch' is not defined
+2025-10-25 17:44:51 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for XAUUSD
+2025-10-25 17:44:51 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: XAUUSD
+2025-10-25 17:44:53 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 13
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 19
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 32
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.543
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.161 ATR
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 10
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 10
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 20
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.074 ATR
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 67
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 31
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 12
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 12.988903
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 4.802216
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 4015.15000 - 4159.40000
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3696
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 48.8%
+2025-10-25 17:45:03 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:45:04 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:45:04 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 7.900714285714132, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:45:04 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 31/91 (34.1%)
+2025-10-25 17:45:04 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(-1)}
+2025-10-25 17:45:04 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['EMA_50', 'ChoCH_Level', 'EMA_200', 'ATR_MA', 'OB_Low']...
+2025-10-25 17:45:04 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: name 'torch' is not defined
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1404, in make_ensemble_prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+  File "C:\Users\Morris\Desktop\Python\models\ensemble_model.py", line 237, in get_individual_predictions
+    with torch.no_grad():
+         ^^^^^
+NameError: name 'torch' is not defined
+2025-10-25 17:45:04 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for AUDNZD
+2025-10-25 17:45:04 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: AUDNZD
+2025-10-25 17:45:05 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 16
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 14
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 30
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.435
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.194 ATR
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 4
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 4
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 8
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.030 ATR
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 68
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 31
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 15
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 0.000466
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 0.000117
+2025-10-25 17:45:15 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 1.12928 - 1.13314
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3758
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 50.0%
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 0.00029285714285709474, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 32/91 (35.2%)
+2025-10-25 17:45:16 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(1)}
+2025-10-25 17:45:16 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['EMA_50', 'ChoCH_Level', 'EMA_200', 'ATR_MA', 'OB_Low']...
+2025-10-25 17:45:16 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: name 'torch' is not defined
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1404, in make_ensemble_prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+  File "C:\Users\Morris\Desktop\Python\models\ensemble_model.py", line 237, in get_individual_predictions
+    with torch.no_grad():
+         ^^^^^
+NameError: name 'torch' is not defined
+2025-10-25 17:48:18 - __main__ - INFO - [live_inference_server.py:787] - ================================================================================
+2025-10-25 17:48:18 - __main__ - INFO - [live_inference_server.py:788] - 🛑 Shutting down SMC Live Inference Server
+2025-10-25 17:48:18 - __main__ - INFO - [live_inference_server.py:789] - 📊 Total predictions served: 0
+2025-10-25 17:48:18 - __main__ - INFO - [live_inference_server.py:791] - N/A
+2025-10-25 17:48:18 - __main__ - INFO - [live_inference_server.py:793] - ❌ Total errors: 3
+2025-10-25 17:48:18 - __main__ - INFO - [live_inference_server.py:794] - ================================================================================
+2025-10-25 17:48:59 - __main__ - INFO - [live_inference_server.py:245] - Logging configured successfully
+2025-10-25 17:48:59 - __main__ - INFO - [live_inference_server.py:246] - Log file: logs/inference_server.log
+2025-10-25 17:48:59 - __main__ - INFO - [live_inference_server.py:247] - Log level: INFO
+2025-10-25 17:48:59 - __main__ - INFO - [live_inference_server.py:248] - Log rotation: Daily, keeping 30 days
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:2186] - Starting server...
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:675] - ================================================================================
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:676] - 🚀 Starting SMC Live Inference Server
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:677] - ================================================================================
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:681] - ⚙️  Validating configuration...
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:683] - ✓ Configuration validated successfully
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:686] - 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        SERVER CONFIGURATION                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Server Settings:
+  • Host:                    0.0.0.0
+  • Port:                    5000
+  • Timeout:                 30s
+  • Max Workers:             4
+
+Model Settings:
+  • Model Directory:         models/trained
+  • Consensus Mode:          majority
+  • Min Confidence:          0.0
+
+Pipeline Settings:
+  • Base Timeframe:          M15
+  • Higher Timeframes:       H1, H4
+  • Min Bars Required:       100
+
+Logging Settings:
+  • Log File:                logs/inference_server.log
+  • Log Level:               INFO
+  • Log Rotation:            30 days
+
+Performance Settings:
+  • Caching Enabled:         False
+
+Security Settings:
+  • API Key Auth:            False
+  • Rate Limiting:           False
+  • Rate Limit:              60/min
+
+╚══════════════════════════════════════════════════════════════════════════════╝
+        
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:689] - 📊 Initializing SMC Data Pipeline...
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:690] -    🔧 Pipeline will detect:
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:691] -       - Order Blocks (OB)
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:692] -       - Fair Value Gaps (FVG)
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:693] -       - Break of Structure (BOS)
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:694] -       - Change of Character (ChoCH)
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:700] - ✓ Pipeline initialized successfully
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:703] - 🤖 Initializing ModelManager...
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:313] - 🔧 ModelManager initialized
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:314] -    Model directory: models\trained
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:315] -    Symbol: UNIFIED
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:335] - 🤖 Loading trained models...
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:381] -    ✓ Found RandomForest model: UNIFIED_RandomForest.pkl (0.25 MB)
+2025-10-25 17:49:00 - __main__ - WARNING - [live_inference_server.py:413] - ⚠️  NeuralNetwork scaler file not found: models\trained\UNIFIED_NeuralNetwork_scaler.pkl
+2025-10-25 17:49:00 - __main__ - WARNING - [live_inference_server.py:414] -    NeuralNetwork predictions may be inaccurate without proper scaling
+2025-10-25 17:49:00 - __main__ - INFO - [live_inference_server.py:420] -    Loading ensemble model for UNIFIED...
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:491] - 🔍 Validating loaded models...
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:507] -    ✓ RandomForest validated (67 features)
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:521] - ✅ All models validated successfully
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:457] - ✅ RandomForest model loaded successfully
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:458] -    - 64% accuracy, 0.43R EV, profitable
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:564] - 📊 Estimated memory usage: 0.00 MB
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:602] - 📊 Consensus mode set to: majority
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:753] - ================================================================================
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:754] - ✅ Server ready on http://0.0.0.0:5000
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:756] - 📖 API docs: http://0.0.0.0:5000/docs
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:758] - 📊 Consensus mode: majority
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:759] - 🎯 Min confidence threshold: 0.0
+2025-10-25 17:49:08 - __main__ - INFO - [live_inference_server.py:761] - ================================================================================
+2025-10-25 17:49:51 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for USDJPY
+2025-10-25 17:49:51 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: USDJPY
+2025-10-25 17:49:53 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 16
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 11
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 27
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.498
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.069 ATR
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 11
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 7
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 18
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.055 ATR
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 73
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 38
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 14
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 0.085452
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 0.026690
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 151.61700 - 153.06000
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3736
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 48.8%
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 0.04878571428571986, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 31/91 (34.1%)
+2025-10-25 17:50:02 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(-1)}
+2025-10-25 17:50:02 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['OB_Close', 'TBM_Take_Profit', 'FVG_Bottom', 'EMA_50', 'OB_Bearish_Age']...
+2025-10-25 17:50:03 - __main__ - INFO - [live_inference_server.py:1418] -    🤖 Models predict for NEUTRAL setup: -1 (1=WIN, 0=TIMEOUT, -1=LOSS)
+2025-10-25 17:50:03 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: 'XGBoost'
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1423, in make_ensemble_prediction
+    xgb_pred = int(individual_preds['XGBoost'][0])
+                   ~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'XGBoost'
+2025-10-25 17:50:03 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for XAUUSD
+2025-10-25 17:50:03 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: XAUUSD
+2025-10-25 17:50:05 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 13
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 19
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 32
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.543
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.161 ATR
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 10
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 10
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 20
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.074 ATR
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 67
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 31
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 12
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 12.988903
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 4.802216
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 4015.15000 - 4159.40000
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3696
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 48.8%
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 7.900714285714132, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 31/91 (34.1%)
+2025-10-25 17:50:16 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(-1)}
+2025-10-25 17:50:16 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['OB_Close', 'TBM_Take_Profit', 'FVG_Bottom', 'EMA_50', 'OB_Bearish_Age']...
+2025-10-25 17:50:17 - __main__ - INFO - [live_inference_server.py:1418] -    🤖 Models predict for NEUTRAL setup: -1 (1=WIN, 0=TIMEOUT, -1=LOSS)
+2025-10-25 17:50:17 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: 'XGBoost'
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1423, in make_ensemble_prediction
+    xgb_pred = int(individual_preds['XGBoost'][0])
+                   ~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'XGBoost'
+2025-10-25 17:50:17 - __main__ - INFO - [live_inference_server.py:2023] - 📥 Prediction request received for AUDNZD
+2025-10-25 17:50:17 - inference_utils - INFO - [inference_utils.py:37] - Converting JSON to DataFrame for symbol: AUDNZD
+2025-10-25 17:50:19 - inference_utils - INFO - [inference_utils.py:191] - DataFrame created: 750 rows, {'M15': 250, 'H1': 250, 'H4': 250}
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:919] - ================================================================================
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:920] - 🔍 SMC STRUCTURE DETECTION DIAGNOSTIC
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:921] - ================================================================================
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:928] - 📦 ORDER BLOCKS DETECTED:
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:929] -    Bullish OBs: 16
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:930] -    Bearish OBs: 14
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:931] -    Total OBs: 30
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:946] -    ✅ OB Quality (avg): 0.435
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:947] -    ✅ OB Displacement (avg): 2.194 ATR
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:955] - 
+📊 FAIR VALUE GAPS DETECTED:
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:956] -    Bullish FVGs: 4
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:957] -    Bearish FVGs: 4
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:958] -    Total FVGs: 8
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:967] -    ✅ FVG Depth (avg): 1.030 ATR
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:974] - 
+🏗️ MARKET STRUCTURE BREAKS:
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:975] -    BOS (Wick): 68
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:976] -    BOS (Close): 31
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:977] -    ChoCH: 15
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:983] - 
+📈 DATA QUALITY:
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:984] -    Total rows: 250
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:985] -    ATR mean: 0.000466
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:986] -    ATR std: 0.000117
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:987] -    Price range: 1.12928 - 1.13314
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:989] -    NaN values: 3758
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:1000] -    ✅ All critical SMC features present
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:1005] -    📊 Non-zero features (latest row): 50.0%
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:1012] - ================================================================================
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:1277] -    ⚠️ No clear bullish/bearish structure → HOLD (TBM_Entry=0)
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:1350] -    🔍 Feature sample (first 10): {'atr': 0.00029285714285709474, 'OB_Bullish': 0, 'OB_Bearish': 0, 'OB_Open': 0.0, 'OB_Close': 0.0, 'OB_High': 0.0, 'OB_Low': 0.0, 'OB_Size_ATR': 0.0, 'OB_Displacement_ATR': 0.0, 'OB_Displacement_Mag_ZScore': 0.0}
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:1355] -    📊 Non-zero features: 32/91 (35.2%)
+2025-10-25 17:50:31 - __main__ - INFO - [live_inference_server.py:1366] -    🎯 SMC Features: {'OB_Bullish': np.int64(0), 'OB_Bearish': np.int64(0), 'FVG_Bullish': np.int64(0), 'FVG_Bearish': np.int64(0), 'BOS_Close_Confirm': np.int64(1)}
+2025-10-25 17:50:31 - __main__ - WARNING - [live_inference_server.py:1385] -    ⚠️  Found 24 extra features not used by models: ['OB_Close', 'TBM_Take_Profit', 'FVG_Bottom', 'EMA_50', 'OB_Bearish_Age']...
+2025-10-25 17:50:33 - __main__ - INFO - [live_inference_server.py:1418] -    🤖 Models predict for NEUTRAL setup: -1 (1=WIN, 0=TIMEOUT, -1=LOSS)
+2025-10-25 17:50:33 - __main__ - ERROR - [live_inference_server.py:2082] - ❌ Prediction failed: 'XGBoost'
+Traceback (most recent call last):
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 2079, in predict
+    prediction_result = make_ensemble_prediction(latest_features)
+  File "C:\Users\Morris\Desktop\Python\live_inference_server.py", line 1423, in make_ensemble_prediction
+    xgb_pred = int(individual_preds['XGBoost'][0])
+                   ~~~~~~~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'XGBoost'

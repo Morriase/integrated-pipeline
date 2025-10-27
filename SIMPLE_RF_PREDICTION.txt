@@ -1,0 +1,31 @@
+Replace make_ensemble_prediction function (line ~1391) with this simplified version:
+
+def make_ensemble_prediction(features: pd.DataFrame) -> Dict:
+    """Make prediction using RandomForest only"""
+    ensemble = server_state.model_manager.get_ensemble()
+    
+    # Get RF prediction
+    individual_preds = ensemble.get_individual_predictions(features)
+    rf_pred = int(individual_preds['RandomForest'][0])
+    
+    # Get RF probabilities
+    X_rf = features[ensemble.feature_cols['RandomForest']].values
+    X_rf = np.nan_to_num(X_rf, nan=0.0, posinf=1e10, neginf=-1e10)
+    rf_proba = ensemble.models['RandomForest'].predict_proba(X_rf)[0]
+    
+    # Map to outcome probabilities (assuming 2 classes: Loss=-1, Win=1)
+    outcome_probabilities = {
+        'LOSS': rf_proba[0] if len(rf_proba) > 0 else 0.5,
+        'WIN': rf_proba[1] if len(rf_proba) > 1 else 0.5,
+        'TIMEOUT': 0.0
+    }
+    
+    confidence = float(max(rf_proba))
+    
+    return {
+        'prediction': rf_pred,
+        'confidence': confidence,
+        'has_consensus': True,  # Single model always has consensus
+        'outcome_probabilities': outcome_probabilities,
+        'models': {'RandomForest': rf_pred}
+    }
